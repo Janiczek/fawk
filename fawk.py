@@ -20,7 +20,8 @@ def main():
                '  %(prog)s script.fawk input.txt        # script from file\n'
                '  %(prog)s -f script.fawk input.txt     # explicit -f flag\n'
                '  %(prog)s \'{ print $1 }\' input.txt     # inline script\n'
-               '  %(prog)s -f script.fawk f1.txt f2.txt # multiple inputs',
+               '  %(prog)s -f script.fawk f1.txt f2.txt # multiple inputs\n'
+               '  cat file.txt | %(prog)s \'{ print $1 }\' # piped input',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument('-f', '--file', dest='script_file', metavar='script_file',
@@ -89,7 +90,7 @@ def main():
     argc = len(argv)
     interpreter = Interpreter(argc, argv)
     
-    # Read input from files if provided
+    # Read input from files if provided, or from stdin
     input_lines = []
     if input_files:
         for input_file in input_files:
@@ -104,6 +105,16 @@ def main():
                 sys.exit(1)
             except IOError as e:
                 print(f"Error reading input file: {e}", file=sys.stderr)
+                sys.exit(1)
+    else:
+        # No input files specified - check if stdin has data
+        # This allows piping: cat file.txt | fawk '{ print $1 }'
+        if not sys.stdin.isatty():
+            interpreter.FILENAME = "-"
+            try:
+                input_lines = sys.stdin.readlines()
+            except IOError as e:
+                print(f"Error reading from stdin: {e}", file=sys.stderr)
                 sys.exit(1)
     
     # Run

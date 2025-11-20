@@ -86,6 +86,16 @@ test_case "NR increments across multiple files" \
     "3" \
     ./fawk 'END { print NR }' /tmp/fawk_test_file1.txt /tmp/fawk_test_file2.txt /tmp/fawk_test_file3.txt
 
+# Test 9: Piping input from another command
+test_case "Piping input from cat" \
+    "apple" \
+    bash -c "cat /tmp/fawk_test_file1.txt | ./fawk '{ print \$1 }'"
+
+# Test 10: Piping with field splitting
+test_case "Piping with field splitting" \
+    "two" \
+    bash -c "echo 'one:two:three' | ./fawk 'BEGIN { FS = \":\" } { print \$2 }'"
+
 # Clean up
 rm -f /tmp/fawk_test_file1.txt /tmp/fawk_test_file2.txt /tmp/fawk_test_file3.txt
 rm -f /tmp/fawk_test_fields.txt /tmp/fawk_test_script.fawk /tmp/fawk_test_fields_script.fawk
