@@ -169,6 +169,8 @@ class Lexer:
                     string += quote
                     self.advance()
                 else:
+                    # Preserve backslash for unknown escapes (e.g., \$ or \. for regex)
+                    string += '\\'
                     string += next_char
                     self.advance()
             else:

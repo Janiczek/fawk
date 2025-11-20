@@ -4,7 +4,8 @@ function test_match() {
     text = "The price is $42.50 for item"
     
     # match(pattern, text) - pattern first for pipeline-friendliness
-    result = match("\\$([0-9]+)\\.([0-9]+)", text)
+    # Use single backslash for regex escapes
+    result = match("\$([0-9]+)\.([0-9]+)", text)
     
     if (length(result) > 0) {
         print "  match() found:", result[0]
