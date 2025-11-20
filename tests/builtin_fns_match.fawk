@@ -1,0 +1,28 @@
+# Test: match() function
+
+BEGIN {
+    print "Test: match() function"
+    print "--------------------------------------"
+    
+    text = "The price is $42.50 for item"
+    
+    # match(pattern, text) - pattern first for pipeline-friendliness
+    # Use single backslash for regex escapes
+    result = match("\$([0-9]+)\.([0-9]+)", text)
+    
+    if (length(result) > 0) {
+        print "  match() found:", result[0]
+        print "  Group 1 (dollars):", result[1]
+        print "  Group 2 (cents):", result[2]
+    }
+    
+    print ""
+    
+    # Test email extraction
+    email_text = "Contact: alice@example.com"
+    email_result = match("([a-z]+)@([a-z]+\\.com)", email_text)
+    print "  Email match:", email_result[0]
+    print "  User:", email_result[1]
+    print "  Domain:", email_result[2]
+}
+

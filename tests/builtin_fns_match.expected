@@ -1,0 +1,9 @@
+Test: match() function
+--------------------------------------
+  match() found: $42.50
+  Group 1 (dollars): 42
+  Group 2 (cents): 50
+
+  Email match: alice@example.com
+  User: alice
+  Domain: example.com

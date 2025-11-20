@@ -1,0 +1,5 @@
+Test: Format variables
+--------------------------------------
+  CONVFMT: %.6g
+  OFMT: %.6g
+  SUBSEP: 1 bytes

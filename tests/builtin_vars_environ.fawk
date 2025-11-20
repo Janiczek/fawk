@@ -1,0 +1,9 @@
+# Test: ENVIRON built-in variable
+
+BEGIN {
+    print "Test: ENVIRON"
+    print "--------------------------------------"
+    print "  MYENVVAR1 exists:", length(ENVIRON["MYENVVAR1"]) > 0
+    print "  MYENVVAR2:", ENVIRON["MYENVVAR2"]
+}
+

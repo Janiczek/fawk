@@ -1,0 +1,14 @@
+# Test: RSTART and RLENGTH (set by match())
+
+BEGIN {
+    print "Test: match() sets RSTART and RLENGTH"
+    print "--------------------------------------"
+    text = "Hello World 123"
+    result = match("[0-9]+", text)
+    print "  Text:", text
+    print "  Pattern: [0-9]+"
+    print "  RSTART:", RSTART
+    print "  RLENGTH:", RLENGTH
+    print "  Matched:", result[0]
+}
+

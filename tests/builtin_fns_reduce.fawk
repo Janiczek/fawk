@@ -1,0 +1,26 @@
+# Test: reduce() function
+
+BEGIN {
+    print "Test: reduce() function"
+    print "--------------------------------------"
+    
+    values = [1, 2, 3, 4, 5]
+    sum = reduce((acc, x) => { acc + x }, 0, values)
+    product = reduce((acc, x) => { acc * x }, 1, values)
+    
+    print "  Array:", values
+    print "  Sum:", sum
+    print "  Product:", product
+    
+    print ""
+    
+    # Test with pipeline
+    result = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        |> filter((n) => { n > 3 })
+        |> map((n) => { n * n })
+        |> reduce((acc, n) => { acc + n }, 0)
+    
+    print "  Pipeline: [1..10] |> filter(>3) |> map(square) |> reduce(sum)"
+    print "  Result:", result
+}
+

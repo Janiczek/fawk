@@ -1,0 +1,24 @@
+# Test: map() function
+
+BEGIN {
+    print "Test: map() function"
+    print "--------------------------------------"
+    
+    numbers = [1, 2, 3, 4, 5]
+    doubled = map((x) => { x * 2 }, numbers)
+    print "  Original:", numbers
+    print "  Doubled:", doubled
+    
+    print ""
+    
+    # Test with pipeline
+    tripled = [1, 2, 3] |> map((x) => { x * 3 })
+    print "  Pipeline [1,2,3] |> map(*3):", tripled
+    
+    print ""
+    
+    # Test with custom function
+    squared = map((x) => { x * x }, [2, 3, 4])
+    print "  Squared [2,3,4]:", squared
+}
+

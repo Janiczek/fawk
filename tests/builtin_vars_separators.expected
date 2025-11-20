@@ -1,0 +1,11 @@
+Test: Field and record separators
+--------------------------------------
+  FS:  
+  OFS:  
+  RS: 
+
+  ORS: 1 bytes
+
+Test: Modified OFS
+--------------------------------------
+  a|b|c

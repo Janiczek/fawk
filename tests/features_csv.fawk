@@ -1,4 +1,4 @@
-# Test 7: Complete CSV Processing Example
+# Test: Complete CSV Processing Example
 
 function sum(arr) {
     total = 0

@@ -1,4 +1,4 @@
-# Test 1: Arrays as First-Class Values
+# Test: Arrays as First-Class Values
 
 function array_sum(arr) {
     total = 0

@@ -1,0 +1,4 @@
+Test: ENVIRON
+--------------------------------------
+  MYENVVAR1 exists: 1
+  MYENVVAR2: helloworld

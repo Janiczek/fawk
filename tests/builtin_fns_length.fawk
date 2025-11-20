@@ -1,0 +1,19 @@
+# Test: length() function
+
+BEGIN {
+    print "Test: length() function"
+    print "--------------------------------------"
+    
+    str = "Hello World"
+    arr = [1, 2, 3, 4, 5]
+    
+    print "  length(\"Hello World\"):", length(str)
+    print "  length([1,2,3,4,5]):", length(arr)
+    
+    # Test empty string and array
+    empty_str = ""
+    empty_arr = []
+    print "  length(\"\"):", length(empty_str)
+    print "  length([]):", length(empty_arr)
+}
+

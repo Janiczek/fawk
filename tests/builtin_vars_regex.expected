@@ -1,0 +1,7 @@
+Test: match() sets RSTART and RLENGTH
+--------------------------------------
+  Text: Hello World 123
+  Pattern: [0-9]+
+  RSTART: 13
+  RLENGTH: 3
+  Matched: 123

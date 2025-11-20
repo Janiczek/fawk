@@ -1,0 +1,6 @@
+Test: length() function
+--------------------------------------
+  length("Hello World"): 11
+  length([1,2,3,4,5]): 5
+  length(""): 0
+  length([]): 0

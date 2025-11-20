@@ -1,0 +1,24 @@
+# Test: filter() function
+
+BEGIN {
+    print "Test: filter() function"
+    print "--------------------------------------"
+    
+    nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    evens = filter((n) => { n % 2 == 0 }, nums)
+    print "  Original:", nums
+    print "  Evens only:", evens
+    
+    print ""
+    
+    # Test with pipeline
+    odds = [1, 2, 3, 4, 5, 6] |> filter((n) => { n % 2 != 0 })
+    print "  Pipeline odds:", odds
+    
+    print ""
+    
+    # Test filtering by value
+    large = filter((n) => { n > 5 }, [1, 3, 5, 7, 9, 11])
+    print "  Values > 5:", large
+}
+

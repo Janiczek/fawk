@@ -1,0 +1,27 @@
+# Test: sum_array() function
+
+BEGIN {
+    print "Test: sum_array() function"
+    print "--------------------------------------"
+    
+    data = [10, 20, 30, 40, 50]
+    total = sum_array(data)
+    print "  Array:", data
+    print "  Sum:", total
+    
+    print ""
+    
+    # Test with different array
+    nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    result = sum_array(nums)
+    print "  Array [1..10]:", nums
+    print "  Sum:", result
+    
+    print ""
+    
+    # Test empty array
+    empty = []
+    empty_sum = sum_array(empty)
+    print "  Empty array sum:", empty_sum
+}
+

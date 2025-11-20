@@ -1,0 +1,32 @@
+# Test: split() function
+
+BEGIN {
+    print "Test: split() function"
+    print "--------------------------------------"
+    
+    # Test CSV splitting
+    csv_line = "apple,banana,cherry,date"
+    
+    # split(separator, text) - separator first for pipeline-friendliness
+    fruits = split(",", csv_line)
+    count = length(fruits)
+    print "  split() returned", count, "items"
+    print "  Item 0:", fruits[0]
+    print "  Item 1:", fruits[1]
+    print "  Item 2:", fruits[2]
+    print ""
+    
+    # Test colon-separated
+    line = "apple:banana:cherry:date"
+    parts = split(":", line)
+    print "  Split by ':':", parts
+    print "  Count:", length(parts)
+    print ""
+    
+    # Test pipeline usage
+    text = "one,two,three"
+    result = text |> split(",")
+    print "  Pipeline: text |> split(\",\") works!"
+    print "  Result[1]:", result[1]
+}
+

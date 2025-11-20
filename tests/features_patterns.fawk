@@ -1,0 +1,21 @@
+# Test: Regex pattern matching
+
+BEGIN {
+    print "Test: Regex pattern matching"
+    print "--------------------------------------"
+}
+
+# Match lines starting with "product"
+/^product/ {
+    print "Found product line:", $0
+}
+
+# Match lines with "error" or "warning" (case-insensitive)
+/error|warning/i {
+    print "Found issue:", $0
+}
+
+END {
+    print "Pattern matching completed"
+}
+

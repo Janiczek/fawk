@@ -1,0 +1,24 @@
+Test: FS can be changed
+--------------------------------------
+  FS set to ':'
+
+Test: Field splitting with FS
+--------------------------------------
+  Line 1 has 3 fields
+    Field 1: name
+    Field 2: alice
+    Field 3: developer
+  Line 2 has 3 fields
+    Field 1: name
+    Field 2: bob
+    Field 3: designer
+  Line 3 has 3 fields
+    Field 1: role
+    Field 2: charlie
+    Field 3: manager
+
+Test: Record counters
+--------------------------------------
+  NR (total records): 3
+  FNR (file records): 3
+  FILENAME: tests/builtin_vars_fields.input

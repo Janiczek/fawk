@@ -1,0 +1,33 @@
+# Test: Field variables (NF, NR, FNR, FILENAME, $0, $1, $2, etc.)
+
+BEGIN {
+    print "Test: FS can be changed"
+    print "--------------------------------------"
+    FS = ":"
+    print "  FS set to ':'"
+    print ""
+}
+
+# Test field splitting with changed FS
+{
+    if (NR == 1) {
+        print "Test: Field splitting with FS"
+        print "--------------------------------------"
+    }
+    print "  Line", NR, "has", NF, "fields"
+    print "    Field 1:", $1
+    print "    Field 2:", $2
+    if (NF > 2) {
+        print "    Field 3:", $3
+    }
+}
+
+END {
+    print ""
+    print "Test: Record counters"
+    print "--------------------------------------"
+    print "  NR (total records):", NR
+    print "  FNR (file records):", FNR
+    print "  FILENAME:", FILENAME
+}
+
