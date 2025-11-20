@@ -47,12 +47,14 @@ class Parser:
     def parse(self) -> Program:
         functions = []
         begin_block = None
+        beginfile_block = None
         patterns = []
+        endfile_block = None
         end_block = None
         
         self.skip_newlines()
         
-        # Parse functions, BEGIN, patterns, and END in any order
+        # Parse functions, BEGIN, BEGINFILE, patterns, ENDFILE, and END in any order
         while self.current().type != TokenType.EOF:
             self.skip_newlines()
             
@@ -63,6 +65,16 @@ class Parser:
                     self.error("Multiple BEGIN blocks not allowed")
                 self.advance()
                 begin_block = self.parse_block()
+            elif self.current().type == TokenType.BEGINFILE:
+                if beginfile_block is not None:
+                    self.error("Multiple BEGINFILE blocks not allowed")
+                self.advance()
+                beginfile_block = self.parse_block()
+            elif self.current().type == TokenType.ENDFILE:
+                if endfile_block is not None:
+                    self.error("Multiple ENDFILE blocks not allowed")
+                self.advance()
+                endfile_block = self.parse_block()
             elif self.current().type == TokenType.END:
                 if end_block is not None:
                     self.error("Multiple END blocks not allowed")
@@ -88,7 +100,7 @@ class Parser:
             
             self.skip_newlines()
         
-        return Program(functions, begin_block, patterns, end_block)
+        return Program(functions, begin_block, beginfile_block, patterns, endfile_block, end_block)
     
     def parse_function_def(self) -> FunctionDef:
         self.expect(TokenType.FUNCTION)

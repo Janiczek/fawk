@@ -504,19 +504,41 @@ class Interpreter:
         elif op == '~':
             # String ~ pattern: check if string contains/matches pattern
             text = self.value_to_string(left)
-            pattern = self.value_to_string(right)
-            try:
-                return bool(re.search(pattern, text))
-            except re.error as e:
-                self.error(f"Invalid regex pattern: {e}")
+            # If right is a Regex node, get its pattern
+            if isinstance(node.right, Regex):
+                pattern = node.right.pattern
+                flags = 0
+                if 'i' in node.right.flags:
+                    flags |= re.IGNORECASE
+                try:
+                    return bool(re.search(pattern, text, flags))
+                except re.error as e:
+                    self.error(f"Invalid regex pattern: {e}")
+            else:
+                pattern = self.value_to_string(right)
+                try:
+                    return bool(re.search(pattern, text))
+                except re.error as e:
+                    self.error(f"Invalid regex pattern: {e}")
         elif op == '!~':
             # String !~ pattern: check if string does not match pattern
             text = self.value_to_string(left)
-            pattern = self.value_to_string(right)
-            try:
-                return not bool(re.search(pattern, text))
-            except re.error as e:
-                self.error(f"Invalid regex pattern: {e}")
+            # If right is a Regex node, get its pattern
+            if isinstance(node.right, Regex):
+                pattern = node.right.pattern
+                flags = 0
+                if 'i' in node.right.flags:
+                    flags |= re.IGNORECASE
+                try:
+                    return not bool(re.search(pattern, text, flags))
+                except re.error as e:
+                    self.error(f"Invalid regex pattern: {e}")
+            else:
+                pattern = self.value_to_string(right)
+                try:
+                    return not bool(re.search(pattern, text))
+                except re.error as e:
+                    self.error(f"Invalid regex pattern: {e}")
         else:
             self.error(f"Unknown binary operator: {op}")
     
@@ -881,7 +903,14 @@ class Interpreter:
             else:
                 return record.split(fs)
     
-    def run(self, program: Program, input_text: str = None):
+    def run(self, program: Program, input_files: list = None):
+        """
+        Run the FAWK program.
+        
+        Args:
+            program: The parsed Program AST
+            input_files: List of tuples (filename, content) or None for no input
+        """
         # Register user-defined functions (protect built-ins)
         for func_def in program.functions:
             if func_def.name in self.builtin_functions:
@@ -904,50 +933,100 @@ class Interpreter:
             finally:
                 self.current_env = saved_env
         
-        # Process input with pattern-action blocks
+        # Process input files
         exit_code = None
-        if input_text:
-            # Split input into records based on RS
-            records = self.split_into_records(input_text)
-            
+        if input_files:
             try:
-                for record, terminator in records:
-                    self.NR += 1
-                    self.FNR += 1
-                    self.RT = terminator
+                for filename, file_content in input_files:
+                    # Set FILENAME and reset FNR for this file
+                    self.FILENAME = filename
+                    self.FNR = 0
                     
-                    # Split record into fields
-                    self.current_line = record  # Store original record for $0
-                    self.fields = self.split_fields(record)
-                    self.NF = len(self.fields)
+                    # Execute BEGINFILE block
+                    if program.beginfile_block:
+                        beginfile_env = Environment(self.global_env)
+                        saved_env = self.current_env
+                        self.current_env = beginfile_env
+                        try:
+                            self.eval(program.beginfile_block)
+                        except NextFileException:
+                            # Skip this file
+                            self.current_env = saved_env
+                            continue
+                        except ExitException as e:
+                            # Exit during BEGINFILE
+                            exit_code = e.code
+                            self.current_env = saved_env
+                            break
+                        finally:
+                            if self.current_env == beginfile_env:
+                                self.current_env = saved_env
                     
-                    # Execute pattern-action blocks
+                    # Process this file's records
                     try:
-                        for pattern_action in program.patterns:
-                            # Check if pattern matches (or no pattern)
-                            should_execute = False
-                            if pattern_action.pattern is None:
-                                should_execute = True
-                            else:
-                                # Evaluate pattern
-                                should_execute = self.is_truthy(self.eval(pattern_action.pattern))
+                        records = self.split_into_records(file_content)
+                        
+                        for record, terminator in records:
+                            self.NR += 1
+                            self.FNR += 1
+                            self.RT = terminator
                             
-                            if should_execute:
-                                action_env = Environment(self.global_env)
-                                saved_env = self.current_env
-                                self.current_env = action_env
-                                try:
-                                    self.eval(pattern_action.action)
-                                except NextException:
-                                    # Skip to next record
-                                    break
-                                finally:
-                                    self.current_env = saved_env
+                            # Split record into fields
+                            self.current_line = record  # Store original record for $0
+                            self.fields = self.split_fields(record)
+                            self.NF = len(self.fields)
+                            
+                            # Execute pattern-action blocks
+                            try:
+                                for pattern_action in program.patterns:
+                                    # Check if pattern matches (or no pattern)
+                                    should_execute = False
+                                    if pattern_action.pattern is None:
+                                        should_execute = True
+                                    else:
+                                        # Evaluate pattern
+                                        should_execute = self.is_truthy(self.eval(pattern_action.pattern))
+                                    
+                                    if should_execute:
+                                        action_env = Environment(self.global_env)
+                                        saved_env = self.current_env
+                                        self.current_env = action_env
+                                        try:
+                                            self.eval(pattern_action.action)
+                                        except NextException:
+                                            # Skip to next record
+                                            break
+                                        finally:
+                                            self.current_env = saved_env
+                            except NextFileException:
+                                # Skip to next file
+                                break
                     except NextFileException:
-                        # Skip to next file (for now, just skip remaining records)
+                        # Skip remaining records in this file
+                        pass
+                    except ExitException as e:
+                        # Exit during pattern-action - save exit code and jump to ENDFILE
+                        exit_code = e.code
+                    
+                    # Execute ENDFILE block
+                    if program.endfile_block:
+                        endfile_env = Environment(self.global_env)
+                        saved_env = self.current_env
+                        self.current_env = endfile_env
+                        try:
+                            self.eval(program.endfile_block)
+                        except ExitException as e:
+                            # Exit during ENDFILE
+                            exit_code = e.code
+                        finally:
+                            self.current_env = saved_env
+                    
+                    # If exit was called, stop processing files
+                    if exit_code is not None:
                         break
+                        
             except ExitException as e:
-                # Exit during pattern-action - save exit code and jump to END
+                # Exit during file processing
                 exit_code = e.code
         else:
             # No input, just execute pattern-less actions

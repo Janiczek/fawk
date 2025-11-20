@@ -1,0 +1,11 @@
+BEGIN: Starting processing
+BEGINFILE: Starting file tests/special_beginfile_endfile.input1 at NR=0
+Line 1 of tests/special_beginfile_endfile.input1: file1 line1
+Line 2 of tests/special_beginfile_endfile.input1: file1 line2
+ENDFILE: Finished file tests/special_beginfile_endfile.input1 with 2 lines, total NR=2
+BEGINFILE: Starting file tests/special_beginfile_endfile.input2 at NR=2
+Line 1 of tests/special_beginfile_endfile.input2: file2 line1
+Line 2 of tests/special_beginfile_endfile.input2: file2 line2
+Line 3 of tests/special_beginfile_endfile.input2: file2 line3
+ENDFILE: Finished file tests/special_beginfile_endfile.input2 with 3 lines, total NR=5
+END: Processed 5 total lines

@@ -19,10 +19,16 @@ TOTAL=0
 run_test() {
     local script="$1"
     local basename="$2"
-    local input_file="$3"
-    local expected="$4"
-    local env_file="$5"
-    local check_gawk="$6"
+    shift 2
+    local input_files=("$@")
+    local expected="tests/${basename}.expected"
+    local env_file="tests/${basename}.env"
+    local check_gawk="false"
+    
+    # Determine if this is a gawk compatibility test
+    if [[ "$script" == *.awk ]]; then
+        check_gawk="true"
+    fi
     
     TOTAL=$((TOTAL + 1))
     
@@ -41,8 +47,8 @@ run_test() {
             done < "$env_file"
         fi
         
-        if [ -f "$input_file" ]; then
-            ./fawk "$script" "$input_file"
+        if [ ${#input_files[@]} -gt 0 ]; then
+            ./fawk "$script" "${input_files[@]}"
         else
             ./fawk "$script"
         fi
@@ -100,8 +106,8 @@ run_test() {
                 done < "$env_file"
             fi
             
-            if [ -f "$input_file" ]; then
-                gawk -f "$script" "$input_file"
+            if [ ${#input_files[@]} -gt 0 ]; then
+                gawk -f "$script" "${input_files[@]}"
             else
                 gawk -f "$script"
             fi
@@ -124,31 +130,22 @@ run_test() {
 }
 
 # Discover and run all tests
-for script in tests/*.fawk; do
+for script in tests/*.fawk tests/*.awk; do
     if [ -f "$script" ]; then
         # Extract basename without extension
         basename=$(basename "$script" .fawk)
+        basename=$(basename "$basename" .awk)
         
-        # Check for corresponding input, expected, and env files
-        input_file="tests/${basename}.input"
-        expected_file="tests/${basename}.expected"
-        env_file="tests/${basename}.env"
+        # Find all matching input files using glob pattern
+        # This automatically handles single or multiple input files
+        input_files=()
+        for input_file in tests/${basename}.input*; do
+            if [ -f "$input_file" ]; then
+                input_files+=("$input_file")
+            fi
+        done
         
-        run_test "$script" "$basename" "$input_file" "$expected_file" "$env_file" "false"
-    fi
-done
-
-for script in tests/*.awk; do
-    if [ -f "$script" ]; then
-        # Extract basename without extension
-        basename=$(basename "$script" .awk)
-        
-        # Check for corresponding input, expected, and env files
-        input_file="tests/${basename}.input"
-        expected_file="tests/${basename}.expected"
-        env_file="tests/${basename}.env"
-        
-        run_test "$script" "$basename" "$input_file" "$expected_file" "$env_file" "true"
+        run_test "$script" "$basename" "${input_files[@]}"
     fi
 done
 

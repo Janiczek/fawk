@@ -91,14 +91,13 @@ def main():
     interpreter = Interpreter(argc, argv)
     
     # Read input from files if provided, or from stdin
-    input_text = ""
+    file_list = []
     if input_files:
         for input_file in input_files:
-            interpreter.FILENAME = input_file
-            interpreter.FNR = 0  # Reset file record counter for each file
             try:
                 with open(input_file, 'r') as f:
-                    input_text += f.read()
+                    content = f.read()
+                file_list.append((input_file, content))
             except FileNotFoundError:
                 print(f"Error: Input file '{input_file}' not found", file=sys.stderr)
                 sys.exit(1)
@@ -109,16 +108,16 @@ def main():
         # No input files specified - check if stdin has data
         # This allows piping: cat file.txt | fawk '{ print $1 }'
         if not sys.stdin.isatty():
-            interpreter.FILENAME = "-"
             try:
-                input_text = sys.stdin.read()
+                content = sys.stdin.read()
+                file_list.append(("-", content))
             except IOError as e:
                 print(f"Error reading from stdin: {e}", file=sys.stderr)
                 sys.exit(1)
     
     # Run
     try:
-        interpreter.run(program, input_text)
+        interpreter.run(program, file_list if file_list else None)
     except RuntimeError as e:
         print(f"Runtime error: {e}", file=sys.stderr)
         sys.exit(1)

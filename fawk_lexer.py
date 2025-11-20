@@ -34,6 +34,8 @@ class TokenType(Enum):
     PRINT = auto()
     BEGIN = auto()
     END = auto()
+    BEGINFILE = auto()
+    ENDFILE = auto()
     GLOBAL = auto()
     
     # Operators
@@ -112,6 +114,8 @@ class Lexer:
             'print': TokenType.PRINT,
             'BEGIN': TokenType.BEGIN,
             'END': TokenType.END,
+            'BEGINFILE': TokenType.BEGINFILE,
+            'ENDFILE': TokenType.ENDFILE,
             'global': TokenType.GLOBAL,
         }
     
@@ -284,12 +288,12 @@ class Lexer:
                 
                 last_meaningful = self.tokens[i]
                 # Regex can appear after:
-                # - Block delimiters: RBRACE, BEGIN, END, FUNCTION
+                # - Block delimiters: RBRACE, BEGIN, END, BEGINFILE, ENDFILE, FUNCTION
                 # - Operators where expressions can start: AND, OR, NOT, LPAREN, COMMA
                 # - Comparison/match operators: EQ, NE, LT, LE, GT, GE, MATCH, NOT_MATCH
                 # - Other operators: ASSIGN
                 if last_meaningful.type in [
-                    TokenType.RBRACE, TokenType.BEGIN, TokenType.END, TokenType.FUNCTION,
+                    TokenType.RBRACE, TokenType.BEGIN, TokenType.END, TokenType.BEGINFILE, TokenType.ENDFILE, TokenType.FUNCTION,
                     TokenType.AND, TokenType.OR, TokenType.NOT,
                     TokenType.LPAREN, TokenType.COMMA,
                     TokenType.EQ, TokenType.NE, TokenType.LT, TokenType.LE, TokenType.GT, TokenType.GE,

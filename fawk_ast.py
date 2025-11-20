@@ -16,7 +16,9 @@ class ASTNode:
 class Program(ASTNode):
     functions: List['FunctionDef']
     begin_block: Optional['Block']
+    beginfile_block: Optional['Block']
     patterns: List['PatternAction']
+    endfile_block: Optional['Block']
     end_block: Optional['Block']
 
 
