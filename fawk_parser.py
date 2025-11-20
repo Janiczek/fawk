@@ -288,12 +288,25 @@ class Parser:
         return left
     
     def parse_comparison(self) -> ASTNode:
-        left = self.parse_additive()
+        left = self.parse_concatenation()
         
         while self.current().type in [TokenType.LT, TokenType.LE, TokenType.GT, TokenType.GE]:
             op = self.advance().value
-            right = self.parse_additive()
+            right = self.parse_concatenation()
             left = BinaryOp(op, left, right)
+        
+        return left
+    
+    def parse_concatenation(self) -> ASTNode:
+        left = self.parse_additive()
+        
+        # String concatenation by juxtaposition
+        # Check if next token can start a primary expression
+        while self.current().type in [TokenType.STRING, TokenType.NUMBER, 
+                                       TokenType.IDENTIFIER, TokenType.DOLLAR, 
+                                       TokenType.LPAREN, TokenType.LBRACKET]:
+            right = self.parse_additive()
+            left = BinaryOp('concat', left, right)
         
         return left
     

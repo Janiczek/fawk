@@ -368,8 +368,11 @@ class Interpreter:
         
         op = node.op
         
+        # String concatenation
+        if op == 'concat':
+            return self.value_to_string(left) + self.value_to_string(right)
         # Arithmetic operations - convert to numbers
-        if op == '+':
+        elif op == '+':
             return self.to_number(left) + self.to_number(right)
         elif op == '-':
             return self.to_number(left) - self.to_number(right)
