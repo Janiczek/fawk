@@ -107,9 +107,10 @@ function map(func, arr) {
 function filter(pred, arr) {
     result = []
     idx = 0
-    for (i in arr) {
-        if (pred(arr[i])) {
-            result[idx] = arr[i]
+    # Works with both regular and associative arrays
+    for (key in arr) {
+        if (pred(arr[key])) {
+            result[idx] = arr[key]
             idx = idx + 1
         }
     }
@@ -117,18 +118,17 @@ function filter(pred, arr) {
 }
 
 BEGIN {
+    # Works with regular arrays
     nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    
-    # Traditional calls
-    evens = filter((n) => { n % 2 == 0 }, nums)
-    doubled = map((n) => { n * 2 }, evens)
-    
-    # Or use pipelines!
     doubled = nums 
         |> filter((n) => { n % 2 == 0 }) 
         |> map((n) => { n * 2 })
-    
     print doubled  # [4, 8, 12, 16, 20]
+    
+    # Works with associative arrays too
+    scores = ["alice" => 95, "bob" => 67, "carol" => 88]
+    passing = scores |> filter((s) => { s >= 70 })
+    print passing  # [95, 88] (values that passed the filter)
 }
 ```
 
