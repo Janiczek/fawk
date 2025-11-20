@@ -1,0 +1,10 @@
+[package]
+name = "fawk"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[[bin]]
+name = "fawk"
+path = "src/main.rs"

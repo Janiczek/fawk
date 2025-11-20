@@ -2,6 +2,32 @@
 
 A functional AWK dialect with first-class functions and arrays. FAWK keeps AWK's succinct syntax while adding modern functional programming features.
 
+## Quick Start
+
+### Build
+
+```bash
+cargo build --release
+```
+
+### Run Examples
+
+```bash
+# First-class functions
+cargo run examples/example1_first_class_functions.fawk
+
+# Lambda functions
+cargo run examples/example2_lambda.fawk
+
+# Pipeline with higher-order functions
+cargo run examples/example3_pipeline.fawk
+
+# AWK features (with input file)
+cargo run examples/example4_awk_features.fawk examples/data.txt
+```
+
+See [USAGE.md](USAGE.md) for detailed usage instructions.
+
 ## What's New
 
 1. [Arrays as First-Class Values](#1-arrays-as-first-class-values) - create, pass, and return arrays

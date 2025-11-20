@@ -1,0 +1,14 @@
+BEGIN {
+    global total, count
+}
+
+{
+    total = total + $1
+    count = count + 1
+}
+
+END {
+    print "Total:", total
+    print "Count:", count
+    print "Average:", total / count
+}
