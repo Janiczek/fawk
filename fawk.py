@@ -1019,6 +1019,16 @@ class FawkArray:
     def length(self):
         return len(self.data)
     
+    def copy(self):
+        """Create a deep copy of this array"""
+        new_arr = FawkArray()
+        for key, value in self.data.items():
+            if isinstance(value, FawkArray):
+                new_arr.data[key] = value.copy()
+            else:
+                new_arr.data[key] = value
+        return new_arr
+    
     def __repr__(self):
         # Display as array-like for regular indices, dict-like for assoc
         if all(isinstance(k, int) for k in self.data.keys()):
@@ -1347,7 +1357,11 @@ class Interpreter:
             # Create new environment for function
             func_env = Environment(func.closure_env)
             for param, arg in zip(func.params, args):
-                func_env.set_local(param, arg)
+                # Copy arrays when passing as arguments (pass by value)
+                if isinstance(arg, FawkArray):
+                    func_env.set_local(param, arg.copy())
+                else:
+                    func_env.set_local(param, arg)
             
             # Execute function body
             saved_env = self.current_env
