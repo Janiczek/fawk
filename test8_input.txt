@@ -1,0 +1,8 @@
+product laptop 1200
+info some data here
+product mouse 25
+Warning: low stock detected
+product keyboard 75
+ERROR: connection failed
+product monitor 350
+everything is fine

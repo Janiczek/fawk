@@ -1,0 +1,90 @@
+# Test 8: Advanced features - regex, match, split, auto-vivification
+
+function test_match() {
+    text = "The price is $42.50 for item"
+    
+    # match(pattern, text) - pattern first for pipeline-friendliness
+    # Use single backslash for regex escapes
+    result = match("\$([0-9]+)\.([0-9]+)", text)
+    
+    if (length(result) > 0) {
+        print "  match() found:", result[0]
+        print "  Group 1 (dollars):", result[1]
+        print "  Group 2 (cents):", result[2]
+    }
+}
+
+function test_split() {
+    csv_line = "apple,banana,cherry,date"
+    
+    # split(separator, text) - separator first for pipeline-friendliness
+    fruits = split(",", csv_line)
+    count = length(fruits)
+    print "  split() returned", count, "items"
+    print "  Item 0:", fruits[0]
+    print "  Item 1:", fruits[1]
+    print "  Item 2:", fruits[2]
+}
+
+function test_auto_vivify() {
+    # Write to undefined array - should auto-create
+    undefined_arr[0] = 100
+    undefined_arr[1] = 200
+    undefined_arr[2] = 300
+    
+    print "  Auto-vivified array created"
+    print "  Element 0:", undefined_arr[0]
+    print "  Element 1:", undefined_arr[1]
+}
+
+function test_pipeline() {
+    # Demonstrate pipeline-friendly argument order
+    text = "one,two,three"
+    
+    # split with pipeline
+    result = text |> split(",")
+    print "  Pipeline: text |> split(\",\") works!"
+    print "  Result[1]:", result[1]
+    
+    # Can also be used in nested pipelines
+    doubled = "1,2,3" |> split(",") |> map((x) => { x * 2 })
+    print "  Nested pipeline result[0]:", doubled[0]
+}
+
+BEGIN {
+    print "Test 1: match() function"
+    print "--------------------------------------"
+    test_match()
+    print ""
+    
+    print "Test 2: split() function"
+    print "--------------------------------------"
+    test_split()
+    print ""
+    
+    print "Test 3: Auto-vivification"
+    print "--------------------------------------"
+    test_auto_vivify()
+    print ""
+    
+    print "Test 4: Pipeline-friendly functions"
+    print "--------------------------------------"
+    test_pipeline()
+    print ""
+    
+    print "Test 5: Regex pattern matching"
+    print "--------------------------------------"
+}
+
+# Test 4: Regex pattern matching
+/^product/ {
+    print "Found product line:", $0
+}
+
+/error|warning/i {
+    print "Found issue:", $0
+}
+
+END {
+    print "Pattern matching completed"
+}

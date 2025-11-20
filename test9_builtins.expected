@@ -1,0 +1,62 @@
+Test 1: ARGC and ARGV
+--------------------------------------
+  ARGC: 3
+  ARGV[0]: /workspace/fawk.py
+  ARGV[1]: test9_builtins.fawk
+  ARGV[2]: test9_input.txt
+
+Test 2: ENVIRON
+--------------------------------------
+  PATH exists: 1
+  USER: ubuntu
+
+Test 3: Format variables
+--------------------------------------
+  CONVFMT: %.6g
+  OFMT: %.6g
+  SUBSEP: 1 bytes
+
+Test 4: Field and record separators
+--------------------------------------
+  FS:  
+  OFS:  
+  RS: 
+
+  ORS: 1 bytes
+
+Test 5: Modified OFS
+--------------------------------------
+  a|b|c
+
+Test 6: match() sets RSTART and RLENGTH
+--------------------------------------
+  Text: Hello World 123
+  Pattern: [0-9]+
+  RSTART: 13
+  RLENGTH: 3
+  Matched: 123
+
+Test 7: FS can be changed
+--------------------------------------
+  FS set to ':'
+
+Test 8: Field splitting with FS
+--------------------------------------
+  Line 1 has 3 fields
+    Field 1: name
+    Field 2: alice
+    Field 3: developer
+  Line 2 has 3 fields
+    Field 1: name
+    Field 2: bob
+    Field 3: designer
+  Line 3 has 3 fields
+    Field 1: role
+    Field 2: charlie
+    Field 3: manager
+
+Test 9: Record counters
+--------------------------------------
+  NR (total records): 3
+  FNR (file records): 3
+  FILENAME: test9_input.txt

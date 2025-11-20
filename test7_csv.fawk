@@ -1,0 +1,33 @@
+# Test 7: Complete CSV Processing Example
+
+function sum(arr) {
+    total = 0
+    for (i in arr) { total = total + arr[i] }
+    return total
+}
+
+function avg(arr) {
+    return sum(arr) / length(arr)
+}
+
+BEGIN {
+    global sales
+    FS = ","  # Set field separator to comma for CSV
+    sales = ["electronics" => [], "books" => [], "clothing" => []]
+}
+
+# Parse CSV: category,product,price
+{
+    if (NR > 1) {
+        category = $1
+        price = $3
+        sales[category][length(sales[category])] = price
+    }
+}
+
+END {
+    for (cat in sales) {
+        average = avg(sales[cat])
+        print cat, "average:", average
+    }
+}

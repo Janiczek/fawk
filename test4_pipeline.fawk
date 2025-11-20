@@ -1,0 +1,10 @@
+# Test 4: Functional Pipeline Operator
+# Using built-in map, filter, reduce functions
+
+BEGIN {
+    result = [1, 2, 3, 4, 5] 
+        |> filter((x) => { x % 2 == 0 })
+        |> map((x) => { x * x })
+        |> reduce((acc, x) => { acc + x }, 0)
+    print "Result:", result
+}

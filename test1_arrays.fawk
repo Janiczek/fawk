@@ -1,0 +1,43 @@
+# Test 1: Arrays as First-Class Values
+
+function array_sum(arr) {
+    total = 0
+    for (i in arr) {
+        total = total + arr[i]
+    }
+    return total
+}
+
+function make_range(start, end) {
+    result = []
+    i = 0
+    n = start
+    while (n <= end) {
+        result[i] = n
+        i = i + 1
+        n = n + 1
+    }
+    return result
+}
+
+BEGIN {
+    # Regular arrays
+    numbers = [1, 2, 3, 4, 5]
+    result = array_sum(numbers)
+    print "Sum:", result
+    
+    # Returning arrays from functions
+    range = make_range(10, 15)
+    print "Range 10-15:", range
+    
+    # Nested arrays
+    matrix = [[1, 2], [3, 4], [5, 6]]
+    for (i in matrix) {
+        row = matrix[i]
+        print row[0], row[1]
+    }
+    
+    # Associative arrays
+    scores = ["alice" => 95, "bob" => 87, "carol" => 92]
+    print "Alice's score:", scores["alice"]
+}

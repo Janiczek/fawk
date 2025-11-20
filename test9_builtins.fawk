@@ -1,0 +1,82 @@
+# Test 9: AWK Built-in Variables
+
+BEGIN {
+    print "Test 1: ARGC and ARGV"
+    print "--------------------------------------"
+    print "  ARGC:", ARGC
+    print "  ARGV[0]:", ARGV[0]
+    print "  ARGV[1]:", ARGV[1]
+    if (ARGC > 2) {
+        print "  ARGV[2]:", ARGV[2]
+    }
+    print ""
+    
+    print "Test 2: ENVIRON"
+    print "--------------------------------------"
+    print "  PATH exists:", length(ENVIRON["PATH"]) > 0
+    print "  USER:", ENVIRON["USER"]
+    print ""
+    
+    print "Test 3: Format variables"
+    print "--------------------------------------"
+    print "  CONVFMT:", CONVFMT
+    print "  OFMT:", OFMT
+    print "  SUBSEP:", length(SUBSEP), "bytes"
+    print ""
+    
+    print "Test 4: Field and record separators"
+    print "--------------------------------------"
+    print "  FS:", FS
+    print "  OFS:", OFS
+    print "  RS:", RS
+    print "  ORS:", length(ORS), "bytes"
+    print ""
+    
+    # Change OFS
+    OFS = "|"
+    print "Test 5: Modified OFS"
+    print "--------------------------------------"
+    print "  a", "b", "c"
+    OFS = " "
+    print ""
+    
+    print "Test 6: match() sets RSTART and RLENGTH"
+    print "--------------------------------------"
+    text = "Hello World 123"
+    result = match("[0-9]+", text)
+    print "  Text:", text
+    print "  Pattern: [0-9]+"
+    print "  RSTART:", RSTART
+    print "  RLENGTH:", RLENGTH
+    print "  Matched:", result[0]
+    print ""
+    
+    print "Test 7: FS can be changed"
+    print "--------------------------------------"
+    FS = ":"
+    print "  FS set to ':'"
+    print ""
+}
+
+# Test field splitting with changed FS
+{
+    if (NR == 1) {
+        print "Test 8: Field splitting with FS"
+        print "--------------------------------------"
+    }
+    print "  Line", NR, "has", NF, "fields"
+    print "    Field 1:", $1
+    print "    Field 2:", $2
+    if (NF > 2) {
+        print "    Field 3:", $3
+    }
+}
+
+END {
+    print ""
+    print "Test 9: Record counters"
+    print "--------------------------------------"
+    print "  NR (total records):", NR
+    print "  FNR (file records):", FNR
+    print "  FILENAME:", FILENAME
+}
