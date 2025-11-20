@@ -1,0 +1,40 @@
+# Cabal build artifacts
+dist/
+dist-newstyle/
+cabal-dev/
+.cabal-sandbox/
+cabal.sandbox.config
+cabal.config
+cabal.project.local
+cabal.project.local~
+
+# Stack build artifacts
+.stack-work/
+
+# GHC compilation artifacts
+*.hi
+*.o
+*.p_hi
+*.p_o
+*.dyn_hi
+*.dyn_o
+*.prof
+
+# Haskell program crash logs
+*.hp
+*.eventlog
+*.aux
+*.chi
+*.chs.h
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test artifacts
+/tmp/
+*.tmp
