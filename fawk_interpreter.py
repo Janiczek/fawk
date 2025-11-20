@@ -21,6 +21,19 @@ class ReturnException(Exception):
         self.value = value
 
 
+class ExitException(Exception):
+    def __init__(self, code):
+        self.code = code
+
+
+class NextException(Exception):
+    pass
+
+
+class NextFileException(Exception):
+    pass
+
+
 class Environment:
     def __init__(self, parent=None):
         self.parent = parent
@@ -115,6 +128,7 @@ class Interpreter:
         self.current_env = self.global_env
         self.functions = {}
         self.globals_declared = set()
+        self.in_function = False  # Track if we're inside a user function
         
         # AWK built-in variables
         self.ARGC = argc
@@ -321,6 +335,32 @@ class Interpreter:
             except ContinueException:
                 continue
     
+    def eval_ForStmt(self, node: ForStmt) -> None:
+        # C-style for loop: for (init; condition; update) body
+        # Initialize
+        if node.init:
+            self.eval(node.init)
+        
+        # Loop
+        while True:
+            # Check condition
+            if node.condition:
+                if not self.is_truthy(self.eval(node.condition)):
+                    break
+            # If no condition, loop forever (or until break)
+            
+            # Execute body
+            try:
+                self.eval(node.body)
+            except BreakException:
+                break
+            except ContinueException:
+                pass  # Continue to update
+            
+            # Update
+            if node.update:
+                self.eval(node.update)
+    
     def eval_WhileStmt(self, node: WhileStmt) -> None:
         while self.is_truthy(self.eval(node.condition)):
             try:
@@ -330,9 +370,64 @@ class Interpreter:
             except ContinueException:
                 continue
     
+    def eval_DoWhileStmt(self, node: DoWhileStmt) -> None:
+        while True:
+            try:
+                self.eval(node.body)
+            except BreakException:
+                break
+            except ContinueException:
+                pass  # Continue to condition check
+            
+            if not self.is_truthy(self.eval(node.condition)):
+                break
+    
+    def eval_SwitchStmt(self, node: SwitchStmt) -> None:
+        switch_value = self.eval(node.expr)
+        
+        # Find matching case or default
+        matched = False
+        default_case = None
+        
+        for case in node.cases:
+            if case.value is None:
+                # Default case
+                default_case = case
+            elif not matched:
+                # Check if this case matches
+                case_value = self.eval(case.value)
+                if switch_value == case_value:
+                    matched = True
+                    # Execute this case's statements
+                    try:
+                        for stmt in case.statements:
+                            self.eval(stmt)
+                    except BreakException:
+                        return  # Break out of switch
+        
+        # If no case matched, execute default if it exists
+        if not matched and default_case:
+            try:
+                for stmt in default_case.statements:
+                    self.eval(stmt)
+            except BreakException:
+                return  # Break out of switch
+    
     def eval_ReturnStmt(self, node: ReturnStmt) -> None:
         value = self.eval(node.value) if node.value else None
         raise ReturnException(value)
+    
+    def eval_ExitStmt(self, node: ExitStmt) -> None:
+        code = 0
+        if node.code:
+            code = int(self.to_number(self.eval(node.code)))
+        raise ExitException(code)
+    
+    def eval_NextStmt(self, node: NextStmt) -> None:
+        raise NextException()
+    
+    def eval_NextFileStmt(self, node: NextFileStmt) -> None:
+        raise NextFileException()
     
     def eval_BreakStmt(self, node: BreakStmt) -> None:
         raise BreakException()
@@ -458,11 +553,19 @@ class Interpreter:
                 self.SUBSEP = str(value)
             elif name == 'FILENAME':
                 self.FILENAME = str(value)
-            # Check if it's a global
+            # FAWK scoping rules:
+            # - Variables declared with 'global' keyword are always global
+            # - Variables assigned in functions (not declared global) are local
+            # - Variables assigned outside functions are global
             elif name in self.globals_declared:
+                # Explicitly declared global
                 self.global_env.set(name, value)
-            else:
+            elif self.in_function:
+                # Inside function, not declared global: local variable
                 self.current_env.set_local(name, value)
+            else:
+                # Outside function: global by default
+                self.global_env.set(name, value)
         
         elif isinstance(node.target, ArrayAccess):
             array = self.eval(node.target.array)
@@ -532,7 +635,9 @@ class Interpreter:
             
             # Execute function body
             saved_env = self.current_env
+            saved_in_function = self.in_function
             self.current_env = func_env
+            self.in_function = True
             
             try:
                 result = self.eval(func.body)
@@ -546,6 +651,7 @@ class Interpreter:
                 result = e.value
             finally:
                 self.current_env = saved_env
+                self.in_function = saved_in_function
             
             return result
         else:
@@ -611,7 +717,20 @@ class Interpreter:
             return self.functions[name]
         
         # Check for variables
-        return self.current_env.get(name)
+        # FAWK scoping: inside functions, only access local vars or explicitly global vars
+        if self.in_function:
+            if name in self.globals_declared:
+                # Explicitly global variable
+                return self.global_env.get(name)
+            elif name in self.current_env.vars:
+                # Local variable
+                return self.current_env.vars[name]
+            else:
+                # Undefined local variable
+                return 0
+        else:
+            # Outside function: use normal lookup (which searches up to parent)
+            return self.current_env.get(name)
     
     def eval_Number(self, node: Number) -> float:
         return node.value
@@ -778,53 +897,76 @@ class Interpreter:
             self.current_env = begin_env
             try:
                 self.eval(program.begin_block)
+            except ExitException as e:
+                # Exit during BEGIN
+                import sys
+                sys.exit(e.code)
             finally:
                 self.current_env = saved_env
         
         # Process input with pattern-action blocks
+        exit_code = None
         if input_text:
             # Split input into records based on RS
             records = self.split_into_records(input_text)
             
-            for record, terminator in records:
-                self.NR += 1
-                self.FNR += 1
-                self.RT = terminator
-                
-                # Split record into fields
-                self.current_line = record  # Store original record for $0
-                self.fields = self.split_fields(record)
-                self.NF = len(self.fields)
-                
-                # Execute pattern-action blocks
-                for pattern_action in program.patterns:
-                    # Check if pattern matches (or no pattern)
-                    should_execute = False
-                    if pattern_action.pattern is None:
-                        should_execute = True
-                    else:
-                        # Evaluate pattern
-                        should_execute = self.is_truthy(self.eval(pattern_action.pattern))
+            try:
+                for record, terminator in records:
+                    self.NR += 1
+                    self.FNR += 1
+                    self.RT = terminator
                     
-                    if should_execute:
+                    # Split record into fields
+                    self.current_line = record  # Store original record for $0
+                    self.fields = self.split_fields(record)
+                    self.NF = len(self.fields)
+                    
+                    # Execute pattern-action blocks
+                    try:
+                        for pattern_action in program.patterns:
+                            # Check if pattern matches (or no pattern)
+                            should_execute = False
+                            if pattern_action.pattern is None:
+                                should_execute = True
+                            else:
+                                # Evaluate pattern
+                                should_execute = self.is_truthy(self.eval(pattern_action.pattern))
+                            
+                            if should_execute:
+                                action_env = Environment(self.global_env)
+                                saved_env = self.current_env
+                                self.current_env = action_env
+                                try:
+                                    self.eval(pattern_action.action)
+                                except NextException:
+                                    # Skip to next record
+                                    break
+                                finally:
+                                    self.current_env = saved_env
+                    except NextFileException:
+                        # Skip to next file (for now, just skip remaining records)
+                        break
+            except ExitException as e:
+                # Exit during pattern-action - save exit code and jump to END
+                exit_code = e.code
+        else:
+            # No input, just execute pattern-less actions
+            try:
+                for pattern_action in program.patterns:
+                    if pattern_action.pattern is None:
                         action_env = Environment(self.global_env)
                         saved_env = self.current_env
                         self.current_env = action_env
                         try:
                             self.eval(pattern_action.action)
+                        except NextException:
+                            # Skip to next record (no effect when no input)
+                            pass
                         finally:
                             self.current_env = saved_env
-        else:
-            # No input, just execute pattern-less actions
-            for pattern_action in program.patterns:
-                if pattern_action.pattern is None:
-                    action_env = Environment(self.global_env)
-                    saved_env = self.current_env
-                    self.current_env = action_env
-                    try:
-                        self.eval(pattern_action.action)
-                    finally:
-                        self.current_env = saved_env
+            except ExitException as e:
+                # Exit during pattern-action - save exit code and jump to END
+                exit_code = e.code
         
         # Execute END block with its own local environment
         if program.end_block:
@@ -833,5 +975,13 @@ class Interpreter:
             self.current_env = end_env
             try:
                 self.eval(program.end_block)
+            except ExitException as e:
+                # Exit during END - update exit code
+                exit_code = e.code
             finally:
                 self.current_env = saved_env
+        
+        # Exit with saved code if exit was called
+        if exit_code is not None:
+            import sys
+            sys.exit(exit_code)

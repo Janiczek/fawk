@@ -1,0 +1,22 @@
+Test: switch statement
+--------------------------------------
+Testing switch with 'a':
+  Got 'a'
+
+Testing switch with numbers:
+  i = 1 :
+    One
+  i = 2 :
+    Two
+  i = 3 :
+    Three
+  i = 4 :
+    Other
+
+Testing switch with default:
+  Default case: x = z
+
+Testing switch with multiple statements:
+  First line of case 2
+  Second line of case 2
+  x = 20

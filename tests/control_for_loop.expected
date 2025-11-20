@@ -1,0 +1,33 @@
+Test: C-style for loop
+--------------------------------------
+Count 0 to 4:
+  i = 0
+  i = 1
+  i = 2
+  i = 3
+  i = 4
+
+Count by 2s from 0 to 8:
+  j = 0
+  j = 2
+  j = 4
+  j = 6
+  j = 8
+
+Loop with break at 3:
+  k = 0
+  k = 1
+  k = 2
+
+Loop with continue (skip evens):
+  m = 1
+  m = 3
+  m = 5
+
+Nested loops:
+  x = 0 y = 0
+  x = 0 y = 1
+  x = 1 y = 0
+  x = 1 y = 1
+  x = 2 y = 0
+  x = 2 y = 1

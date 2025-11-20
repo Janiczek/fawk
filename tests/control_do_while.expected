@@ -1,0 +1,21 @@
+Test: do-while loop
+--------------------------------------
+Basic do-while (count 0 to 4):
+  i = 0
+  i = 1
+  i = 2
+  i = 3
+  i = 4
+
+Do-while with false condition (executes once):
+  j = 10
+
+Do-while with break at 3:
+  k = 0
+  k = 1
+  k = 2
+
+Do-while with continue (skip evens):
+  m = 1
+  m = 3
+  m = 5

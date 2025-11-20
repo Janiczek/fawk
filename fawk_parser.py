@@ -135,8 +135,22 @@ class Parser:
             return self.parse_for_stmt()
         elif token.type == TokenType.WHILE:
             return self.parse_while_stmt()
+        elif token.type == TokenType.DO:
+            return self.parse_do_while_stmt()
+        elif token.type == TokenType.SWITCH:
+            return self.parse_switch_stmt()
         elif token.type == TokenType.RETURN:
             return self.parse_return_stmt()
+        elif token.type == TokenType.EXIT:
+            return self.parse_exit_stmt()
+        elif token.type == TokenType.NEXT:
+            self.advance()
+            self.skip_statement_terminator()
+            return NextStmt()
+        elif token.type == TokenType.NEXTFILE:
+            self.advance()
+            self.skip_statement_terminator()
+            return NextFileStmt()
         elif token.type == TokenType.BREAK:
             self.advance()
             self.skip_statement_terminator()
@@ -181,16 +195,50 @@ class Parser:
         
         return IfStmt(condition, then_block, else_block)
     
-    def parse_for_stmt(self) -> ForInStmt:
+    def parse_for_stmt(self):
         self.expect(TokenType.FOR)
         self.expect(TokenType.LPAREN)
-        var = self.expect(TokenType.IDENTIFIER).value
-        self.expect(TokenType.IN)
-        iterable = self.parse_expression()
-        self.expect(TokenType.RPAREN)
-        body = self.parse_block()
         
-        return ForInStmt(var, iterable, body)
+        # Save position to check if this is for-in or C-style for loop
+        saved_pos = self.pos
+        
+        # Try to parse as for-in first
+        # Look for: identifier IN expression
+        if self.current().type == TokenType.IDENTIFIER:
+            var_name = self.current().value
+            self.advance()
+            if self.current().type == TokenType.IN:
+                # It's a for-in loop
+                self.advance()
+                iterable = self.parse_expression()
+                self.expect(TokenType.RPAREN)
+                body = self.parse_block()
+                return ForInStmt(var_name, iterable, body)
+            else:
+                # Not for-in, restore position and parse as C-style for
+                self.pos = saved_pos
+        
+        # Parse C-style for loop: for (init; condition; update) body
+        # init
+        init = None
+        if self.current().type != TokenType.SEMICOLON:
+            init = self.parse_expression()
+        self.expect(TokenType.SEMICOLON)
+        
+        # condition
+        condition = None
+        if self.current().type != TokenType.SEMICOLON:
+            condition = self.parse_expression()
+        self.expect(TokenType.SEMICOLON)
+        
+        # update
+        update = None
+        if self.current().type != TokenType.RPAREN:
+            update = self.parse_expression()
+        self.expect(TokenType.RPAREN)
+        
+        body = self.parse_block()
+        return ForStmt(init, condition, update, body)
     
     def parse_while_stmt(self) -> WhileStmt:
         self.expect(TokenType.WHILE)
@@ -201,6 +249,64 @@ class Parser:
         
         return WhileStmt(condition, body)
     
+    def parse_do_while_stmt(self) -> DoWhileStmt:
+        self.expect(TokenType.DO)
+        body = self.parse_block()
+        self.expect(TokenType.WHILE)
+        self.expect(TokenType.LPAREN)
+        condition = self.parse_expression()
+        self.expect(TokenType.RPAREN)
+        self.skip_statement_terminator()
+        
+        return DoWhileStmt(body, condition)
+    
+    def parse_switch_stmt(self) -> SwitchStmt:
+        self.expect(TokenType.SWITCH)
+        self.expect(TokenType.LPAREN)
+        expr = self.parse_expression()
+        self.expect(TokenType.RPAREN)
+        self.expect(TokenType.LBRACE)
+        self.skip_newlines()
+        
+        cases = []
+        while self.current().type != TokenType.RBRACE:
+            if self.current().type == TokenType.CASE:
+                self.advance()
+                value = self.parse_expression()
+                self.expect(TokenType.COLON)
+                self.skip_newlines()
+                
+                # Parse statements until next case/default/rbrace
+                statements = []
+                while self.current().type not in [TokenType.CASE, TokenType.DEFAULT, TokenType.RBRACE]:
+                    stmt = self.parse_statement()
+                    if stmt:
+                        statements.append(stmt)
+                    self.skip_newlines()
+                
+                cases.append(SwitchCase(value, statements))
+            
+            elif self.current().type == TokenType.DEFAULT:
+                self.advance()
+                self.expect(TokenType.COLON)
+                self.skip_newlines()
+                
+                # Parse statements until next case/default/rbrace
+                statements = []
+                while self.current().type not in [TokenType.CASE, TokenType.DEFAULT, TokenType.RBRACE]:
+                    stmt = self.parse_statement()
+                    if stmt:
+                        statements.append(stmt)
+                    self.skip_newlines()
+                
+                cases.append(SwitchCase(None, statements))
+            
+            else:
+                self.error(f"Expected 'case' or 'default' in switch, got {self.current().type}")
+        
+        self.expect(TokenType.RBRACE)
+        return SwitchStmt(expr, cases)
+    
     def parse_return_stmt(self) -> ReturnStmt:
         self.expect(TokenType.RETURN)
         
@@ -210,6 +316,16 @@ class Parser:
         
         self.skip_statement_terminator()
         return ReturnStmt(value)
+    
+    def parse_exit_stmt(self) -> ExitStmt:
+        self.expect(TokenType.EXIT)
+        
+        code = None
+        if self.current().type not in [TokenType.NEWLINE, TokenType.SEMICOLON, TokenType.RBRACE]:
+            code = self.parse_expression()
+        
+        self.skip_statement_terminator()
+        return ExitStmt(code)
     
     def parse_print_stmt(self) -> PrintStmt:
         self.expect(TokenType.PRINT)

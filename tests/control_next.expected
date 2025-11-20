@@ -1,0 +1,17 @@
+Test: next statement
+--------------------------------------
+Line 1 start
+  Processing line 1
+Line 1 end
+Line 2 start
+  Skipping line 2
+Line 3 start
+  Processing line 3
+Line 3 end
+Line 4 start
+  Skipping line 4
+Line 5 start
+  Processing line 5
+Line 5 end
+--------------------------------------
+Total lines: 5

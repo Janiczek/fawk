@@ -58,14 +58,55 @@ class ForInStmt(ASTNode):
 
 
 @dataclass
+class ForStmt(ASTNode):
+    init: Optional[ASTNode]
+    condition: Optional[ASTNode]
+    update: Optional[ASTNode]
+    body: 'Block'
+
+
+@dataclass
 class WhileStmt(ASTNode):
     condition: ASTNode
     body: 'Block'
 
 
 @dataclass
+class DoWhileStmt(ASTNode):
+    body: 'Block'
+    condition: ASTNode
+
+
+@dataclass
+class SwitchCase(ASTNode):
+    value: Optional[ASTNode]  # None for default case
+    statements: List[ASTNode]
+
+
+@dataclass
+class SwitchStmt(ASTNode):
+    expr: ASTNode
+    cases: List['SwitchCase']
+
+
+@dataclass
 class ReturnStmt(ASTNode):
     value: Optional[ASTNode]
+
+
+@dataclass
+class ExitStmt(ASTNode):
+    code: Optional[ASTNode]
+
+
+@dataclass
+class NextStmt(ASTNode):
+    pass
+
+
+@dataclass
+class NextFileStmt(ASTNode):
+    pass
 
 
 @dataclass

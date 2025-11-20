@@ -1,0 +1,18 @@
+Test: if-then and if-then-else
+--------------------------------------
+x = 5
+  x is greater than 3
+
+y = 2
+  y is not greater than 3
+
+Testing nested if-else:
+  i = 1
+    i equals 1
+  i = 2
+    i equals 2
+  i = 3
+    i equals 3
+
+a = 10 , b = 20
+  a is between 5 and b

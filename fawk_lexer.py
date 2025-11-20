@@ -22,8 +22,15 @@ class TokenType(Enum):
     FOR = auto()
     IN = auto()
     WHILE = auto()
+    DO = auto()
+    SWITCH = auto()
+    CASE = auto()
+    DEFAULT = auto()
     BREAK = auto()
     CONTINUE = auto()
+    EXIT = auto()
+    NEXT = auto()
+    NEXTFILE = auto()
     PRINT = auto()
     BEGIN = auto()
     END = auto()
@@ -60,6 +67,7 @@ class TokenType(Enum):
     RBRACKET = auto()
     COMMA = auto()
     SEMICOLON = auto()
+    COLON = auto()
     DOLLAR = auto()
     
     # Special
@@ -92,8 +100,15 @@ class Lexer:
             'for': TokenType.FOR,
             'in': TokenType.IN,
             'while': TokenType.WHILE,
+            'do': TokenType.DO,
+            'switch': TokenType.SWITCH,
+            'case': TokenType.CASE,
+            'default': TokenType.DEFAULT,
             'break': TokenType.BREAK,
             'continue': TokenType.CONTINUE,
+            'exit': TokenType.EXIT,
+            'next': TokenType.NEXT,
+            'nextfile': TokenType.NEXTFILE,
             'print': TokenType.PRINT,
             'BEGIN': TokenType.BEGIN,
             'END': TokenType.END,
@@ -363,6 +378,7 @@ class Lexer:
                 ']': TokenType.RBRACKET,
                 ',': TokenType.COMMA,
                 ';': TokenType.SEMICOLON,
+                ':': TokenType.COLON,
                 '$': TokenType.DOLLAR,
             }
             

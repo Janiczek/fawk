@@ -1,0 +1,7 @@
+BEGIN block
+Processing line: 1
+Processing line: 2
+Processing line: 3
+Exiting with code 0
+END block
+x = 5
