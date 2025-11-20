@@ -91,11 +91,31 @@ for script in tests/*.fawk; do
     fi
 done
 
-# Summary
-echo "$PASSED passed, $FAILED failed"
+# Summary of .fawk tests
+echo ""
+echo "====================================="
+echo "Regular tests: $PASSED passed, $FAILED failed"
+echo "====================================="
 
-if [ $FAILED -eq 0 ]; then
+# Run command-line argument tests
+echo ""
+echo "Running command-line argument tests..."
+echo "====================================="
+if ./tests/test_command_line.sh; then
+    CMD_LINE_PASSED=1
+else
+    CMD_LINE_PASSED=0
+    FAILED=$((FAILED + 1))
+fi
+
+# Final summary
+echo ""
+echo "====================================="
+echo "TOTAL: All tests completed"
+if [ $FAILED -eq 0 ] && [ $CMD_LINE_PASSED -eq 1 ]; then
+    echo "Result: ALL PASSED ✓"
     exit 0
 else
+    echo "Result: SOME FAILED ✗"
     exit 1
 fi

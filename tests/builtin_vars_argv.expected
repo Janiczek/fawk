@@ -1,6 +1,5 @@
 Test: ARGC and ARGV
 --------------------------------------
-  ARGC: 3
+  ARGC: 2
   ARGV[0] contains 'fawk': 1
-  ARGV[1] contains 'fawk': 1
-  ARGV[2] contains 'fawk': 0
+  ARGV[1] contains 'fawk': 0

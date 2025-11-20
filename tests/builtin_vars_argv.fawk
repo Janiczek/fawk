@@ -6,8 +6,5 @@ BEGIN {
     print "  ARGC:", ARGC
     print "  ARGV[0] contains 'fawk':", ARGV[0] ~ "fawk"
     print "  ARGV[1] contains 'fawk':", ARGV[1] ~ "fawk"
-    if (ARGC > 2) {
-        print "  ARGV[2] contains 'fawk':", ARGV[2] ~ "fawk"
-    }
 }
 

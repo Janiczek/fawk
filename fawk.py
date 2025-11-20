@@ -5,27 +5,66 @@ A functional AWK dialect with first-class functions and arrays.
 """
 
 import sys
+import argparse
 from fawk_lexer import Lexer
 from fawk_parser import Parser
 from fawk_interpreter import Interpreter
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: fawk <script.fawk> [input_file]", file=sys.stderr)
-        sys.exit(1)
+    # Parse command line arguments AWK-style
+    parser = argparse.ArgumentParser(
+        description='FAWK - Functional AWK Interpreter',
+        usage='%(prog)s [-f script_file] [script_string] [input_file ...]',
+        epilog='Examples:\n'
+               '  %(prog)s script.fawk input.txt        # script from file\n'
+               '  %(prog)s -f script.fawk input.txt     # explicit -f flag\n'
+               '  %(prog)s \'{ print $1 }\' input.txt     # inline script\n'
+               '  %(prog)s -f script.fawk f1.txt f2.txt # multiple inputs',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument('-f', '--file', dest='script_file', metavar='script_file',
+                        help='read script from file')
+    parser.add_argument('args', nargs='*', help='script string or input files')
     
-    script_file = sys.argv[1]
+    args = parser.parse_args()
     
-    # Read source code
-    try:
-        with open(script_file, 'r') as f:
-            source = f.read()
-    except FileNotFoundError:
-        print(f"Error: Script file '{script_file}' not found", file=sys.stderr)
-        sys.exit(1)
-    except IOError as e:
-        print(f"Error reading script file: {e}", file=sys.stderr)
+    # Determine source of script and input files
+    if args.script_file:
+        # Script from file: fawk -f script.fawk input.txt
+        try:
+            with open(args.script_file, 'r') as f:
+                source = f.read()
+        except FileNotFoundError:
+            print(f"Error: Script file '{args.script_file}' not found", file=sys.stderr)
+            sys.exit(1)
+        except IOError as e:
+            print(f"Error reading script file: {e}", file=sys.stderr)
+            sys.exit(1)
+        # All remaining args are input files
+        input_files = args.args
+    elif args.args:
+        # First arg could be either a script file or inline script
+        # Check if it's a file first (backward compatibility)
+        import os
+        if os.path.isfile(args.args[0]):
+            # Treat as script file: fawk script.fawk input.txt
+            try:
+                with open(args.args[0], 'r') as f:
+                    source = f.read()
+            except FileNotFoundError:
+                print(f"Error: Script file '{args.args[0]}' not found", file=sys.stderr)
+                sys.exit(1)
+            except IOError as e:
+                print(f"Error reading script file: {e}", file=sys.stderr)
+                sys.exit(1)
+            input_files = args.args[1:]
+        else:
+            # Treat as inline script: fawk 'BEGIN { print "hello" }' input.txt
+            source = args.args[0]
+            input_files = args.args[1:]
+    else:
+        parser.print_help(file=sys.stderr)
         sys.exit(1)
     
     # Tokenize
@@ -38,33 +77,34 @@ def main():
     
     # Parse
     try:
-        parser = Parser(tokens)
-        program = parser.parse()
+        parser_obj = Parser(tokens)
+        program = parser_obj.parse()
     except SyntaxError as e:
         print(f"Parser error: {e}", file=sys.stderr)
         sys.exit(1)
     
-    # Interpret
     # Prepare ARGC and ARGV (mimicking AWK behavior)
-    argc = len(sys.argv)
-    argv = sys.argv  # [fawk.py, script.fawk, input_file, ...]
+    # ARGV[0] is the program name, ARGV[1..n] are input files
+    argv = ['fawk'] + input_files
+    argc = len(argv)
     interpreter = Interpreter(argc, argv)
     
-    # Read input if provided
+    # Read input from files if provided
     input_lines = []
-    input_file = None
-    if len(sys.argv) > 2:
-        input_file = sys.argv[2]
-        interpreter.FILENAME = input_file
-        try:
-            with open(input_file, 'r') as f:
-                input_lines = f.readlines()
-        except FileNotFoundError:
-            print(f"Error: Input file '{input_file}' not found", file=sys.stderr)
-            sys.exit(1)
-        except IOError as e:
-            print(f"Error reading input file: {e}", file=sys.stderr)
-            sys.exit(1)
+    if input_files:
+        for input_file in input_files:
+            interpreter.FILENAME = input_file
+            interpreter.FNR = 0  # Reset file record counter for each file
+            try:
+                with open(input_file, 'r') as f:
+                    file_lines = f.readlines()
+                    input_lines.extend(file_lines)
+            except FileNotFoundError:
+                print(f"Error: Input file '{input_file}' not found", file=sys.stderr)
+                sys.exit(1)
+            except IOError as e:
+                print(f"Error reading input file: {e}", file=sys.stderr)
+                sys.exit(1)
     
     # Run
     try:
