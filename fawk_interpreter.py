@@ -611,8 +611,13 @@ class Interpreter:
             return ""
     
     def run(self, program: Program, input_lines: List[str] = None):
+        # Built-in function names that cannot be redefined
+        builtin_names = {'length', 'map', 'filter', 'reduce', 'sum_array', 'match', 'split'}
+        
         # Register functions
         for func_def in program.functions:
+            if func_def.name in builtin_names:
+                raise RuntimeError(f"Cannot redefine built-in function '{func_def.name}'")
             self.functions[func_def.name] = UserFunction(
                 func_def.params, func_def.body, self.global_env
             )

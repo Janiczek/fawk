@@ -1,6 +1,6 @@
 # Test 1: Arrays as First-Class Values
 
-function sum_array(arr) {
+function array_sum(arr) {
     total = 0
     for (i in arr) {
         total = total + arr[i]
@@ -23,7 +23,7 @@ function make_range(start, end) {
 BEGIN {
     # Regular arrays
     numbers = [1, 2, 3, 4, 5]
-    result = sum_array(numbers)
+    result = array_sum(numbers)
     print "Sum:", result
     
     # Returning arrays from functions

@@ -70,6 +70,7 @@ run_test "Lexical Scope" "test6_lexical_scope.fawk" "" "test6_lexical_scope.expe
 run_test "CSV Processing" "test7_csv.fawk" "sales.csv" "test7_csv.expected"
 run_test "Advanced Features" "test8_advanced.fawk" "test8_input.txt" "test8_advanced.expected"
 run_test "Built-in Variables" "test9_builtins.fawk" "test9_input.txt" "test9_builtins.expected"
+run_test "Built-in Functions" "test10_builtin_functions.fawk" "" "test10_builtin_functions.expected"
 
 # Summary
 echo "======================================================================"

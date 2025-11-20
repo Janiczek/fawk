@@ -1,22 +1,5 @@
 # Test 5: Higher-Order Functions
-
-function map(func, arr) {
-    result = []
-    for (i in arr) {
-        result[i] = func(arr[i])
-    }
-    return result
-}
-
-function filter(pred, arr) {
-    result = []
-    for (key in arr) {
-        if (pred(arr[key])) {
-            result[key] = arr[key]
-        }
-    }
-    return result
-}
+# Using built-in map and filter functions
 
 BEGIN {
     # Works with regular arrays
