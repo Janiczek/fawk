@@ -68,6 +68,7 @@ class TokenType(Enum):
     DOLLAR = auto()
     
     # Special
+    REGEX = auto()
     NEWLINE = auto()
     EOF = auto()
 
@@ -190,6 +191,32 @@ class Lexer:
         token_type = self.keywords.get(ident, TokenType.IDENTIFIER)
         return Token(token_type, ident, start_line, start_col)
     
+    def read_regex(self) -> Token:
+        start_line = self.line
+        start_col = self.column
+        self.advance()  # consume opening /
+        pattern = ''
+        
+        while self.peek() and self.peek() != '/':
+            if self.peek() == '\\':
+                pattern += self.advance()
+                if self.peek():
+                    pattern += self.advance()
+            else:
+                pattern += self.advance()
+        
+        if self.peek() != '/':
+            self.error("Unterminated regex")
+        
+        self.advance()  # consume closing /
+        
+        # Check for flags (i for case-insensitive)
+        flags = ''
+        while self.peek() and self.peek() in 'igm':
+            flags += self.advance()
+        
+        return Token(TokenType.REGEX, (pattern, flags), start_line, start_col)
+    
     def tokenize(self) -> List[Token]:
         while self.pos < len(self.text):
             self.skip_whitespace()
@@ -223,6 +250,31 @@ class Lexer:
             if self.peek().isalpha() or self.peek() == '_':
                 self.tokens.append(self.read_identifier())
                 continue
+            
+            # Regex patterns (only at top level after brace/newline at statement position)
+            # We need to be careful - regex only appears in pattern position, not in expressions
+            if self.peek() == '/':
+                # Check if this could be a regex based on context
+                # Regex appears after: NEWLINE, RBRACE, or at start
+                if len(self.tokens) == 0:
+                    self.tokens.append(self.read_regex())
+                    continue
+                
+                # Look backwards past newlines to find meaningful token
+                i = len(self.tokens) - 1
+                while i >= 0 and self.tokens[i].type == TokenType.NEWLINE:
+                    i -= 1
+                
+                if i < 0:
+                    # Only newlines before this
+                    self.tokens.append(self.read_regex())
+                    continue
+                
+                last_meaningful = self.tokens[i]
+                # Regex can appear after RBRACE (end of block) or BEGIN/END/FUNCTION
+                if last_meaningful.type in [TokenType.RBRACE, TokenType.BEGIN, TokenType.END, TokenType.FUNCTION]:
+                    self.tokens.append(self.read_regex())
+                    continue
             
             # Two-character operators
             start_line = self.line
@@ -465,6 +517,12 @@ class String(ASTNode):
 
 
 @dataclass
+class Regex(ASTNode):
+    pattern: str
+    flags: str
+
+
+@dataclass
 class FieldAccess(ASTNode):
     index: ASTNode
 
@@ -532,6 +590,12 @@ class Parser:
                 # Pattern-action with no pattern
                 action = self.parse_block()
                 patterns.append(PatternAction(None, action))
+            elif self.current().type == TokenType.REGEX:
+                # Regex pattern with action
+                token = self.advance()
+                pattern_node = Regex(token.value[0], token.value[1])
+                action = self.parse_block()
+                patterns.append(PatternAction(pattern_node, action))
             else:
                 # Could be a pattern-action
                 # For simplicity, treat remaining blocks as pattern-less actions
@@ -1072,6 +1136,8 @@ class Interpreter:
         self.functions['filter'] = self.builtin_filter
         self.functions['reduce'] = self.builtin_reduce
         self.functions['sum_array'] = self.builtin_sum_array
+        self.functions['match'] = self.builtin_match
+        self.functions['split'] = self.builtin_split
     
     def builtin_map(self, func, arr):
         if not isinstance(arr, FawkArray):
@@ -1112,6 +1178,35 @@ class Interpreter:
             value = arr.get(key)
             total += value if isinstance(value, (int, float)) else 0
         return total
+    
+    def builtin_match(self, text, pattern):
+        """Match a regex pattern and return array with full match and groups"""
+        import re
+        text_str = str(text)
+        match = re.search(pattern, text_str)
+        
+        result = FawkArray()
+        if match:
+            # Index 0: full match
+            result.set(0, match.group(0))
+            # Index 1+: captured groups
+            for i, group in enumerate(match.groups(), 1):
+                result.set(i, group if group is not None else "")
+        
+        return result
+    
+    def builtin_split(self, text, separator):
+        """Split text by separator and return array"""
+        text_str = str(text)
+        sep_str = str(separator)
+        
+        parts = text_str.split(sep_str)
+        
+        result = FawkArray()
+        for i, part in enumerate(parts):
+            result.set(i, part)
+        
+        return result
     
     def error(self, msg: str):
         raise RuntimeError(f"Runtime error: {msg}")
@@ -1422,6 +1517,18 @@ class Interpreter:
     def eval_String(self, node: String) -> str:
         return node.value
     
+    def eval_Regex(self, node: Regex) -> bool:
+        """Evaluate regex pattern against current line ($0)"""
+        import re
+        line = " ".join(self.fields) if self.fields else ""
+        flags = 0
+        if 'i' in node.flags:
+            flags |= re.IGNORECASE
+        try:
+            return bool(re.search(node.pattern, line, flags))
+        except re.error as e:
+            self.error(f"Invalid regex pattern: {e}")
+    
     def eval_FieldAccess(self, node: FieldAccess) -> Any:
         index = self.eval(node.index)
         index = int(index)
@@ -1461,7 +1568,15 @@ class Interpreter:
                 
                 # Execute pattern-action blocks
                 for pattern_action in program.patterns:
+                    # Check if pattern matches (or no pattern)
+                    should_execute = False
                     if pattern_action.pattern is None:
+                        should_execute = True
+                    else:
+                        # Evaluate pattern
+                        should_execute = self.is_truthy(self.eval(pattern_action.pattern))
+                    
+                    if should_execute:
                         action_env = Environment(self.global_env)
                         saved_env = self.current_env
                         self.current_env = action_env

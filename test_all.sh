@@ -68,6 +68,7 @@ run_test "Functional Pipeline Operator" "test4_pipeline.fawk" "" "test4_pipeline
 run_test "Higher-Order Functions" "test5_higher_order.fawk" "" "test5_higher_order.expected"
 run_test "Lexical Scope" "test6_lexical_scope.fawk" "" "test6_lexical_scope.expected"
 run_test "CSV Processing" "test7_csv.fawk" "sales.csv" "test7_csv.expected"
+run_test "Advanced Features" "test8_advanced.fawk" "test8_input.txt" "test8_advanced.expected"
 
 # Summary
 echo "======================================================================"
