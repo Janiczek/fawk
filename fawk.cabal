@@ -1,0 +1,25 @@
+cabal-version:      2.4
+name:               fawk
+version:            0.1.0.0
+synopsis:           Functional AWK interpreter
+description:        An interpreter for FAWK - Functional AWK with first-class functions and arrays
+license:            MIT
+author:             FAWK Developers
+maintainer:         fawk@example.com
+category:           Language
+build-type:         Simple
+
+executable fawk
+    main-is:          Main.hs
+    other-modules:    AST
+                    , Parser
+                    , Eval
+    build-depends:    base >=4.14 && <5
+                    , megaparsec >=9.0
+                    , parser-combinators >=1.3
+                    , text >=1.2
+                    , containers >=0.6
+                    , mtl >=2.2
+    hs-source-dirs:   src
+    default-language: Haskell2010
+    ghc-options:      -Wall

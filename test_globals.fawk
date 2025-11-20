@@ -1,0 +1,18 @@
+BEGIN {
+    global total, count, max_value
+}
+
+{
+    total = total + $1
+    count = count + 1
+    if ($1 > max_value) {
+        max_value = $1
+    }
+}
+
+END {
+    print "Average:"
+    print total / count
+    print "Maximum:"
+    print max_value
+}

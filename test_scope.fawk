@@ -1,0 +1,15 @@
+function outer(x) {
+    y = x + 10
+    
+    inner = (z) => {
+        w = z + 5
+        return w
+    }
+    
+    return inner(y)
+}
+
+BEGIN {
+    result = outer(20)
+    print result
+}
