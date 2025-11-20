@@ -1,0 +1,7 @@
+function double(x) { return x * 2 }
+function apply(func, value) { return func(value) }
+
+BEGIN {
+    result = apply(double, 21)
+    print(result)
+}

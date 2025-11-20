@@ -2,6 +2,22 @@
 
 A functional AWK dialect with first-class functions and arrays. FAWK keeps AWK's succinct syntax while adding modern functional programming features.
 
+## Building and Running
+
+```bash
+# Build the interpreter
+make
+
+# Run a FAWK script
+./fawk script.fawk [input_file]
+
+# Run all examples
+make test
+
+# Clean build artifacts
+make clean
+```
+
 ## What's New
 
 1. [Arrays as First-Class Values](#1-arrays-as-first-class-values) - create, pass, and return arrays

@@ -1,0 +1,4 @@
+BEGIN {
+    scores = ["alice" => 95, "bob" => 87, "carol" => 92]
+    print(scores["alice"])
+}

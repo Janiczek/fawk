@@ -1,0 +1,27 @@
+function sum(arr) {
+    total = 0
+    for (i in arr) { total = total + arr[i] }
+    return total
+}
+
+function avg(arr) {
+    return sum(arr) / length(arr)
+}
+
+BEGIN {
+    global sales
+    sales = ["electronics" => [], "books" => [], "clothing" => []]
+}
+
+NR > 1 {
+    category = $1
+    price = $3
+    sales[category][length(sales[category])] = price
+}
+
+END {
+    for (cat in sales) {
+        average = avg(sales[cat])
+        print(cat, "average:", average)
+    }
+}

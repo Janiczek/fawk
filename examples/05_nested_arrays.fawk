@@ -1,0 +1,7 @@
+BEGIN {
+    matrix = [[1, 2], [3, 4], [5, 6]]
+    for (i in matrix) {
+        row = matrix[i]
+        print(row[0], row[1])
+    }
+}
