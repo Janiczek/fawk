@@ -106,12 +106,10 @@ function map(func, arr) {
 
 function filter(pred, arr) {
     result = []
-    idx = 0
     # Works with both regular and associative arrays
     for (key in arr) {
         if (pred(arr[key])) {
-            result[idx] = arr[key]
-            idx = idx + 1
+            result[key] = arr[key]
         }
     }
     return result
@@ -161,9 +159,6 @@ Globals must be declared in the BEGIN block:
 ```awk
 BEGIN {
     global total, count, max_value
-    total = 0
-    count = 0
-    max_value = 0
 }
 
 {
@@ -190,7 +185,7 @@ function sum(arr) {
 }
 
 function avg(arr) {
-    return arr |> sum() / length(arr)
+    return sum(arr) / length(arr)
 }
 
 BEGIN {
@@ -207,7 +202,7 @@ NR > 1 {
 
 END {
     for (cat in sales) {
-        average = sales[cat] |> avg()
+        average = avg(sales[cat])
         print cat, "average:", average
     }
 }
