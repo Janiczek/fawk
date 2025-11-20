@@ -114,16 +114,25 @@ def main():
     file_list = []
     if input_files:
         for input_file in input_files:
-            try:
-                with open(input_file, 'r') as f:
-                    content = f.read()
-                file_list.append((input_file, content))
-            except FileNotFoundError:
-                print(f"Error: Input file '{input_file}' not found", file=sys.stderr)
-                sys.exit(1)
-            except IOError as e:
-                print(f"Error reading input file: {e}", file=sys.stderr)
-                sys.exit(1)
+            # Support "-" as explicit stdin
+            if input_file == "-":
+                try:
+                    content = sys.stdin.read()
+                    file_list.append(("-", content))
+                except IOError as e:
+                    print(f"Error reading from stdin: {e}", file=sys.stderr)
+                    sys.exit(1)
+            else:
+                try:
+                    with open(input_file, 'r') as f:
+                        content = f.read()
+                    file_list.append((input_file, content))
+                except FileNotFoundError:
+                    print(f"Error: Input file '{input_file}' not found", file=sys.stderr)
+                    sys.exit(1)
+                except IOError as e:
+                    print(f"Error reading input file: {e}", file=sys.stderr)
+                    sys.exit(1)
     else:
         # No input files specified - check if stdin has data
         # This allows piping: cat file.txt | fawk '{ print $1 }'

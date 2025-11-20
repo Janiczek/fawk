@@ -165,6 +165,9 @@ class Interpreter:
         self.fields = []  # Current line fields
         self.current_line = ""  # Original line ($0)
         
+        # File handles for print redirection
+        self.redirect_files = {}  # filename -> file handle
+        
         # Built-in functions - single source of truth
         self.builtin_functions = {
             'length': lambda arr: arr.length() if isinstance(arr, FawkArray) else len(str(arr)),
@@ -749,13 +752,88 @@ class Interpreter:
         raise ContinueException()
     
     def eval_PrintStmt(self, node: PrintStmt) -> None:
+        # Prepare output string
         if not node.args:
-            print(end=self.ORS)
+            output = ""
         else:
             values = [self.value_to_string(self.eval(arg)) for arg in node.args]
-            print(self.OFS.join(values), end=self.ORS)
+            output = self.OFS.join(values)
+        
+        # Handle redirection
+        if node.redirect_type and node.redirect_target:
+            self._write_redirected(output + self.ORS, node.redirect_type, node.redirect_target)
+        else:
+            # No redirection, print to stdout
+            print(output, end=self.ORS)
+    
+    def eval_PrintfStmt(self, node: 'PrintfStmt') -> None:
+        from fawk_ast import PrintfStmt
+        
+        # Printf requires at least a format string
+        if not node.args:
+            self.error("printf requires at least a format string")
+        
+        # Evaluate arguments
+        args = [self.eval(arg) for arg in node.args]
+        
+        # First arg is format string, rest are values to format
+        fmt = args[0]
+        values = args[1:] if len(args) > 1 else []
+        
+        # Format the output
+        output = self.format_string(fmt, values)
+        
+        # Handle redirection
+        if node.redirect_type and node.redirect_target:
+            self._write_redirected(output, node.redirect_type, node.redirect_target)
+        else:
+            # No redirection, print to stdout (no ORS for printf)
+            print(output, end='')
+    
+    def _write_redirected(self, output: str, redirect_type: str, redirect_target) -> None:
+        """Helper method to write output to a redirected file or stream"""
+        import sys
+        
+        # Evaluate redirect target to get filename
+        filename = self.value_to_string(self.eval(redirect_target))
+        
+        # Special handling for /dev/stderr and /dev/stdout
+        if filename == "/dev/stderr":
+            print(output, end='', file=sys.stderr)
+        elif filename == "/dev/stdout":
+            print(output, end='', file=sys.stdout)
+        else:
+            # Handle file redirection
+            if redirect_type == ">":
+                # Overwrite mode - close existing file if open and reopen
+                if filename in self.redirect_files:
+                    self.redirect_files[filename].close()
+                    del self.redirect_files[filename]
+                
+                # Open file in write mode
+                try:
+                    self.redirect_files[filename] = open(filename, 'w')
+                except IOError as e:
+                    self.error(f"Cannot open file '{filename}' for writing: {e}")
+                
+                # Write to file
+                print(output, end='', file=self.redirect_files[filename])
+                self.redirect_files[filename].flush()
+            
+            elif redirect_type == ">>":
+                # Append mode - open if not already open
+                if filename not in self.redirect_files:
+                    try:
+                        self.redirect_files[filename] = open(filename, 'a')
+                    except IOError as e:
+                        self.error(f"Cannot open file '{filename}' for appending: {e}")
+                
+                # Write to file
+                print(output, end='', file=self.redirect_files[filename])
+                self.redirect_files[filename].flush()
     
     def value_to_string(self, value) -> str:
+        """Convert value to string for print statements (uses OFMT)"""
         if isinstance(value, FawkArray):
             return str(value)
         elif isinstance(value, bool):
@@ -779,6 +857,31 @@ class Interpreter:
             return ""
         return str(value)
     
+    def value_to_string_convert(self, value) -> str:
+        """Convert value to string for conversions (uses CONVFMT for numbers)"""
+        if isinstance(value, FawkArray):
+            return str(value)
+        elif isinstance(value, bool):
+            return "1" if value else "0"
+        elif isinstance(value, Decimal):
+            # Format Decimal values using CONVFMT
+            try:
+                return self.CONVFMT % float(value)
+            except:
+                return str(value)
+        elif isinstance(value, (int, float)):
+            # Format numbers using CONVFMT
+            try:
+                # Check if it's actually an integer value
+                if isinstance(value, float) and value == int(value):
+                    return str(int(value))
+                return self.CONVFMT % value
+            except:
+                return str(value)
+        elif value is None:
+            return ""
+        return str(value)
+    
     def eval_ExprStmt(self, node: ExprStmt) -> Any:
         return self.eval(node.expr)
     
@@ -788,9 +891,9 @@ class Interpreter:
         
         op = node.op
         
-        # String concatenation
+        # String concatenation (uses CONVFMT for number conversions)
         if op == 'concat':
-            return self.value_to_string(left) + self.value_to_string(right)
+            return self.value_to_string_convert(left) + self.value_to_string_convert(right)
         # Arithmetic operations - convert to numbers
         elif op == '+':
             if self.use_high_precision():
@@ -1234,6 +1337,10 @@ class Interpreter:
         fs = self.FS
         rs = self.RS
         
+        # Special case: empty record has no fields (AWK compatibility)
+        if record == "":
+            return []
+        
         # Special case: RS == "" and FS is a single character
         if rs == "" and len(fs) == 1 and fs != "":
             # Newline always acts as field separator in addition to FS
@@ -1414,6 +1521,14 @@ class Interpreter:
                 exit_code = e.code
             finally:
                 self.current_env = saved_env
+        
+        # Close all redirect files
+        for file_handle in self.redirect_files.values():
+            try:
+                file_handle.close()
+            except:
+                pass
+        self.redirect_files.clear()
         
         # Exit with saved code if exit was called
         if exit_code is not None:

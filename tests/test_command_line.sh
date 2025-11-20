@@ -95,6 +95,57 @@ test_case "Piping with field splitting" \
     "two" \
     bash -c "echo 'one:two:three' | ./fawk 'BEGIN { FS = \":\" } { print \$2 }'"
 
+# Test 11: Explicit stdin with "-" special file
+test_case "Using - for stdin" \
+    "apple" \
+    bash -c "echo 'apple' | ./fawk '{ print \$1 }' -"
+
+# Test 12: Mixing stdin and regular files
+test_case "Mixing - (stdin) and regular files" \
+    "apple
+banana
+cherry" \
+    bash -c "echo 'banana' | ./fawk '{ print \$1 }' /tmp/fawk_test_file1.txt - /tmp/fawk_test_file3.txt"
+
+# Test 13: Print redirection with > (overwrite)
+rm -f /tmp/fawk_test_redirect.txt
+./fawk 'BEGIN { print "line1" > "/tmp/fawk_test_redirect.txt"; print "line2" > "/tmp/fawk_test_redirect.txt" }' > /dev/null
+test_case "Print redirection with > (overwrite)" \
+    "line2" \
+    cat /tmp/fawk_test_redirect.txt
+
+# Test 14: Print redirection with >> (append)
+rm -f /tmp/fawk_test_append.txt
+./fawk 'BEGIN { print "line1" >> "/tmp/fawk_test_append.txt"; print "line2" >> "/tmp/fawk_test_append.txt"; print "line3" >> "/tmp/fawk_test_append.txt" }' > /dev/null
+test_case "Print redirection with >> (append)" \
+    "line1
+line2
+line3" \
+    cat /tmp/fawk_test_append.txt
+
+# Test 15: Printf redirection with >
+rm -f /tmp/fawk_test_printf_redirect.txt
+./fawk 'BEGIN { printf("number: %d\n", 42) > "/tmp/fawk_test_printf_redirect.txt" }' > /dev/null
+test_case "Printf redirection with >" \
+    "number: 42" \
+    cat /tmp/fawk_test_printf_redirect.txt
+
+# Test 16: Printf redirection with >>
+rm -f /tmp/fawk_test_printf_append.txt
+./fawk 'BEGIN { printf("a=%d ", 1) >> "/tmp/fawk_test_printf_append.txt"; printf("b=%d\n", 2) >> "/tmp/fawk_test_printf_append.txt" }' > /dev/null
+test_case "Printf redirection with >>" \
+    "a=1 b=2" \
+    cat /tmp/fawk_test_printf_append.txt
+
+# Test 17: Print to /dev/stderr (capture stderr)
+test_case "Print redirection to /dev/stderr" \
+    "error message" \
+    bash -c "./fawk 'BEGIN { print \"error message\" > \"/dev/stderr\" }' 2>&1 1>/dev/null"
+
+# Clean up redirect test files
+rm -f /tmp/fawk_test_redirect.txt /tmp/fawk_test_append.txt
+rm -f /tmp/fawk_test_printf_redirect.txt /tmp/fawk_test_printf_append.txt
+
 # Clean up
 rm -f /tmp/fawk_test_file1.txt /tmp/fawk_test_file2.txt /tmp/fawk_test_file3.txt
 rm -f /tmp/fawk_test_fields.txt /tmp/fawk_test_script.fawk /tmp/fawk_test_fields_script.fawk

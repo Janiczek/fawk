@@ -12,6 +12,7 @@ class Parser:
     def __init__(self, tokens: List[Token]):
         self.tokens = tokens
         self.pos = 0
+        self.in_print_context = False  # Flag to disable > and >= as comparison in print
     
     def error(self, msg: str):
         token = self.current()
@@ -343,16 +344,126 @@ class Parser:
         self.expect(TokenType.PRINT)
         args = []
         
-        if self.current().type not in [TokenType.NEWLINE, TokenType.SEMICOLON, TokenType.RBRACE]:
-            args.append(self.parse_expression())
+        # Parse print arguments (stop before comparison operators to allow redirection)
+        if self.current().type not in [TokenType.NEWLINE, TokenType.SEMICOLON, TokenType.RBRACE, 
+                                        TokenType.GT, TokenType.REDIRECT_APPEND]:
+            # Parse arguments at concatenation level (before comparisons)
+            args.append(self.parse_print_arg())
             while self.current().type == TokenType.COMMA:
                 self.advance()
-                args.append(self.parse_expression())
+                # Check if we hit a redirection operator
+                if self.current().type in [TokenType.GT, TokenType.REDIRECT_APPEND]:
+                    break
+                args.append(self.parse_print_arg())
+        
+        # Check for redirection
+        redirect_type = None
+        redirect_target = None
+        
+        if self.current().type == TokenType.GT:
+            redirect_type = ">"
+            self.advance()
+            redirect_target = self.parse_expression()
+        elif self.current().type == TokenType.REDIRECT_APPEND:
+            redirect_type = ">>"
+            self.advance()
+            redirect_target = self.parse_expression()
         
         self.skip_statement_terminator()
-        return PrintStmt(args)
+        return PrintStmt(args, redirect_type, redirect_target)
     
-    def parse_expr_stmt(self) -> ExprStmt:
+    def parse_print_arg(self) -> ASTNode:
+        """Parse a print argument (stops before assignment/pipeline)"""
+        # Parse at the OR level but with > and >= reserved for redirection
+        # Set flag to disable > and >= as comparison operators
+        saved = self.in_print_context
+        self.in_print_context = True
+        try:
+            result = self.parse_or()
+            return result
+        finally:
+            self.in_print_context = saved
+    
+    def parse_printf_stmt(self) -> 'PrintfStmt':
+        from fawk_ast import PrintfStmt
+        self.expect(TokenType.PRINTF)
+        args = []
+        
+        # Parse printf arguments (stop before comparison operators to allow redirection)
+        if self.current().type not in [TokenType.NEWLINE, TokenType.SEMICOLON, TokenType.RBRACE, 
+                                        TokenType.GT, TokenType.REDIRECT_APPEND]:
+            args.append(self.parse_print_arg())
+            while self.current().type == TokenType.COMMA:
+                self.advance()
+                # Check if we hit a redirection operator
+                if self.current().type in [TokenType.GT, TokenType.REDIRECT_APPEND]:
+                    break
+                args.append(self.parse_print_arg())
+        
+        # Check for redirection
+        redirect_type = None
+        redirect_target = None
+        
+        if self.current().type == TokenType.GT:
+            redirect_type = ">"
+            self.advance()
+            redirect_target = self.parse_expression()
+        elif self.current().type == TokenType.REDIRECT_APPEND:
+            redirect_type = ">>"
+            self.advance()
+            redirect_target = self.parse_expression()
+        
+        self.skip_statement_terminator()
+        return PrintfStmt(args, redirect_type, redirect_target)
+    
+    def parse_expr_stmt(self):
+        # For printf/print detection, we need to parse carefully
+        # Check if this might be a printf/print call before parsing full expression
+        if self.current().type == TokenType.IDENTIFIER and self.current().value in ['printf', 'print']:
+            saved_pos = self.pos
+            func_name = self.current().value
+            self.advance()
+            
+            # Check if followed by LPAREN (function call)
+            if self.current().type == TokenType.LPAREN:
+                # Reset and parse as expression, but stop before comparisons
+                self.pos = saved_pos
+                # Set print context to prevent > from being consumed as comparison
+                saved_context = self.in_print_context
+                self.in_print_context = True
+                try:
+                    expr = self.parse_expression()
+                finally:
+                    self.in_print_context = saved_context
+                
+                # Now check for redirection operators
+                if self.current().type in [TokenType.GT, TokenType.REDIRECT_APPEND]:
+                    redirect_type = ">" if self.current().type == TokenType.GT else ">>"
+                    self.advance()
+                    # Parse redirect target with full expression parser
+                    saved_context2 = self.in_print_context
+                    self.in_print_context = False
+                    try:
+                        redirect_target = self.parse_expression()
+                    finally:
+                        self.in_print_context = saved_context2
+                    
+                    # Convert to appropriate statement with redirection
+                    if func_name == 'printf':
+                        from fawk_ast import PrintfStmt
+                        self.skip_statement_terminator()
+                        return PrintfStmt(expr.args, redirect_type, redirect_target)
+                    else:  # print
+                        self.skip_statement_terminator()
+                        return PrintStmt(expr.args, redirect_type, redirect_target)
+                
+                self.skip_statement_terminator()
+                return ExprStmt(expr)
+            else:
+                # Not a function call, reset and parse normally
+                self.pos = saved_pos
+        
+        # Normal expression statement
         expr = self.parse_expression()
         self.skip_statement_terminator()
         return ExprStmt(expr)
@@ -422,7 +533,13 @@ class Parser:
     def parse_comparison(self) -> ASTNode:
         left = self.parse_concatenation()
         
-        while self.current().type in [TokenType.LT, TokenType.LE, TokenType.GT, TokenType.GE]:
+        # In print context, don't parse > as comparison (reserved for redirection)
+        # but >= is still allowed since it's not a redirection operator
+        allowed_ops = [TokenType.LT, TokenType.LE, TokenType.GE]
+        if not self.in_print_context:
+            allowed_ops.append(TokenType.GT)
+        
+        while self.current().type in allowed_ops:
             op = self.advance().value
             right = self.parse_concatenation()
             left = BinaryOp(op, left, right)
@@ -530,9 +647,15 @@ class Parser:
                 return self.parse_lambda()
             else:
                 self.advance()
-                expr = self.parse_expression()
-                self.expect(TokenType.RPAREN)
-                return expr
+                # Inside parentheses, disable print context (> is always comparison, not redirection)
+                saved = self.in_print_context
+                self.in_print_context = False
+                try:
+                    expr = self.parse_expression()
+                    self.expect(TokenType.RPAREN)
+                    return expr
+                finally:
+                    self.in_print_context = saved
         
         elif token.type == TokenType.LBRACKET:
             return self.parse_array_literal()

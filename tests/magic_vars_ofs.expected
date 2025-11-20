@@ -1,0 +1,4 @@
+Default OFS: a b c
+OFS=comma:,x,y,z
+OFS=tab:	1	2	3
+OFS=pipe: | foo | bar | baz

@@ -124,6 +124,15 @@ class ContinueStmt(ASTNode):
 @dataclass
 class PrintStmt(ASTNode):
     args: List[ASTNode]
+    redirect_type: Optional[str] = None  # None, ">", or ">>"
+    redirect_target: Optional[ASTNode] = None  # Expression that evaluates to filename
+
+
+@dataclass
+class PrintfStmt(ASTNode):
+    args: List[ASTNode]
+    redirect_type: Optional[str] = None  # None, ">", or ">>"
+    redirect_target: Optional[ASTNode] = None  # Expression that evaluates to filename
 
 
 @dataclass

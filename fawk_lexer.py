@@ -32,6 +32,7 @@ class TokenType(Enum):
     NEXT = auto()
     NEXTFILE = auto()
     PRINT = auto()
+    PRINTF = auto()
     BEGIN = auto()
     END = auto()
     BEGINFILE = auto()
@@ -59,6 +60,7 @@ class TokenType(Enum):
     ARROW = auto()        # =>
     PIPELINE = auto()     # |>
     ASSOC_ARROW = auto()  # => (for associative arrays)
+    REDIRECT_APPEND = auto()  # >> (for print redirection)
     
     # Delimiters
     LPAREN = auto()
@@ -341,6 +343,12 @@ class Lexer:
                 self.advance()
                 self.advance()
                 self.tokens.append(Token(TokenType.LE, '<=', start_line, start_col))
+                continue
+            
+            if self.peek() == '>' and self.peek(1) == '>':
+                self.advance()
+                self.advance()
+                self.tokens.append(Token(TokenType.REDIRECT_APPEND, '>>', start_line, start_col))
                 continue
             
             if self.peek() == '>' and self.peek(1) == '=':

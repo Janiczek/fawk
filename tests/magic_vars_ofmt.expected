@@ -1,0 +1,4 @@
+Default OFMT: 3.14159
+OFMT=%.10f: 3.1415926536
+OFMT=%.3e: 3.142e+00
+Integer as float (%.6g): 42
