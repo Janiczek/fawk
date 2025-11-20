@@ -91,15 +91,14 @@ def main():
     interpreter = Interpreter(argc, argv)
     
     # Read input from files if provided, or from stdin
-    input_lines = []
+    input_text = ""
     if input_files:
         for input_file in input_files:
             interpreter.FILENAME = input_file
             interpreter.FNR = 0  # Reset file record counter for each file
             try:
                 with open(input_file, 'r') as f:
-                    file_lines = f.readlines()
-                    input_lines.extend(file_lines)
+                    input_text += f.read()
             except FileNotFoundError:
                 print(f"Error: Input file '{input_file}' not found", file=sys.stderr)
                 sys.exit(1)
@@ -112,14 +111,14 @@ def main():
         if not sys.stdin.isatty():
             interpreter.FILENAME = "-"
             try:
-                input_lines = sys.stdin.readlines()
+                input_text = sys.stdin.read()
             except IOError as e:
                 print(f"Error reading from stdin: {e}", file=sys.stderr)
                 sys.exit(1)
     
     # Run
     try:
-        interpreter.run(program, input_lines)
+        interpreter.run(program, input_text)
     except RuntimeError as e:
         print(f"Runtime error: {e}", file=sys.stderr)
         sys.exit(1)

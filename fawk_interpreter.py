@@ -142,6 +142,7 @@ class Interpreter:
         self.RLENGTH = -1  # Length of string matched by match()
         self.RS = "\n"     # Record separator
         self.RSTART = 0    # Start of string matched by match()
+        self.RT = ""       # Record terminator (matched text)
         self.SUBSEP = "\034"  # Subscript separator
         
         self.fields = []  # Current line fields
@@ -600,6 +601,8 @@ class Interpreter:
             return self.RS
         elif name == 'RSTART':
             return self.RSTART
+        elif name == 'RT':
+            return self.RT
         elif name == 'SUBSEP':
             return self.SUBSEP
         
@@ -638,7 +641,128 @@ class Interpreter:
         else:
             return ""
     
-    def run(self, program: Program, input_lines: List[str] = None):
+    def split_into_records(self, input_text: str) -> List[tuple]:
+        """
+        Split input text into records based on RS value.
+        Returns a list of tuples: (record_text, record_terminator)
+        """
+        if not input_text:
+            return []
+        
+        records = []
+        rs = self.RS
+        
+        if rs == "\n":
+            # Default: each line is a record
+            lines = input_text.split('\n')
+            for i, line in enumerate(lines):
+                if i < len(lines) - 1:
+                    # Not the last line, has newline terminator
+                    records.append((line, "\n"))
+                elif line:
+                    # Last line with content but no trailing newline
+                    records.append((line, ""))
+        
+        elif rs == "":
+            # Empty string: records separated by blank lines
+            # Leading newlines are ignored, trailing newline after last record is removed
+            
+            # Strip leading newlines
+            text = input_text.lstrip('\n')
+            if not text:
+                return []
+            
+            # Split by one or more blank lines (two or more consecutive newlines)
+            # We need to track what was matched as the separator
+            parts = re.split(r'(\n\n+)', text)
+            
+            for i in range(0, len(parts), 2):
+                if i < len(parts):
+                    record = parts[i]
+                    # Remove trailing newline from record if present
+                    if record.endswith('\n'):
+                        record = record[:-1]
+                    
+                    # Get terminator (the blank lines that follow)
+                    if i + 1 < len(parts):
+                        terminator = parts[i + 1]
+                    else:
+                        # Last record - check if original text ended with newlines
+                        terminator = ""
+                    
+                    if record:  # Only add non-empty records
+                        records.append((record, terminator))
+        
+        elif len(rs) == 1:
+            # Single character: split by that character
+            parts = input_text.split(rs)
+            for i, part in enumerate(parts):
+                if i < len(parts) - 1:
+                    # Not the last part, has separator
+                    records.append((part, rs))
+                elif part:
+                    # Last part with content but no trailing separator
+                    records.append((part, ""))
+        
+        else:
+            # Regex pattern: split by pattern matches
+            try:
+                # Use split with capturing group to get both parts and separators
+                parts = re.split(f'({rs})', input_text)
+                
+                # parts will be [text, sep, text, sep, text, ...]
+                for i in range(0, len(parts), 2):
+                    if i < len(parts):
+                        record = parts[i]
+                        # Get terminator (the matched separator)
+                        if i + 1 < len(parts):
+                            terminator = parts[i + 1]
+                        else:
+                            terminator = ""
+                        
+                        # Include even empty records (leading/trailing matches)
+                        records.append((record, terminator))
+            except re.error:
+                # Invalid regex, treat as literal string
+                parts = input_text.split(rs)
+                for i, part in enumerate(parts):
+                    if i < len(parts) - 1:
+                        records.append((part, rs))
+                    elif part:
+                        records.append((part, ""))
+        
+        return records
+    
+    def split_fields(self, record: str) -> List[str]:
+        """
+        Split a record into fields based on FS and RS.
+        When RS == "" and FS is a single character, newlines also act as field separators.
+        """
+        fs = self.FS
+        rs = self.RS
+        
+        # Special case: RS == "" and FS is a single character
+        if rs == "" and len(fs) == 1 and fs != "":
+            # Newline always acts as field separator in addition to FS
+            # First split by newlines, then by FS
+            lines = record.split('\n')
+            fields = []
+            for line in lines:
+                if fs == " ":
+                    # Special case: space means any whitespace
+                    fields.extend(line.split())
+                else:
+                    fields.extend(line.split(fs))
+            return fields
+        else:
+            # Normal field splitting
+            if fs == " ":
+                # Special case: space means any whitespace
+                return record.split()
+            else:
+                return record.split(fs)
+    
+    def run(self, program: Program, input_text: str = None):
         # Register user-defined functions (protect built-ins)
         for func_def in program.functions:
             if func_def.name in self.builtin_functions:
@@ -657,19 +781,19 @@ class Interpreter:
             finally:
                 self.current_env = saved_env
         
-        # Process input lines with pattern-action blocks
-        if input_lines:
-            for line in input_lines:
+        # Process input with pattern-action blocks
+        if input_text:
+            # Split input into records based on RS
+            records = self.split_into_records(input_text)
+            
+            for record, terminator in records:
                 self.NR += 1
                 self.FNR += 1
-                # Split line into fields using FS
-                line = line.rstrip('\n')
-                self.current_line = line  # Store original line for $0
-                if self.FS == " ":
-                    # Special case: space means any whitespace
-                    self.fields = line.split()
-                else:
-                    self.fields = line.split(self.FS)
+                self.RT = terminator
+                
+                # Split record into fields
+                self.current_line = record  # Store original record for $0
+                self.fields = self.split_fields(record)
                 self.NF = len(self.fields)
                 
                 # Execute pattern-action blocks

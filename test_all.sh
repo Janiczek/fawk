@@ -92,6 +92,6 @@ for script in tests/*.fawk; do
 done
 
 # Summary of .fawk tests
-echo "E2E tests:   $PASSED passed, $FAILED failed"
+echo "E2E tests: $PASSED passed, $FAILED failed"
 
 ./tests/test_command_line.sh

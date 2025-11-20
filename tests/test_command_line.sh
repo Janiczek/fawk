@@ -24,7 +24,6 @@ test_case() {
     actual=$("$@" 2>&1)
     
     if [ "$actual" = "$expected" ]; then
-        echo -e "${GREEN}✓${NC} $description"
         PASSED=$((PASSED + 1))
     else
         echo -e "${RED}✗${NC} $description"
@@ -101,7 +100,6 @@ rm -f /tmp/fawk_test_file1.txt /tmp/fawk_test_file2.txt /tmp/fawk_test_file3.txt
 rm -f /tmp/fawk_test_fields.txt /tmp/fawk_test_script.fawk /tmp/fawk_test_fields_script.fawk
 
 # Summary
-echo ""
 echo "Command-line tests: $PASSED passed, $FAILED failed"
 
 if [ $FAILED -eq 0 ]; then
@@ -109,4 +107,3 @@ if [ $FAILED -eq 0 ]; then
 else
     exit 1
 fi
-
