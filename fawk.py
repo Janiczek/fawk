@@ -1134,19 +1134,37 @@ class Interpreter:
                 func_def.params, func_def.body, self.global_env
             )
         
-        # Execute BEGIN block
+        # Execute BEGIN block with its own local environment
         if node.begin_block:
-            self.eval(node.begin_block)
+            begin_env = Environment(self.global_env)
+            saved_env = self.current_env
+            self.current_env = begin_env
+            try:
+                self.eval(node.begin_block)
+            finally:
+                self.current_env = saved_env
         
         # Pattern-action blocks would go here (for processing input)
         # For now, we just execute them if they have no pattern
         for pattern_action in node.patterns:
             if pattern_action.pattern is None:
-                self.eval(pattern_action.action)
+                action_env = Environment(self.global_env)
+                saved_env = self.current_env
+                self.current_env = action_env
+                try:
+                    self.eval(pattern_action.action)
+                finally:
+                    self.current_env = saved_env
         
-        # Execute END block
+        # Execute END block with its own local environment
         if node.end_block:
-            self.eval(node.end_block)
+            end_env = Environment(self.global_env)
+            saved_env = self.current_env
+            self.current_env = end_env
+            try:
+                self.eval(node.end_block)
+            finally:
+                self.current_env = saved_env
     
     def eval_Block(self, node: Block) -> Any:
         result = None

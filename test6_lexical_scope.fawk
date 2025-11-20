@@ -11,7 +11,43 @@ function outer(x) {
     return inner(y)
 }
 
+function increment_global() {
+    global_counter = global_counter + 1
+    return global_counter
+}
+
+function check_isolation() {
+    # i should be 0 (default) here, not visible from outer scope
+    initial = i
+    i = 100
+    return initial
+}
+
 BEGIN {
+    global global_counter
+    
+    # Test 1: Closures and lexical scope
+    print "Test 1: Closures and lexical scope"
     result = outer(20)
-    print result
+    print "  outer(20) =", result
+    print ""
+    
+    # Test 2: Global variables
+    print "Test 2: Global variables"
+    global_counter = 0
+    print "  Initial global_counter:", global_counter
+    increment_global()
+    print "  After increment_global():", global_counter
+    increment_global()
+    print "  After another increment_global():", global_counter
+    print ""
+    
+    # Test 3: Functions don't see non-global outer variables
+    print "Test 3: Isolation - non-globals not visible"
+    i = 5
+    print "  Before calling check_isolation(), outer i =", i
+    inner_initial = check_isolation()
+    print "  Inside check_isolation(), initial i was:", inner_initial
+    print "  After calling check_isolation(), outer i =", i
+    print "  (outer i unchanged, inner i was separate)"
 }
