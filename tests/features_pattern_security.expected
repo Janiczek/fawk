@@ -1,0 +1,10 @@
+Monitoring web requests...
+----------------------------
+Normal request: /index.html GET
+Hacker Alert!
+Normal request: /about.html GET
+Unauthorized POST to admin area!
+Normal request: /admin.html GET
+Hacker Alert!
+----------------------------
+Security monitoring complete

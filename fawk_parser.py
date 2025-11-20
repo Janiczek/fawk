@@ -72,15 +72,19 @@ class Parser:
                 # Pattern-action with no pattern
                 action = self.parse_block()
                 patterns.append(PatternAction(None, action))
-            elif self.current().type == TokenType.REGEX:
-                # Regex pattern with action
-                token = self.advance()
-                pattern_node = Regex(token.value[0], token.value[1])
-                action = self.parse_block()
-                patterns.append(PatternAction(pattern_node, action))
             else:
-                # No more valid constructs
-                break
+                # Try to parse a pattern expression followed by an action block
+                pattern_expr = self.try_parse_pattern()
+                if pattern_expr is not None:
+                    # We have a pattern, now expect an action block
+                    self.skip_newlines()
+                    if self.current().type != TokenType.LBRACE:
+                        self.error("Expected '{' after pattern")
+                    action = self.parse_block()
+                    patterns.append(PatternAction(pattern_expr, action))
+                else:
+                    # No more valid constructs
+                    break
             
             self.skip_newlines()
         
@@ -379,6 +383,10 @@ class Parser:
             self.advance()
             return String(token.value)
         
+        elif token.type == TokenType.REGEX:
+            self.advance()
+            return Regex(token.value[0], token.value[1])
+        
         elif token.type == TokenType.IDENTIFIER:
             self.advance()
             return Identifier(token.value)
@@ -502,3 +510,67 @@ class Parser:
             return AssocArray(pairs)
         else:
             return ArrayLiteral(elements)
+    
+    def try_parse_pattern(self) -> Optional[ASTNode]:
+        """
+        Try to parse a pattern expression.
+        Returns the pattern node if successful, None otherwise.
+        
+        A pattern is any expression followed by a '{' block.
+        This includes: regex literals, field comparisons, boolean combinations, etc.
+        """
+        # Save position in case we need to backtrack
+        saved_pos = self.pos
+        
+        try:
+            # Check if the current token can start a pattern expression
+            token = self.current()
+            
+            # These tokens can start a pattern expression
+            if token.type in [
+                TokenType.DOLLAR,     # $1, $2, etc.
+                TokenType.IDENTIFIER, # variables, function calls
+                TokenType.NUMBER,     # numeric literals
+                TokenType.STRING,     # string literals
+                TokenType.LPAREN,     # grouped expressions, lambdas
+                TokenType.LBRACKET,   # array literals
+                TokenType.NOT,        # unary not
+                TokenType.MINUS,      # unary minus
+            ]:
+                # Try to parse an expression
+                pattern = self.parse_expression()
+                
+                # Skip newlines between pattern and action
+                self.skip_newlines()
+                
+                # Check if followed by '{'
+                if self.current().type == TokenType.LBRACE:
+                    # Success! This is a pattern
+                    return pattern
+                else:
+                    # Not followed by '{', not a pattern
+                    self.pos = saved_pos
+                    return None
+            elif token.type == TokenType.REGEX:
+                # Handle regex as part of expression (not as primary in this context)
+                # Parse it as a complete expression which may include operators
+                pattern = self.parse_expression()
+                
+                # Skip newlines between pattern and action
+                self.skip_newlines()
+                
+                # Check if followed by '{'
+                if self.current().type == TokenType.LBRACE:
+                    # Success! This is a pattern
+                    return pattern
+                else:
+                    # Not followed by '{', not a pattern
+                    self.pos = saved_pos
+                    return None
+            else:
+                # Token cannot start a pattern
+                return None
+        except:
+            # Parsing failed, not a pattern
+            self.pos = saved_pos
+            return None

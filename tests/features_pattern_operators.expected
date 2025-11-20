@@ -1,0 +1,37 @@
+Test: Pattern expressions with operators
+==========================================
+High value user: alice with value 150
+Non-comment line: user alice 150
+Valid data line with 3 fields: user alice 150
+Security alert: DELETE on admin path - Line: 2
+Non-comment line: admin DELETE suspicious
+Valid data line with 3 fields: admin DELETE suspicious
+Issue found: error connection failed
+Non-comment line: error connection failed
+Valid data line with 3 fields: error connection failed
+Expensive product: laptop at price 75
+Non-comment line: product laptop 75
+Valid data line with 3 fields: product laptop 75
+Valid data line with 4 fields: comment this is ignored
+Non-comment line: user bob 50
+Valid data line with 3 fields: user bob 50
+Non-comment line: order item123 250
+Large transaction: order item123 250
+Valid data line with 3 fields: order item123 250
+Issue found: warning low memory
+Non-comment line: warning low memory
+Valid data line with 3 fields: warning low memory
+Non-comment line: product mouse 20
+Valid data line with 3 fields: product mouse 20
+Non-comment line: sale item456 150
+Large transaction: sale item456 150
+Valid data line with 3 fields: sale item456 150
+Non-comment line: admin GET normal
+Valid data line with 3 fields: admin GET normal
+Non-comment line: data admin123 secret
+Admin with data: admin123 secret
+Valid data line with 3 fields: data admin123 secret
+Non-comment line: # skip this line
+Non-comment line: valid data line here
+Valid data line with 4 fields: valid data line here
+Pattern operator tests completed

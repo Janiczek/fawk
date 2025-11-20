@@ -1,0 +1,7 @@
+/index.html GET
+/admin.html DELETE
+/about.html GET
+/admin/users.html POST unauthorized
+/admin.html GET
+/login.html POST
+/admin.html DELETE

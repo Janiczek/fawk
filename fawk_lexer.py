@@ -248,11 +248,11 @@ class Lexer:
                 self.tokens.append(self.read_identifier())
                 continue
             
-            # Regex patterns (only at top level after brace/newline at statement position)
-            # We need to be careful - regex only appears in pattern position, not in expressions
+            # Regex patterns (can appear in pattern position and in expressions)
+            # We need to be careful - regex only appears where expressions can start
             if self.peek() == '/':
                 # Check if this could be a regex based on context
-                # Regex appears after: NEWLINE, RBRACE, or at start
+                # Regex appears after: NEWLINE, RBRACE, operators, or at start
                 if len(self.tokens) == 0:
                     self.tokens.append(self.read_regex())
                     continue
@@ -268,8 +268,19 @@ class Lexer:
                     continue
                 
                 last_meaningful = self.tokens[i]
-                # Regex can appear after RBRACE (end of block) or BEGIN/END/FUNCTION
-                if last_meaningful.type in [TokenType.RBRACE, TokenType.BEGIN, TokenType.END, TokenType.FUNCTION]:
+                # Regex can appear after:
+                # - Block delimiters: RBRACE, BEGIN, END, FUNCTION
+                # - Operators where expressions can start: AND, OR, NOT, LPAREN, COMMA
+                # - Comparison/match operators: EQ, NE, LT, LE, GT, GE, MATCH, NOT_MATCH
+                # - Other operators: ASSIGN
+                if last_meaningful.type in [
+                    TokenType.RBRACE, TokenType.BEGIN, TokenType.END, TokenType.FUNCTION,
+                    TokenType.AND, TokenType.OR, TokenType.NOT,
+                    TokenType.LPAREN, TokenType.COMMA,
+                    TokenType.EQ, TokenType.NE, TokenType.LT, TokenType.LE, TokenType.GT, TokenType.GE,
+                    TokenType.MATCH, TokenType.NOT_MATCH,
+                    TokenType.ASSIGN,
+                ]:
                     self.tokens.append(self.read_regex())
                     continue
             

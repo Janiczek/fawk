@@ -1,0 +1,14 @@
+user alice 150
+admin DELETE suspicious
+error connection failed
+product laptop 75
+comment this is ignored
+user bob 50
+order item123 250
+warning low memory
+product mouse 20
+sale item456 150
+admin GET normal
+data admin123 secret
+# skip this line
+valid data line here
