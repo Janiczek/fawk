@@ -45,6 +45,7 @@ class TokenType(Enum):
     MULTIPLY = auto()
     DIVIDE = auto()
     MODULO = auto()
+    POWER = auto()
     ASSIGN = auto()
     EQ = auto()
     NE = auto()
@@ -377,6 +378,7 @@ class Lexer:
                 '*': TokenType.MULTIPLY,
                 '/': TokenType.DIVIDE,
                 '%': TokenType.MODULO,
+                '^': TokenType.POWER,
                 '=': TokenType.ASSIGN,
                 '<': TokenType.LT,
                 '>': TokenType.GT,

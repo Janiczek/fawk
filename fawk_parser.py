@@ -570,12 +570,23 @@ class Parser:
         return left
     
     def parse_multiplicative(self) -> ASTNode:
-        left = self.parse_unary()
+        left = self.parse_power()
         
         while self.current().type in [TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.MODULO]:
             op = self.advance().value
-            right = self.parse_unary()
+            right = self.parse_power()
             left = BinaryOp(op, left, right)
+        
+        return left
+    
+    def parse_power(self) -> ASTNode:
+        left = self.parse_unary()
+        
+        # Power is right-associative: 2^3^2 = 2^(3^2)
+        if self.current().type == TokenType.POWER:
+            op = self.advance().value
+            right = self.parse_power()  # Right-associative recursion
+            return BinaryOp(op, left, right)
         
         return left
     

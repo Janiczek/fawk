@@ -170,7 +170,7 @@ class Interpreter:
         
         # Built-in functions - single source of truth
         self.builtin_functions = {
-            'length': lambda arr: arr.length() if isinstance(arr, FawkArray) else len(str(arr)),
+            'length': self.builtin_length,
             'map': self.builtin_map,
             'filter': self.builtin_filter,
             'reduce': self.builtin_reduce,
@@ -215,6 +215,25 @@ class Interpreter:
             self.PREC = int(self.to_number(value))
         else:
             self.global_env.set(name, value)
+    
+    def builtin_length(self, value=None):
+        """Return length of array or string"""
+        if value is None:
+            # No argument: return length of $0
+            value = self.current_line
+        
+        if isinstance(value, FawkArray):
+            return value.length()
+        else:
+            # Convert to string and get length
+            # Handle large integers by temporarily increasing limit
+            import sys
+            old_limit = sys.get_int_max_str_digits()
+            try:
+                sys.set_int_max_str_digits(0)  # 0 means no limit
+                return len(str(value))
+            finally:
+                sys.set_int_max_str_digits(old_limit)
     
     def builtin_map(self, func, arr):
         if not isinstance(arr, FawkArray):
@@ -513,16 +532,23 @@ class Interpreter:
     
     def builtin_substr(self, string, start, length=None):
         """Extract substring"""
-        s = self.value_to_string(string)
-        start_idx = int(self.to_number(start)) - 1  # AWK uses 1-based indexing
-        if start_idx < 0:
-            start_idx = 0
-        
-        if length is None:
-            return s[start_idx:]
-        else:
-            length_val = int(self.to_number(length))
-            return s[start_idx:start_idx + length_val]
+        # Handle large integers by temporarily increasing limit
+        import sys
+        old_limit = sys.get_int_max_str_digits()
+        try:
+            sys.set_int_max_str_digits(0)  # 0 means no limit
+            s = self.value_to_string(string)
+            start_idx = int(self.to_number(start)) - 1  # AWK uses 1-based indexing
+            if start_idx < 0:
+                start_idx = 0
+            
+            if length is None:
+                return s[start_idx:]
+            else:
+                length_val = int(self.to_number(length))
+                return s[start_idx:start_idx + length_val]
+        finally:
+            sys.set_int_max_str_digits(old_limit)
     
     def builtin_tolower(self, string):
         """Convert string to lowercase"""
@@ -844,11 +870,22 @@ class Interpreter:
                 return self.OFMT % float(value)
             except:
                 return str(value)
-        elif isinstance(value, (int, float)):
-            # Format numbers using OFMT
+        elif isinstance(value, int):
+            # For arbitrary precision integers, convert directly to string
+            # without using OFMT (which would try to format as float)
+            import sys
+            # Temporarily increase the limit for large integers
+            old_limit = sys.get_int_max_str_digits()
+            try:
+                sys.set_int_max_str_digits(0)  # 0 means no limit
+                return str(value)
+            finally:
+                sys.set_int_max_str_digits(old_limit)
+        elif isinstance(value, float):
+            # Format floats using OFMT
             try:
                 # Check if it's actually an integer value
-                if isinstance(value, float) and value == int(value):
+                if value == int(value):
                     return str(int(value))
                 return self.OFMT % value
             except:
@@ -869,11 +906,21 @@ class Interpreter:
                 return self.CONVFMT % float(value)
             except:
                 return str(value)
-        elif isinstance(value, (int, float)):
-            # Format numbers using CONVFMT
+        elif isinstance(value, int):
+            # For arbitrary precision integers, convert directly to string
+            # without using CONVFMT (which would try to format as float)
+            import sys
+            old_limit = sys.get_int_max_str_digits()
+            try:
+                sys.set_int_max_str_digits(0)  # 0 means no limit
+                return str(value)
+            finally:
+                sys.set_int_max_str_digits(old_limit)
+        elif isinstance(value, float):
+            # Format floats using CONVFMT
             try:
                 # Check if it's actually an integer value
-                if isinstance(value, float) and value == int(value):
+                if value == int(value):
                     return str(int(value))
                 return self.CONVFMT % value
             except:
@@ -927,6 +974,29 @@ class Interpreter:
                 getcontext().prec = self.PREC
                 return self.to_decimal(left) % self.to_decimal(right)
             return self.to_number(left) % self.to_number(right)
+        elif op == '^':
+            # Power operation with arbitrary precision support for integers
+            left_num = self.to_number(left)
+            right_num = self.to_number(right)
+            
+            # Check if both operands are integers (or integer-valued floats)
+            left_is_int = isinstance(left_num, int) or (isinstance(left_num, float) and left_num == int(left_num))
+            right_is_int = isinstance(right_num, int) or (isinstance(right_num, float) and right_num == int(right_num))
+            
+            if left_is_int and right_is_int and right_num >= 0:
+                # Use Python's arbitrary precision integer arithmetic
+                base = int(left_num)
+                exponent = int(right_num)
+                return base ** exponent
+            elif self.use_high_precision():
+                # High precision floating point
+                import mpmath
+                mpmath.mp.dps = self.PREC
+                result = mpmath.power(mpmath.mpf(str(left_num)), mpmath.mpf(str(right_num)))
+                return Decimal(str(result))
+            else:
+                # Standard floating point
+                return left_num ** right_num
         # Comparison operations - use as-is for now
         elif op == '==':
             return left == right
