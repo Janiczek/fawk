@@ -10,12 +10,6 @@ This directory contains a comprehensive test suite for the FAWK interpreter.
 ./test_all.sh
 ```
 
-Or directly:
-
-```bash
-python3 run_tests.py
-```
-
 ### Individual Tests
 
 ```bash
@@ -82,22 +76,23 @@ Each test has a corresponding `.expected` file containing the expected output:
 
 ## Test Runner
 
-The `run_tests.py` script:
+The `test_all.sh` script:
+- Simple bash script using standard Unix utilities
 - Runs each test with appropriate inputs
-- Captures actual output
-- Compares against expected output
+- Captures actual output to a temporary file
+- Uses `diff` to compare against expected output
 - Reports pass/fail for each test
-- Provides detailed diff output on failure
+- Shows unified diff output on failure
 
 ## Adding New Tests
 
 1. Create your `.fawk` script (e.g., `test8_newfeature.fawk`)
 2. Run it and capture output: `python3 fawk.py test8_newfeature.fawk > test8_newfeature.expected`
-3. Add entry to `TESTS` list in `run_tests.py`:
-   ```python
-   ("test8_newfeature.fawk", None, "test8_newfeature.expected"),
+3. Add a `run_test` call in `test_all.sh`:
+   ```bash
+   run_test "New Feature" "test8_newfeature.fawk" "" "test8_newfeature.expected"
    ```
-4. Run test suite to verify: `python3 run_tests.py`
+4. Run test suite to verify: `./test_all.sh`
 
 ## Test Results
 
