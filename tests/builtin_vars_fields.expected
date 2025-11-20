@@ -5,17 +5,23 @@ Test: FS can be changed
 Test: Field splitting with FS
 --------------------------------------
   Line 1 has 3 fields
+    $0 (whole record): name:alice:developer
     Field 1: name
     Field 2: alice
     Field 3: developer
+
   Line 2 has 3 fields
+    $0 (whole record): name:bob:designer
     Field 1: name
     Field 2: bob
     Field 3: designer
+
   Line 3 has 3 fields
+    $0 (whole record): role:charlie:manager
     Field 1: role
     Field 2: charlie
     Field 3: manager
+
 
 Test: Record counters
 --------------------------------------

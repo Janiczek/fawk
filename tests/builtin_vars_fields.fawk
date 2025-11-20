@@ -15,11 +15,13 @@ BEGIN {
         print "--------------------------------------"
     }
     print "  Line", NR, "has", NF, "fields"
+    print "    $0 (whole record):", $0
     print "    Field 1:", $1
     print "    Field 2:", $2
     if (NF > 2) {
         print "    Field 3:", $3
     }
+    print ""
 }
 
 END {

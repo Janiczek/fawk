@@ -145,6 +145,7 @@ class Interpreter:
         self.SUBSEP = "\034"  # Subscript separator
         
         self.fields = []  # Current line fields
+        self.current_line = ""  # Original line ($0)
         
         # Built-in functions - single source of truth
         self.builtin_functions = {
@@ -617,7 +618,7 @@ class Interpreter:
     
     def eval_Regex(self, node: Regex) -> bool:
         """Evaluate regex pattern against current line ($0)"""
-        line = " ".join(self.fields) if self.fields else ""
+        line = self.current_line
         flags = 0
         if 'i' in node.flags:
             flags |= re.IGNORECASE
@@ -631,7 +632,7 @@ class Interpreter:
         index = int(index)
         
         if index == 0:
-            return " ".join(self.fields)
+            return self.current_line
         elif 1 <= index <= len(self.fields):
             return self.fields[index - 1]
         else:
@@ -663,6 +664,7 @@ class Interpreter:
                 self.FNR += 1
                 # Split line into fields using FS
                 line = line.rstrip('\n')
+                self.current_line = line  # Store original line for $0
                 if self.FS == " ":
                     # Special case: space means any whitespace
                     self.fields = line.split()
