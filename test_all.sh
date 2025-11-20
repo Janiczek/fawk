@@ -22,10 +22,11 @@ run_test() {
     local input_file="$3"
     local expected="$4"
     local env_file="$5"
+    local check_gawk="$6"
     
     TOTAL=$((TOTAL + 1))
     
-    # Run the test
+    # Run the test with fawk
     local actual_output=$(mktemp)
     local exit_code=0
     
@@ -58,6 +59,8 @@ run_test() {
             diff -u "$expected" "$actual_output" | head -20
             echo ""
             FAILED=$((FAILED + 1))
+            rm -f "$actual_output"
+            return
         fi
     else
         # No expected file, just check exit code
@@ -70,7 +73,51 @@ run_test() {
             cat "$actual_output" | head -20
             echo ""
             FAILED=$((FAILED + 1))
+            rm -f "$actual_output"
+            return
         fi
+    fi
+    
+    # Check gawk compatibility if requested
+    if [ "$check_gawk" = "true" ]; then
+        if ! command -v gawk &> /dev/null; then
+            echo -e "${YELLOW}⚠ WARNING${NC}: $basename - gawk not found, skipping compatibility check"
+            rm -f "$actual_output"
+            return
+        fi
+        
+        local gawk_output=$(mktemp)
+        local gawk_exit_code=0
+        
+        # Run with gawk
+        (
+            # Load environment variables if .env file exists
+            if [ -n "$env_file" ] && [ -f "$env_file" ]; then
+                while IFS='=' read -r key value || [ -n "$key" ]; do
+                    # Skip empty lines and comments
+                    [[ -z "$key" || "$key" =~ ^[[:space:]]*# ]] && continue
+                    export "$key=$value"
+                done < "$env_file"
+            fi
+            
+            if [ -f "$input_file" ]; then
+                gawk -f "$script" "$input_file"
+            else
+                gawk -f "$script"
+            fi
+        ) > "$gawk_output" 2>&1 || gawk_exit_code=$?
+        
+        # Compare fawk and gawk outputs
+        if ! diff -q "$actual_output" "$gawk_output" > /dev/null 2>&1; then
+            echo -e "${RED}✗ GAWK COMPATIBILITY FAILED${NC}: $basename"
+            echo "  FAWK and GAWK outputs differ:"
+            diff -u "$actual_output" "$gawk_output" | head -20
+            echo ""
+            FAILED=$((FAILED + 1))
+            PASSED=$((PASSED - 1))
+        fi
+        
+        rm -f "$gawk_output"
     fi
     
     rm -f "$actual_output"
@@ -87,7 +134,21 @@ for script in tests/*.fawk; do
         expected_file="tests/${basename}.expected"
         env_file="tests/${basename}.env"
         
-        run_test "$script" "$basename" "$input_file" "$expected_file" "$env_file"
+        run_test "$script" "$basename" "$input_file" "$expected_file" "$env_file" "false"
+    fi
+done
+
+for script in tests/*.awk; do
+    if [ -f "$script" ]; then
+        # Extract basename without extension
+        basename=$(basename "$script" .awk)
+        
+        # Check for corresponding input, expected, and env files
+        input_file="tests/${basename}.input"
+        expected_file="tests/${basename}.expected"
+        env_file="tests/${basename}.env"
+        
+        run_test "$script" "$basename" "$input_file" "$expected_file" "$env_file" "true"
     fi
 done
 
