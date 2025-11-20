@@ -3,8 +3,8 @@
 function test_match() {
     text = "The price is $42.50 for item"
     
-    # match() returns an array with matched groups
-    result = match(text, "\\$([0-9]+)\\.([0-9]+)")
+    # match(pattern, text) - pattern first for pipeline-friendliness
+    result = match("\\$([0-9]+)\\.([0-9]+)", text)
     
     if (length(result) > 0) {
         print "  match() found:", result[0]
@@ -16,8 +16,8 @@ function test_match() {
 function test_split() {
     csv_line = "apple,banana,cherry,date"
     
-    # split() returns an array
-    fruits = split(csv_line, ",")
+    # split(separator, text) - separator first for pipeline-friendliness
+    fruits = split(",", csv_line)
     count = length(fruits)
     print "  split() returned items"
     print "  Item 0:", fruits[0]
@@ -36,6 +36,20 @@ function test_auto_vivify() {
     print "  Element 1:", undefined_arr[1]
 }
 
+function test_pipeline() {
+    # Demonstrate pipeline-friendly argument order
+    text = "one,two,three"
+    
+    # split with pipeline
+    result = text |> split(",")
+    print "  Pipeline: text |> split(\",\") works!"
+    print "  Result[1]:", result[1]
+    
+    # Can also be used in nested pipelines
+    doubled = "1,2,3" |> split(",") |> map((x) => { x * 2 })
+    print "  Nested pipeline result[0]:", doubled[0]
+}
+
 BEGIN {
     print "Test 1: match() function"
     print "--------------------------------------"
@@ -51,7 +65,13 @@ BEGIN {
     print "--------------------------------------"
     test_auto_vivify()
     print ""
-    print "Test 4: Regex pattern matching"
+    
+    print "Test 4: Pipeline-friendly functions"
+    print "--------------------------------------"
+    test_pipeline()
+    print ""
+    
+    print "Test 5: Regex pattern matching"
     print "--------------------------------------"
 }
 

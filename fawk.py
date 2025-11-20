@@ -1179,7 +1179,7 @@ class Interpreter:
             total += value if isinstance(value, (int, float)) else 0
         return total
     
-    def builtin_match(self, text, pattern):
+    def builtin_match(self, pattern, text):
         """Match a regex pattern and return array with full match and groups"""
         import re
         text_str = str(text)
@@ -1195,7 +1195,7 @@ class Interpreter:
         
         return result
     
-    def builtin_split(self, text, separator):
+    def builtin_split(self, separator, text):
         """Split text by separator and return array"""
         text_str = str(text)
         sep_str = str(separator)
