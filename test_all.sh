@@ -16,66 +16,83 @@ PASSED=0
 FAILED=0
 TOTAL=0
 
-echo "======================================================================"
-echo "FAWK Interpreter Test Suite"
-echo "======================================================================"
-echo ""
-
 run_test() {
-    local test_name="$1"
-    local script="$2"
+    local script="$1"
+    local basename="$2"
     local input_file="$3"
     local expected="$4"
+    local env_file="$5"
     
     TOTAL=$((TOTAL + 1))
     
-    local input_desc=""
-    if [ -n "$input_file" ]; then
-        input_desc=" (with $input_file)"
-    fi
-    
-    echo "Test $TOTAL: $test_name$input_desc"
-    echo "----------------------------------------------------------------------"
-    
     # Run the test
     local actual_output=$(mktemp)
-    if [ -n "$input_file" ]; then
-        ./fawk "$script" "$input_file" > "$actual_output" 2>&1
-    else
-        ./fawk "$script" > "$actual_output" 2>&1
-    fi
+    local exit_code=0
     
-    # Compare output
-    if diff -q "$expected" "$actual_output" > /dev/null 2>&1; then
-        echo -e "${GREEN}✓ PASSED${NC}"
-        PASSED=$((PASSED + 1))
+    # Run in a subshell to isolate environment variables
+    (
+        # Load environment variables if .env file exists
+        if [ -n "$env_file" ] && [ -f "$env_file" ]; then
+            while IFS='=' read -r key value || [ -n "$key" ]; do
+                # Skip empty lines and comments
+                [[ -z "$key" || "$key" =~ ^[[:space:]]*# ]] && continue
+                export "$key=$value"
+            done < "$env_file"
+        fi
+        
+        if [ -f "$input_file" ]; then
+            ./fawk "$script" "$input_file"
+        else
+            ./fawk "$script"
+        fi
+    ) > "$actual_output" 2>&1 || exit_code=$?
+    
+    # Check results
+    if [ -f "$expected" ]; then
+        # Expected file exists, compare output
+        if diff -q "$expected" "$actual_output" > /dev/null 2>&1; then
+            PASSED=$((PASSED + 1))
+        else
+            echo -e "${RED}✗ FAILED${NC}: $basename"
+            echo "  Expected output differs from actual output:"
+            diff -u "$expected" "$actual_output" | head -20
+            echo ""
+            FAILED=$((FAILED + 1))
+        fi
     else
-        echo -e "${RED}✗ FAILED${NC}"
-        echo "  Expected output differs from actual output:"
-        diff -u "$expected" "$actual_output" | head -20
-        FAILED=$((FAILED + 1))
+        # No expected file, just check exit code
+        if [ $exit_code -eq 0 ]; then
+            PASSED=$((PASSED + 1))
+        else
+            echo -e "${RED}✗ FAILED${NC}: $basename"
+            echo "  Script exited with code $exit_code"
+            echo "  Output:"
+            cat "$actual_output" | head -20
+            echo ""
+            FAILED=$((FAILED + 1))
+        fi
     fi
     
     rm -f "$actual_output"
-    echo ""
 }
 
-# Run all tests
-run_test "Arrays as First-Class Values" "test1_arrays.fawk" "" "test1_arrays.expected"
-run_test "Functions as First-Class Values" "test2_functions.fawk" "" "test2_functions.expected"
-run_test "Anonymous Functions" "test3_lambda.fawk" "" "test3_lambda.expected"
-run_test "Functional Pipeline Operator" "test4_pipeline.fawk" "" "test4_pipeline.expected"
-run_test "Higher-Order Functions" "test5_higher_order.fawk" "" "test5_higher_order.expected"
-run_test "Lexical Scope" "test6_lexical_scope.fawk" "" "test6_lexical_scope.expected"
-run_test "CSV Processing" "test7_csv.fawk" "sales.csv" "test7_csv.expected"
-run_test "Advanced Features" "test8_advanced.fawk" "test8_input.txt" "test8_advanced.expected"
-run_test "Built-in Variables" "test9_builtins.fawk" "test9_input.txt" "test9_builtins.expected"
-run_test "Built-in Functions" "test10_builtin_functions.fawk" "" "test10_builtin_functions.expected"
+# Discover and run all tests
+for script in tests/*.fawk; do
+    if [ -f "$script" ]; then
+        # Extract basename without extension
+        basename=$(basename "$script" .fawk)
+        
+        # Check for corresponding input, expected, and env files
+        input_file="tests/${basename}.input"
+        expected_file="tests/${basename}.expected"
+        env_file="tests/${basename}.env"
+        
+        run_test "$script" "$basename" "$input_file" "$expected_file" "$env_file"
+    fi
+done
 
 # Summary
-echo "======================================================================"
-echo "Results: $PASSED passed, $FAILED failed out of $TOTAL tests"
-echo "======================================================================"
+echo "$PASSED passed, $FAILED failed"
 
 if [ $FAILED -eq 0 ]; then
     exit 0

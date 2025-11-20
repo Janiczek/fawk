@@ -4,17 +4,17 @@ BEGIN {
     print "Test 1: ARGC and ARGV"
     print "--------------------------------------"
     print "  ARGC:", ARGC
-    print "  ARGV[0]:", ARGV[0]
-    print "  ARGV[1]:", ARGV[1]
+    print "  ARGV[0] contains 'fawk':", ARGV[0] ~ "fawk"
+    print "  ARGV[1] contains 'fawk':", ARGV[1] ~ "fawk"
     if (ARGC > 2) {
-        print "  ARGV[2]:", ARGV[2]
+        print "  ARGV[2] contains 'fawk':", ARGV[2] ~ "fawk"
     }
     print ""
     
     print "Test 2: ENVIRON"
     print "--------------------------------------"
-    print "  PATH exists:", length(ENVIRON["PATH"]) > 0
-    print "  USER:", ENVIRON["USER"]
+    print "  MYENVVAR1 exists:", length(ENVIRON["MYENVVAR1"]) > 0
+    print "  MYENVVAR2:", ENVIRON["MYENVVAR2"]
     print ""
     
     print "Test 3: Format variables"

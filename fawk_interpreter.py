@@ -400,6 +400,23 @@ class Interpreter:
             return self.is_truthy(left) and self.is_truthy(right)
         elif op == '||':
             return self.is_truthy(left) or self.is_truthy(right)
+        # Match operations
+        elif op == '~':
+            # String ~ pattern: check if string contains/matches pattern
+            text = self.value_to_string(left)
+            pattern = self.value_to_string(right)
+            try:
+                return bool(re.search(pattern, text))
+            except re.error as e:
+                self.error(f"Invalid regex pattern: {e}")
+        elif op == '!~':
+            # String !~ pattern: check if string does not match pattern
+            text = self.value_to_string(left)
+            pattern = self.value_to_string(right)
+            try:
+                return not bool(re.search(pattern, text))
+            except re.error as e:
+                self.error(f"Invalid regex pattern: {e}")
         else:
             self.error(f"Unknown binary operator: {op}")
     

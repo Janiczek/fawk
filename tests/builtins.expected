@@ -1,14 +1,14 @@
 Test 1: ARGC and ARGV
 --------------------------------------
   ARGC: 3
-  ARGV[0]: /workspace/fawk.py
-  ARGV[1]: test9_builtins.fawk
-  ARGV[2]: test9_input.txt
+  ARGV[0] contains 'fawk': 1
+  ARGV[1] contains 'fawk': 1
+  ARGV[2] contains 'fawk': 0
 
 Test 2: ENVIRON
 --------------------------------------
-  PATH exists: 1
-  USER: ubuntu
+  MYENVVAR1 exists: 1
+  MYENVVAR2: helloworld
 
 Test 3: Format variables
 --------------------------------------
@@ -59,4 +59,4 @@ Test 9: Record counters
 --------------------------------------
   NR (total records): 3
   FNR (file records): 3
-  FILENAME: test9_input.txt
+  FILENAME: tests/builtins.input

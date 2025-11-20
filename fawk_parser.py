@@ -52,15 +52,20 @@ class Parser:
         
         self.skip_newlines()
         
+        # Parse functions, BEGIN, patterns, and END in any order
         while self.current().type != TokenType.EOF:
             self.skip_newlines()
             
             if self.current().type == TokenType.FUNCTION:
                 functions.append(self.parse_function_def())
             elif self.current().type == TokenType.BEGIN:
+                if begin_block is not None:
+                    self.error("Multiple BEGIN blocks not allowed")
                 self.advance()
                 begin_block = self.parse_block()
             elif self.current().type == TokenType.END:
+                if end_block is not None:
+                    self.error("Multiple END blocks not allowed")
                 self.advance()
                 end_block = self.parse_block()
             elif self.current().type == TokenType.LBRACE:
@@ -74,8 +79,7 @@ class Parser:
                 action = self.parse_block()
                 patterns.append(PatternAction(pattern_node, action))
             else:
-                # Could be a pattern-action
-                # For simplicity, treat remaining blocks as pattern-less actions
+                # No more valid constructs
                 break
             
             self.skip_newlines()
@@ -276,7 +280,7 @@ class Parser:
     def parse_equality(self) -> ASTNode:
         left = self.parse_comparison()
         
-        while self.current().type in [TokenType.EQ, TokenType.NE]:
+        while self.current().type in [TokenType.EQ, TokenType.NE, TokenType.MATCH, TokenType.NOT_MATCH]:
             op = self.advance().value
             right = self.parse_comparison()
             left = BinaryOp(op, left, right)

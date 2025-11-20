@@ -45,6 +45,8 @@ class TokenType(Enum):
     AND = auto()
     OR = auto()
     NOT = auto()
+    MATCH = auto()        # ~
+    NOT_MATCH = auto()    # !~
     ARROW = auto()        # =>
     PIPELINE = auto()     # |>
     ASSOC_ARROW = auto()  # => (for associative arrays)
@@ -299,6 +301,12 @@ class Lexer:
                 self.tokens.append(Token(TokenType.NE, '!=', start_line, start_col))
                 continue
             
+            if self.peek() == '!' and self.peek(1) == '~':
+                self.advance()
+                self.advance()
+                self.tokens.append(Token(TokenType.NOT_MATCH, '!~', start_line, start_col))
+                continue
+            
             if self.peek() == '<' and self.peek(1) == '=':
                 self.advance()
                 self.advance()
@@ -335,6 +343,7 @@ class Lexer:
                 '<': TokenType.LT,
                 '>': TokenType.GT,
                 '!': TokenType.NOT,
+                '~': TokenType.MATCH,
                 '(': TokenType.LPAREN,
                 ')': TokenType.RPAREN,
                 '{': TokenType.LBRACE,
