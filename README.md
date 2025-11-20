@@ -7,7 +7,7 @@ A functional AWK dialect with first-class functions and arrays. FAWK keeps AWK's
 1. [Arrays as First-Class Values](#1-arrays-as-first-class-values) - create, pass, and return arrays
 2. [Functions as First-Class Values](#2-functions-as-first-class-values) - pass functions as arguments
 3. [Anonymous Functions](#3-anonymous-functions) - arrow syntax `(x) => { x * 2 }`
-4. [Pipeline Operator](#4-pipeline-operator) - compose operations with `|>`
+4. [Functional Pipeline Operator](#4-functional-pipeline-operator) - compose operations with `|>`
 5. [Higher-Order Functions](#5-higher-order-functions) - map, filter, and custom combinators
 6. [Lexical Scope](#6-lexical-scope) - local-by-default, no action at a distance
 7. [Explicit Globals](#7-explicit-globals) - declare globals with `global` keyword
@@ -75,7 +75,7 @@ numbers = [1, 2, 3, 4, 5]
 map(square, numbers)  # [1, 4, 9, 16, 25]
 ```
 
-### 4. Pipeline Operator
+### 4. Functional Pipeline Operator
 
 Chain operations elegantly with `|>`. The left side becomes the rightmost argument of the function on the right:
 
