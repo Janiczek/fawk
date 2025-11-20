@@ -1,0 +1,3 @@
+name:alice:developer
+name:bob:designer
+role:charlie:manager

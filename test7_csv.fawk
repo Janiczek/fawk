@@ -12,6 +12,7 @@ function avg(arr) {
 
 BEGIN {
     global sales
+    FS = ","  # Set field separator to comma for CSV
     sales = ["electronics" => [], "books" => [], "clothing" => []]
 }
 

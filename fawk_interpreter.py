@@ -110,15 +110,40 @@ class UserFunction:
 
 
 class Interpreter:
-    def __init__(self):
+    def __init__(self, argc=0, argv=None):
         self.global_env = Environment()
         self.current_env = self.global_env
         self.functions = {}
         self.globals_declared = set()
         
         # AWK built-in variables
-        self.NR = 0  # Number of records
-        self.NF = 0  # Number of fields
+        self.ARGC = argc
+        self.ARGV = FawkArray()
+        if argv:
+            for i, arg in enumerate(argv):
+                self.ARGV.set(i, arg)
+        
+        self.CONVFMT = "%.6g"
+        
+        # ENVIRON - environment variables
+        import os
+        self.ENVIRON = FawkArray()
+        for key, value in os.environ.items():
+            self.ENVIRON.set(key, value)
+        
+        self.FILENAME = ""
+        self.FNR = 0  # File number of records
+        self.FS = " "  # Field separator
+        self.NF = 0    # Number of fields
+        self.NR = 0    # Number of records
+        self.OFMT = "%.6g"
+        self.OFS = " "  # Output field separator
+        self.ORS = "\n" # Output record separator
+        self.RLENGTH = -1  # Length of string matched by match()
+        self.RS = "\n"     # Record separator
+        self.RSTART = 0    # Start of string matched by match()
+        self.SUBSEP = "\034"  # Subscript separator
+        
         self.fields = []  # Current line fields
         
         # Built-in functions
@@ -180,11 +205,19 @@ class Interpreter:
         
         result = FawkArray()
         if match:
+            # Set RSTART and RLENGTH
+            self.RSTART = match.start() + 1  # AWK uses 1-based indexing
+            self.RLENGTH = len(match.group(0))
+            
             # Index 0: full match
             result.set(0, match.group(0))
             # Index 1+: captured groups
             for i, group in enumerate(match.groups(), 1):
                 result.set(i, group if group is not None else "")
+        else:
+            # No match
+            self.RSTART = 0
+            self.RLENGTH = -1
         
         return result
     
@@ -300,10 +333,10 @@ class Interpreter:
     
     def eval_PrintStmt(self, node: PrintStmt) -> None:
         if not node.args:
-            print()
+            print(end=self.ORS)
         else:
             values = [self.value_to_string(self.eval(arg)) for arg in node.args]
-            print(" ".join(values))
+            print(self.OFS.join(values), end=self.ORS)
     
     def value_to_string(self, value) -> str:
         if isinstance(value, FawkArray):
@@ -379,8 +412,25 @@ class Interpreter:
         if isinstance(node.target, Identifier):
             name = node.target.name
             
+            # Check if it's a built-in variable
+            if name == 'FS':
+                self.FS = str(value)
+            elif name == 'OFS':
+                self.OFS = str(value)
+            elif name == 'ORS':
+                self.ORS = str(value)
+            elif name == 'RS':
+                self.RS = str(value)
+            elif name == 'OFMT':
+                self.OFMT = str(value)
+            elif name == 'CONVFMT':
+                self.CONVFMT = str(value)
+            elif name == 'SUBSEP':
+                self.SUBSEP = str(value)
+            elif name == 'FILENAME':
+                self.FILENAME = str(value)
             # Check if it's a global
-            if name in self.globals_declared:
+            elif name in self.globals_declared:
                 self.global_env.set(name, value)
             else:
                 self.current_env.set_local(name, value)
@@ -492,10 +542,38 @@ class Interpreter:
         name = node.name
         
         # Check for built-in variables
-        if name == 'NR':
-            return self.NR
+        if name == 'ARGC':
+            return self.ARGC
+        elif name == 'ARGV':
+            return self.ARGV
+        elif name == 'CONVFMT':
+            return self.CONVFMT
+        elif name == 'ENVIRON':
+            return self.ENVIRON
+        elif name == 'FILENAME':
+            return self.FILENAME
+        elif name == 'FNR':
+            return self.FNR
+        elif name == 'FS':
+            return self.FS
         elif name == 'NF':
             return self.NF
+        elif name == 'NR':
+            return self.NR
+        elif name == 'OFMT':
+            return self.OFMT
+        elif name == 'OFS':
+            return self.OFS
+        elif name == 'ORS':
+            return self.ORS
+        elif name == 'RLENGTH':
+            return self.RLENGTH
+        elif name == 'RS':
+            return self.RS
+        elif name == 'RSTART':
+            return self.RSTART
+        elif name == 'SUBSEP':
+            return self.SUBSEP
         
         # Check for functions
         if name in self.functions:
@@ -553,9 +631,14 @@ class Interpreter:
         if input_lines:
             for line in input_lines:
                 self.NR += 1
-                # Split line into fields (simple comma-separated for now)
+                self.FNR += 1
+                # Split line into fields using FS
                 line = line.rstrip('\n')
-                self.fields = line.split(',')
+                if self.FS == " ":
+                    # Special case: space means any whitespace
+                    self.fields = line.split()
+                else:
+                    self.fields = line.split(self.FS)
                 self.NF = len(self.fields)
                 
                 # Execute pattern-action blocks

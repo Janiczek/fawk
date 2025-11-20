@@ -45,12 +45,17 @@ def main():
         sys.exit(1)
     
     # Interpret
-    interpreter = Interpreter()
+    # Prepare ARGC and ARGV (mimicking AWK behavior)
+    argc = len(sys.argv)
+    argv = sys.argv  # [fawk.py, script.fawk, input_file, ...]
+    interpreter = Interpreter(argc, argv)
     
     # Read input if provided
     input_lines = []
+    input_file = None
     if len(sys.argv) > 2:
         input_file = sys.argv[2]
+        interpreter.FILENAME = input_file
         try:
             with open(input_file, 'r') as f:
                 input_lines = f.readlines()
