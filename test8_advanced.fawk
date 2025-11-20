@@ -19,7 +19,7 @@ function test_split() {
     # split(separator, text) - separator first for pipeline-friendliness
     fruits = split(",", csv_line)
     count = length(fruits)
-    print "  split() returned items"
+    print "  split() returned", count, "items"
     print "  Item 0:", fruits[0]
     print "  Item 1:", fruits[1]
     print "  Item 2:", fruits[2]

@@ -6,7 +6,7 @@ Test 1: match() function
 
 Test 2: split() function
 --------------------------------------
-  split() returned items
+  split() returned 4 items
   Item 0: apple
   Item 1: banana
   Item 2: cherry
