@@ -2,6 +2,16 @@
 
 A functional AWK dialect with first-class functions and arrays. FAWK keeps AWK's succinct syntax while adding modern functional programming features.
 
+## What's New
+
+1. [Arrays as First-Class Values](#1-arrays-as-first-class-values) - create, pass, and return arrays
+2. [Functions as First-Class Values](#2-functions-as-first-class-values) - pass functions as arguments
+3. [Anonymous Functions](#3-anonymous-functions) - arrow syntax `(x) => { x * 2 }`
+4. [Pipeline Operator](#4-pipeline-operator) - compose operations with `|>`
+5. [Higher-Order Functions](#5-higher-order-functions) - map, filter, and custom combinators
+6. [Lexical Scope](#6-lexical-scope) - local-by-default, no action at a distance
+7. [Explicit Globals](#7-explicit-globals) - declare globals with `global` keyword
+
 ## Key Features
 
 ### 1. Arrays as First-Class Values
@@ -62,15 +72,31 @@ square = (x) => { x * x }
 triple = (x) => { x * 3 }
 
 numbers = [1, 2, 3, 4, 5]
-map(numbers, square)  # [1, 4, 9, 16, 25]
+map(square, numbers)  # [1, 4, 9, 16, 25]
 ```
 
-### 4. Higher-Order Functions
+### 4. Pipeline Operator
+
+Chain operations elegantly with `|>`. The left side becomes the rightmost argument of the function on the right:
+
+```awk
+# These are equivalent:
+doubled = nums |> filter((n) => { n % 2 == 0 }) |> map((n) => { n * 2 })
+doubled = map((n) => { n * 2 }, filter((n) => { n % 2 == 0 }, nums))
+
+# More examples:
+result = [1, 2, 3, 4, 5] 
+    |> filter((x) => { x % 2 == 0 })  # [2, 4]
+    |> map((x) => { x * x })           # [4, 16]
+    |> reduce((acc, x) => { acc + x }, 0)  # 20
+```
+
+### 5. Higher-Order Functions
 
 Combine arrays and functions for powerful data processing:
 
 ```awk
-function map(arr, func) {
+function map(func, arr) {
     result = []
     for (i in arr) {
         result[i] = func(arr[i])
@@ -78,7 +104,7 @@ function map(arr, func) {
     return result
 }
 
-function filter(arr, pred) {
+function filter(pred, arr) {
     result = []
     idx = 0
     for (i in arr) {
@@ -92,13 +118,21 @@ function filter(arr, pred) {
 
 BEGIN {
     nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    evens = filter(nums, (n) => { n % 2 == 0 })
-    doubled = map(evens, (n) => { n * 2 })
+    
+    # Traditional calls
+    evens = filter((n) => { n % 2 == 0 }, nums)
+    doubled = map((n) => { n * 2 }, evens)
+    
+    # Or use pipelines!
+    doubled = nums 
+        |> filter((n) => { n % 2 == 0 }) 
+        |> map((n) => { n * 2 })
+    
     print doubled  # [4, 8, 12, 16, 20]
 }
 ```
 
-### 5. Lexical Scope
+### 6. Lexical Scope
 
 Variables are local by default. No spooky action at a distance.
 
@@ -120,7 +154,7 @@ BEGIN {
 }
 ```
 
-### 6. Explicit Globals
+### 7. Explicit Globals
 
 Globals must be declared in the BEGIN block:
 
@@ -149,8 +183,18 @@ END {
 ## Complete Example: Processing CSV Data
 
 ```awk
+function sum(arr) {
+    total = 0
+    for (i in arr) { total = total + arr[i] }
+    return total
+}
+
+function avg(arr) {
+    return arr |> sum() / length(arr)
+}
+
 BEGIN {
-    global sales, categories
+    global sales
     sales = ["electronics" => [], "books" => [], "clothing" => []]
 }
 
@@ -162,24 +206,10 @@ NR > 1 {
 }
 
 END {
-    get_sum = (arr) => {
-        total = 0
-        for (i in arr) { total = total + arr[i] }
-        return total
-    }
-    
-    get_avg = (arr) => { get_sum(arr) / length(arr) }
-    
     for (cat in sales) {
-        avg = get_avg(sales[cat])
-        print cat, "average:", avg
+        average = sales[cat] |> avg()
+        print cat, "average:", average
     }
 }
 ```
 
-## Design Principles
-
-- **Succinct**: Keep AWK's brevity for text processing
-- **Functional**: First-class functions and arrays enable composable code
-- **Predictable**: Lexical scope eliminates hidden state
-- **Explicit**: Globals must be declared, no implicit behavior
