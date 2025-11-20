@@ -40,9 +40,9 @@ run_test() {
     # Run the test
     local actual_output=$(mktemp)
     if [ -n "$input_file" ]; then
-        python3 fawk.py "$script" "$input_file" > "$actual_output" 2>&1
+        ./fawk "$script" "$input_file" > "$actual_output" 2>&1
     else
-        python3 fawk.py "$script" > "$actual_output" 2>&1
+        ./fawk "$script" > "$actual_output" 2>&1
     fi
     
     # Compare output
