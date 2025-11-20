@@ -1,0 +1,27 @@
+# Test 1: Arrays as First-Class Values
+
+function sum_array(arr) {
+    total = 0
+    for (i in arr) {
+        total = total + arr[i]
+    }
+    return total
+}
+
+BEGIN {
+    # Regular arrays
+    numbers = [1, 2, 3, 4, 5]
+    result = sum_array(numbers)
+    print "Sum:", result
+    
+    # Nested arrays
+    matrix = [[1, 2], [3, 4], [5, 6]]
+    for (i in matrix) {
+        row = matrix[i]
+        print row[0], row[1]
+    }
+    
+    # Associative arrays
+    scores = ["alice" => 95, "bob" => 87, "carol" => 92]
+    print "Alice's score:", scores["alice"]
+}

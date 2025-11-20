@@ -1,0 +1,35 @@
+# Test 4: Functional Pipeline Operator
+
+function map(func, arr) {
+    result = []
+    for (i in arr) {
+        result[i] = func(arr[i])
+    }
+    return result
+}
+
+function filter(pred, arr) {
+    result = []
+    for (key in arr) {
+        if (pred(arr[key])) {
+            result[key] = arr[key]
+        }
+    }
+    return result
+}
+
+function reduce(func, initial, arr) {
+    acc = initial
+    for (i in arr) {
+        acc = func(acc, arr[i])
+    }
+    return acc
+}
+
+BEGIN {
+    result = [1, 2, 3, 4, 5] 
+        |> filter((x) => { x % 2 == 0 })
+        |> map((x) => { x * x })
+        |> reduce((acc, x) => { acc + x }, 0)
+    print "Result:", result
+}

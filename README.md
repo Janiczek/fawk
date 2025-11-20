@@ -2,6 +2,38 @@
 
 A functional AWK dialect with first-class functions and arrays. FAWK keeps AWK's succinct syntax while adding modern functional programming features.
 
+## Installation and Usage
+
+The FAWK interpreter is implemented in Python 3. To run FAWK programs:
+
+```bash
+python3 fawk.py <script.fawk> [input_file]
+```
+
+Or make it executable:
+
+```bash
+chmod +x fawk.py
+./fawk.py <script.fawk> [input_file]
+```
+
+### Running the Examples
+
+Test all examples from this README:
+
+```bash
+./test_all.sh
+```
+
+Or test individual examples:
+
+```bash
+python3 fawk.py test1_arrays.fawk
+python3 fawk.py test2_functions.fawk
+python3 fawk.py test3_lambda.fawk
+# ... etc
+```
+
 ## What's New
 
 1. [Arrays as First-Class Values](#1-arrays-as-first-class-values) - create, pass, and return arrays
