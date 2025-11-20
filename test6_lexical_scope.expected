@@ -1,0 +1,13 @@
+Test 1: Closures and lexical scope
+  outer(20) = 35
+
+Test 2: Global variables
+  Initial global_counter: 0
+  After increment_global(): 1
+  After another increment_global(): 2
+
+Test 3: Isolation - non-globals not visible
+  Before calling check_isolation(), outer i = 5
+  Inside check_isolation(), initial i was: 0
+  After calling check_isolation(), outer i = 5
+  (outer i unchanged, inner i was separate)

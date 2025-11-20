@@ -1119,6 +1119,21 @@ class Interpreter:
             return False
         return True
     
+    def to_number(self, value):
+        """Convert value to number (like AWK does)"""
+        if isinstance(value, (int, float)):
+            return value
+        elif isinstance(value, str):
+            # Try to parse as number
+            try:
+                if '.' in value:
+                    return float(value)
+                else:
+                    return int(value)
+            except (ValueError, AttributeError):
+                return 0  # AWK default for non-numeric strings
+        return 0
+    
     def eval(self, node: ASTNode) -> Any:
         method_name = f'eval_{node.__class__.__name__}'
         method = getattr(self, method_name, None)
@@ -1128,43 +1143,8 @@ class Interpreter:
             self.error(f"No eval method for {node.__class__.__name__}")
     
     def eval_Program(self, node: Program) -> None:
-        # Register functions
-        for func_def in node.functions:
-            self.functions[func_def.name] = UserFunction(
-                func_def.params, func_def.body, self.global_env
-            )
-        
-        # Execute BEGIN block with its own local environment
-        if node.begin_block:
-            begin_env = Environment(self.global_env)
-            saved_env = self.current_env
-            self.current_env = begin_env
-            try:
-                self.eval(node.begin_block)
-            finally:
-                self.current_env = saved_env
-        
-        # Pattern-action blocks would go here (for processing input)
-        # For now, we just execute them if they have no pattern
-        for pattern_action in node.patterns:
-            if pattern_action.pattern is None:
-                action_env = Environment(self.global_env)
-                saved_env = self.current_env
-                self.current_env = action_env
-                try:
-                    self.eval(pattern_action.action)
-                finally:
-                    self.current_env = saved_env
-        
-        # Execute END block with its own local environment
-        if node.end_block:
-            end_env = Environment(self.global_env)
-            saved_env = self.current_env
-            self.current_env = end_env
-            try:
-                self.eval(node.end_block)
-            finally:
-                self.current_env = saved_env
+        # Program evaluation is handled by run() method
+        pass
     
     def eval_Block(self, node: Block) -> Any:
         result = None
@@ -1250,30 +1230,34 @@ class Interpreter:
         
         op = node.op
         
+        # Arithmetic operations - convert to numbers
         if op == '+':
-            return left + right
+            return self.to_number(left) + self.to_number(right)
         elif op == '-':
-            return left - right
+            return self.to_number(left) - self.to_number(right)
         elif op == '*':
-            return left * right
+            return self.to_number(left) * self.to_number(right)
         elif op == '/':
-            if right == 0:
+            right_num = self.to_number(right)
+            if right_num == 0:
                 self.error("Division by zero")
-            return left / right
+            return self.to_number(left) / right_num
         elif op == '%':
-            return left % right
+            return self.to_number(left) % self.to_number(right)
+        # Comparison operations - use as-is for now
         elif op == '==':
             return left == right
         elif op == '!=':
             return left != right
         elif op == '<':
-            return left < right
+            return self.to_number(left) < self.to_number(right)
         elif op == '<=':
-            return left <= right
+            return self.to_number(left) <= self.to_number(right)
         elif op == '>':
-            return left > right
+            return self.to_number(left) > self.to_number(right)
         elif op == '>=':
-            return left >= right
+            return self.to_number(left) >= self.to_number(right)
+        # Logical operations
         elif op == '&&':
             return self.is_truthy(left) and self.is_truthy(right)
         elif op == '||':
@@ -1436,7 +1420,62 @@ class Interpreter:
             return ""
     
     def run(self, program: Program, input_lines: List[str] = None):
-        self.eval(program)
+        # Register functions
+        for func_def in program.functions:
+            self.functions[func_def.name] = UserFunction(
+                func_def.params, func_def.body, self.global_env
+            )
+        
+        # Execute BEGIN block with its own local environment
+        if program.begin_block:
+            begin_env = Environment(self.global_env)
+            saved_env = self.current_env
+            self.current_env = begin_env
+            try:
+                self.eval(program.begin_block)
+            finally:
+                self.current_env = saved_env
+        
+        # Process input lines with pattern-action blocks
+        if input_lines:
+            for line in input_lines:
+                self.NR += 1
+                # Split line into fields (simple comma-separated for now)
+                line = line.rstrip('\n')
+                self.fields = line.split(',')
+                self.NF = len(self.fields)
+                
+                # Execute pattern-action blocks
+                for pattern_action in program.patterns:
+                    if pattern_action.pattern is None:
+                        action_env = Environment(self.global_env)
+                        saved_env = self.current_env
+                        self.current_env = action_env
+                        try:
+                            self.eval(pattern_action.action)
+                        finally:
+                            self.current_env = saved_env
+        else:
+            # No input, just execute pattern-less actions
+            for pattern_action in program.patterns:
+                if pattern_action.pattern is None:
+                    action_env = Environment(self.global_env)
+                    saved_env = self.current_env
+                    self.current_env = action_env
+                    try:
+                        self.eval(pattern_action.action)
+                    finally:
+                        self.current_env = saved_env
+        
+        # Execute END block with its own local environment
+        if program.end_block:
+            end_env = Environment(self.global_env)
+            saved_env = self.current_env
+            self.current_env = end_env
+            try:
+                self.eval(program.end_block)
+            finally:
+                self.current_env = saved_env
 
 
 # ============================================================================

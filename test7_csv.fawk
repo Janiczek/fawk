@@ -13,32 +13,15 @@ function avg(arr) {
 BEGIN {
     global sales
     sales = ["electronics" => [], "books" => [], "clothing" => []]
-    
-    # Simulate CSV data
-    # Category: electronics, price: 100
-    category = "electronics"
-    price = 100
-    sales[category][length(sales[category])] = price
-    
-    # Category: books, price: 25
-    category = "books"
-    price = 25
-    sales[category][length(sales[category])] = price
-    
-    # Category: electronics, price: 150
-    category = "electronics"
-    price = 150
-    sales[category][length(sales[category])] = price
-    
-    # Category: clothing, price: 75
-    category = "clothing"
-    price = 75
-    sales[category][length(sales[category])] = price
-    
-    # Category: books, price: 30
-    category = "books"
-    price = 30
-    sales[category][length(sales[category])] = price
+}
+
+# Parse CSV: category,product,price
+{
+    if (NR > 1) {
+        category = $1
+        price = $3
+        sales[category][length(sales[category])] = price
+    }
 }
 
 END {
