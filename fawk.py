@@ -15,17 +15,20 @@ def main():
     # Parse command line arguments AWK-style
     parser = argparse.ArgumentParser(
         description='FAWK - Functional AWK Interpreter',
-        usage='%(prog)s [-f script_file] [script_string] [input_file ...]',
+        usage='%(prog)s [-v var=value] [-f script_file] [script_string] [input_file ...]',
         epilog='Examples:\n'
                '  %(prog)s script.fawk input.txt        # script from file\n'
                '  %(prog)s -f script.fawk input.txt     # explicit -f flag\n'
                '  %(prog)s \'{ print $1 }\' input.txt     # inline script\n'
                '  %(prog)s -f script.fawk f1.txt f2.txt # multiple inputs\n'
-               '  cat file.txt | %(prog)s \'{ print $1 }\' # piped input',
+               '  cat file.txt | %(prog)s \'{ print $1 }\' # piped input\n'
+               '  %(prog)s -v PREC=100 \'BEGIN {printf("%.50f\\n", 4*atan2(1,1))}\' # arbitrary precision',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument('-f', '--file', dest='script_file', metavar='script_file',
                         help='read script from file')
+    parser.add_argument('-v', dest='variables', action='append', metavar='var=value',
+                        help='set variable before execution (can be used multiple times)')
     parser.add_argument('args', nargs='*', help='script string or input files')
     
     args = parser.parse_args()
@@ -89,6 +92,23 @@ def main():
     argv = ['fawk'] + input_files
     argc = len(argv)
     interpreter = Interpreter(argc, argv)
+    
+    # Set variables from -v flags
+    if args.variables:
+        for var_assignment in args.variables:
+            if '=' in var_assignment:
+                var_name, var_value = var_assignment.split('=', 1)
+                # Try to parse as number, otherwise use as string
+                try:
+                    if '.' in var_value:
+                        value = float(var_value)
+                    else:
+                        value = int(var_value)
+                except ValueError:
+                    value = var_value
+                interpreter.set_variable(var_name, value)
+            else:
+                print(f"Warning: Invalid variable assignment: {var_assignment}", file=sys.stderr)
     
     # Read input from files if provided, or from stdin
     file_list = []

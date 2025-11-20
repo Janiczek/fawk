@@ -4,6 +4,8 @@ Executes the Abstract Syntax Tree
 """
 
 import re
+import math
+from decimal import Decimal, getcontext
 from typing import Any, List, Callable
 from fawk_ast import *
 
@@ -138,6 +140,7 @@ class Interpreter:
                 self.ARGV.set(i, arg)
         
         self.CONVFMT = "%.6g"
+        self.PREC = 53  # Default precision (like gawk, similar to IEEE 754 double)
         
         # ENVIRON - environment variables
         import os
@@ -171,7 +174,29 @@ class Interpreter:
             'sum_array': self.builtin_sum_array,
             'match': self.builtin_match,
             'split': self.builtin_split,
+            # Math functions
+            'atan2': self.builtin_atan2,
+            'cos': self.builtin_cos,
+            'sin': self.builtin_sin,
+            'exp': self.builtin_exp,
+            'log': self.builtin_log,
+            'sqrt': self.builtin_sqrt,
+            'int': self.builtin_int,
+            'rand': self.builtin_rand,
+            'srand': self.builtin_srand,
+            # String functions
+            'printf': self.builtin_printf,
+            'sprintf': self.builtin_sprintf,
+            'substr': self.builtin_substr,
+            'tolower': self.builtin_tolower,
+            'toupper': self.builtin_toupper,
+            'gsub': self.builtin_gsub,
+            'sub': self.builtin_sub,
         }
+        
+        # Random number generator seed
+        import random
+        self.random = random.Random()
         
         # Register built-in functions
         self.register_builtins()
@@ -180,6 +205,13 @@ class Interpreter:
         """Register all built-in functions"""
         for name, func in self.builtin_functions.items():
             self.functions[name] = func
+    
+    def set_variable(self, name: str, value: Any):
+        """Set a variable in the global environment (used for -v flags)"""
+        if name == 'PREC':
+            self.PREC = int(self.to_number(value))
+        else:
+            self.global_env.set(name, value)
     
     def builtin_map(self, func, arr):
         if not isinstance(arr, FawkArray):
@@ -256,6 +288,287 @@ class Interpreter:
             result.set(i, part)
         
         return result
+    
+    def use_high_precision(self):
+        """Check if we should use high precision arithmetic"""
+        return self.PREC > 53
+    
+    def to_decimal(self, value):
+        """Convert value to Decimal for high precision arithmetic"""
+        if isinstance(value, Decimal):
+            return value
+        elif isinstance(value, int):
+            return Decimal(value)
+        elif isinstance(value, float):
+            # Convert float to string to avoid precision loss
+            return Decimal(str(value))
+        elif isinstance(value, str):
+            try:
+                return Decimal(value)
+            except:
+                return Decimal(0)
+        return Decimal(0)
+    
+    def from_decimal(self, value):
+        """Convert Decimal back to regular number if not in high precision mode"""
+        if self.use_high_precision():
+            return value
+        else:
+            return float(value)
+    
+    def builtin_atan2(self, y, x):
+        """Arctangent of y/x in radians"""
+        if self.use_high_precision():
+            import mpmath
+            mpmath.mp.dps = self.PREC  # decimal places of precision
+            result = mpmath.atan2(mpmath.mpf(str(y)), mpmath.mpf(str(x)))
+            return Decimal(str(result))
+        else:
+            return math.atan2(self.to_number(y), self.to_number(x))
+    
+    def builtin_cos(self, x):
+        """Cosine of x (in radians)"""
+        if self.use_high_precision():
+            import mpmath
+            mpmath.mp.dps = self.PREC
+            result = mpmath.cos(mpmath.mpf(str(x)))
+            return Decimal(str(result))
+        else:
+            return math.cos(self.to_number(x))
+    
+    def builtin_sin(self, x):
+        """Sine of x (in radians)"""
+        if self.use_high_precision():
+            import mpmath
+            mpmath.mp.dps = self.PREC
+            result = mpmath.sin(mpmath.mpf(str(x)))
+            return Decimal(str(result))
+        else:
+            return math.sin(self.to_number(x))
+    
+    def builtin_exp(self, x):
+        """Exponential function (e^x)"""
+        if self.use_high_precision():
+            import mpmath
+            mpmath.mp.dps = self.PREC
+            result = mpmath.exp(mpmath.mpf(str(x)))
+            return Decimal(str(result))
+        else:
+            return math.exp(self.to_number(x))
+    
+    def builtin_log(self, x):
+        """Natural logarithm"""
+        if self.use_high_precision():
+            import mpmath
+            mpmath.mp.dps = self.PREC
+            result = mpmath.log(mpmath.mpf(str(x)))
+            return Decimal(str(result))
+        else:
+            return math.log(self.to_number(x))
+    
+    def builtin_sqrt(self, x):
+        """Square root"""
+        if self.use_high_precision():
+            import mpmath
+            mpmath.mp.dps = self.PREC
+            result = mpmath.sqrt(mpmath.mpf(str(x)))
+            return Decimal(str(result))
+        else:
+            return math.sqrt(self.to_number(x))
+    
+    def builtin_int(self, x):
+        """Integer part of x"""
+        return int(self.to_number(x))
+    
+    def builtin_rand(self):
+        """Random number between 0 and 1"""
+        return self.random.random()
+    
+    def builtin_srand(self, seed=None):
+        """Seed the random number generator"""
+        if seed is None:
+            import time
+            seed = int(time.time())
+        else:
+            seed = int(self.to_number(seed))
+        self.random.seed(seed)
+        return seed
+    
+    def builtin_printf(self, fmt, *args):
+        """Print formatted output"""
+        output = self.format_string(fmt, args)
+        print(output, end='')
+        return len(output)
+    
+    def builtin_sprintf(self, fmt, *args):
+        """Return formatted string"""
+        return self.format_string(fmt, args)
+    
+    def _format_decimal(self, value, format_spec, conv):
+        """Format a Decimal value with high precision"""
+        import re
+        from decimal import ROUND_HALF_UP
+        
+        # Parse the format spec to extract precision
+        match = re.match(r'%([+-]?)(\d*)\.?(\d*)([fFeEgG])', format_spec)
+        if not match:
+            return str(value)
+        
+        sign_flag, width, precision, conversion = match.groups()
+        
+        if not precision:
+            precision = 6  # default precision
+        else:
+            precision = int(precision)
+        
+        # Format the decimal number
+        if conversion in 'fF':
+            # Fixed-point notation
+            # Round to the specified precision using ROUND_HALF_UP (like C printf)
+            getcontext().prec = self.PREC
+            quantize_exp = Decimal(10) ** -precision
+            rounded = value.quantize(quantize_exp, rounding=ROUND_HALF_UP)
+            result = format(rounded, f'.{precision}f')
+        elif conversion in 'eE':
+            # Scientific notation
+            result = format(float(value), format_spec.replace('%', ''))
+        else:  # 'gG'
+            # General format
+            result = format(float(value), format_spec.replace('%', ''))
+        
+        return result
+    
+    def format_string(self, fmt, args):
+        """Format string with printf-style formatting"""
+        fmt_str = self.value_to_string(fmt)
+        arg_list = list(args)
+        arg_idx = 0
+        result = []
+        i = 0
+        
+        while i < len(fmt_str):
+            if fmt_str[i] == '%':
+                if i + 1 < len(fmt_str) and fmt_str[i + 1] == '%':
+                    result.append('%')
+                    i += 2
+                    continue
+                
+                # Parse format specifier
+                i += 1
+                spec_start = i
+                
+                # Skip flags
+                while i < len(fmt_str) and fmt_str[i] in '-+ 0#':
+                    i += 1
+                
+                # Parse width
+                while i < len(fmt_str) and fmt_str[i].isdigit():
+                    i += 1
+                
+                # Parse precision
+                if i < len(fmt_str) and fmt_str[i] == '.':
+                    i += 1
+                    while i < len(fmt_str) and fmt_str[i].isdigit():
+                        i += 1
+                
+                # Parse conversion specifier
+                if i < len(fmt_str):
+                    conv = fmt_str[i]
+                    format_spec = fmt_str[spec_start-1:i+1]
+                    
+                    if arg_idx < len(arg_list):
+                        arg = arg_list[arg_idx]
+                        arg_idx += 1
+                        
+                        try:
+                            if conv in 'dioxX':
+                                # Integer conversion
+                                result.append(format_spec % int(self.to_number(arg)))
+                            elif conv in 'eEfFgG':
+                                # Float conversion
+                                if self.use_high_precision() and isinstance(arg, Decimal):
+                                    # For high precision, format Decimal with custom precision
+                                    result.append(self._format_decimal(arg, format_spec, conv))
+                                else:
+                                    result.append(format_spec % float(self.to_number(arg)))
+                            elif conv in 'sc':
+                                # String/char conversion
+                                result.append(format_spec % self.value_to_string(arg))
+                            else:
+                                result.append(format_spec)
+                        except (ValueError, TypeError) as e:
+                            # If formatting fails, just append the value
+                            result.append(str(arg))
+                    i += 1
+                else:
+                    break
+            else:
+                result.append(fmt_str[i])
+                i += 1
+        
+        return ''.join(result)
+    
+    def builtin_substr(self, string, start, length=None):
+        """Extract substring"""
+        s = self.value_to_string(string)
+        start_idx = int(self.to_number(start)) - 1  # AWK uses 1-based indexing
+        if start_idx < 0:
+            start_idx = 0
+        
+        if length is None:
+            return s[start_idx:]
+        else:
+            length_val = int(self.to_number(length))
+            return s[start_idx:start_idx + length_val]
+    
+    def builtin_tolower(self, string):
+        """Convert string to lowercase"""
+        return self.value_to_string(string).lower()
+    
+    def builtin_toupper(self, string):
+        """Convert string to uppercase"""
+        return self.value_to_string(string).upper()
+    
+    def builtin_gsub(self, pattern, replacement, target=None):
+        """Global substitution (replace all occurrences)"""
+        if target is None:
+            target = self.current_line
+        
+        target_str = self.value_to_string(target)
+        pattern_str = self.value_to_string(pattern)
+        replacement_str = self.value_to_string(replacement)
+        
+        # Count number of substitutions
+        count = len(re.findall(pattern_str, target_str))
+        result = re.sub(pattern_str, replacement_str, target_str)
+        
+        # Update $0 if no target was specified
+        if target is None:
+            self.current_line = result
+            self.fields = self.split_fields(result)
+            self.NF = len(self.fields)
+        
+        return count
+    
+    def builtin_sub(self, pattern, replacement, target=None):
+        """Substitution (replace first occurrence)"""
+        if target is None:
+            target = self.current_line
+        
+        target_str = self.value_to_string(target)
+        pattern_str = self.value_to_string(pattern)
+        replacement_str = self.value_to_string(replacement)
+        
+        # Replace only first occurrence
+        result, count = re.subn(pattern_str, replacement_str, target_str, count=1)
+        
+        # Update $0 if no target was specified
+        if target is None:
+            self.current_line = result
+            self.fields = self.split_fields(result)
+            self.NF = len(self.fields)
+        
+        return count
     
     def error(self, msg: str):
         raise RuntimeError(f"Runtime error: {msg}")
@@ -447,11 +760,21 @@ class Interpreter:
             return str(value)
         elif isinstance(value, bool):
             return "1" if value else "0"
-        elif isinstance(value, float):
-            # Format floats nicely
-            if value == int(value):
-                return str(int(value))
-            return str(value)
+        elif isinstance(value, Decimal):
+            # Format Decimal values using OFMT
+            try:
+                return self.OFMT % float(value)
+            except:
+                return str(value)
+        elif isinstance(value, (int, float)):
+            # Format numbers using OFMT
+            try:
+                # Check if it's actually an integer value
+                if isinstance(value, float) and value == int(value):
+                    return str(int(value))
+                return self.OFMT % value
+            except:
+                return str(value)
         elif value is None:
             return ""
         return str(value)
@@ -470,17 +793,36 @@ class Interpreter:
             return self.value_to_string(left) + self.value_to_string(right)
         # Arithmetic operations - convert to numbers
         elif op == '+':
+            if self.use_high_precision():
+                getcontext().prec = self.PREC
+                return self.to_decimal(left) + self.to_decimal(right)
             return self.to_number(left) + self.to_number(right)
         elif op == '-':
+            if self.use_high_precision():
+                getcontext().prec = self.PREC
+                return self.to_decimal(left) - self.to_decimal(right)
             return self.to_number(left) - self.to_number(right)
         elif op == '*':
+            if self.use_high_precision():
+                getcontext().prec = self.PREC
+                return self.to_decimal(left) * self.to_decimal(right)
             return self.to_number(left) * self.to_number(right)
         elif op == '/':
-            right_num = self.to_number(right)
-            if right_num == 0:
-                self.error("Division by zero")
-            return self.to_number(left) / right_num
+            if self.use_high_precision():
+                getcontext().prec = self.PREC
+                right_dec = self.to_decimal(right)
+                if right_dec == 0:
+                    self.error("Division by zero")
+                return self.to_decimal(left) / right_dec
+            else:
+                right_num = self.to_number(right)
+                if right_num == 0:
+                    self.error("Division by zero")
+                return self.to_number(left) / right_num
         elif op == '%':
+            if self.use_high_precision():
+                getcontext().prec = self.PREC
+                return self.to_decimal(left) % self.to_decimal(right)
             return self.to_number(left) % self.to_number(right)
         # Comparison operations - use as-is for now
         elif op == '==':
@@ -546,6 +888,9 @@ class Interpreter:
         operand = self.eval(node.operand)
         
         if node.op == '-':
+            if self.use_high_precision():
+                getcontext().prec = self.PREC
+                return -self.to_decimal(operand)
             return -self.to_number(operand)
         elif node.op == '!':
             return not self.is_truthy(operand)
@@ -575,6 +920,8 @@ class Interpreter:
                 self.SUBSEP = str(value)
             elif name == 'FILENAME':
                 self.FILENAME = str(value)
+            elif name == 'PREC':
+                self.PREC = int(self.to_number(value))
             # FAWK scoping rules:
             # - Variables declared with 'global' keyword are always global
             # - Variables assigned in functions (not declared global) are local
@@ -723,6 +1070,8 @@ class Interpreter:
             return self.OFS
         elif name == 'ORS':
             return self.ORS
+        elif name == 'PREC':
+            return self.PREC
         elif name == 'RLENGTH':
             return self.RLENGTH
         elif name == 'RS':
@@ -754,7 +1103,10 @@ class Interpreter:
             # Outside function: use normal lookup (which searches up to parent)
             return self.current_env.get(name)
     
-    def eval_Number(self, node: Number) -> float:
+    def eval_Number(self, node: Number):
+        if self.use_high_precision():
+            getcontext().prec = self.PREC
+            return self.to_decimal(node.value)
         return node.value
     
     def eval_String(self, node: String) -> str:
