@@ -1,5 +1,0 @@
-Skipping file: tests/special_beginfile_skip.input1
-Processing file: tests/special_beginfile_skip.input2
-  Line 1: should see this
-  Line 2: and this too
-Done with: tests/special_beginfile_skip.input2

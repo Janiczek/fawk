@@ -942,6 +942,9 @@ class Interpreter:
                     self.FILENAME = filename
                     self.FNR = 0
                     
+                    # Track if we should skip record processing (but still run ENDFILE)
+                    skip_file = False
+                    
                     # Execute BEGINFILE block
                     if program.beginfile_block:
                         beginfile_env = Environment(self.global_env)
@@ -950,9 +953,8 @@ class Interpreter:
                         try:
                             self.eval(program.beginfile_block)
                         except NextFileException:
-                            # Skip this file
-                            self.current_env = saved_env
-                            continue
+                            # Skip this file's records but still run ENDFILE
+                            skip_file = True
                         except ExitException as e:
                             # Exit during BEGINFILE
                             exit_code = e.code
@@ -962,51 +964,52 @@ class Interpreter:
                             if self.current_env == beginfile_env:
                                 self.current_env = saved_env
                     
-                    # Process this file's records
-                    try:
-                        records = self.split_into_records(file_content)
-                        
-                        for record, terminator in records:
-                            self.NR += 1
-                            self.FNR += 1
-                            self.RT = terminator
+                    # Process this file's records (unless skipped by nextfile in BEGINFILE)
+                    if not skip_file:
+                        try:
+                            records = self.split_into_records(file_content)
                             
-                            # Split record into fields
-                            self.current_line = record  # Store original record for $0
-                            self.fields = self.split_fields(record)
-                            self.NF = len(self.fields)
-                            
-                            # Execute pattern-action blocks
-                            try:
-                                for pattern_action in program.patterns:
-                                    # Check if pattern matches (or no pattern)
-                                    should_execute = False
-                                    if pattern_action.pattern is None:
-                                        should_execute = True
-                                    else:
-                                        # Evaluate pattern
-                                        should_execute = self.is_truthy(self.eval(pattern_action.pattern))
-                                    
-                                    if should_execute:
-                                        action_env = Environment(self.global_env)
-                                        saved_env = self.current_env
-                                        self.current_env = action_env
-                                        try:
-                                            self.eval(pattern_action.action)
-                                        except NextException:
-                                            # Skip to next record
-                                            break
-                                        finally:
-                                            self.current_env = saved_env
-                            except NextFileException:
-                                # Skip to next file
-                                break
-                    except NextFileException:
-                        # Skip remaining records in this file
-                        pass
-                    except ExitException as e:
-                        # Exit during pattern-action - save exit code and jump to ENDFILE
-                        exit_code = e.code
+                            for record, terminator in records:
+                                self.NR += 1
+                                self.FNR += 1
+                                self.RT = terminator
+                                
+                                # Split record into fields
+                                self.current_line = record  # Store original record for $0
+                                self.fields = self.split_fields(record)
+                                self.NF = len(self.fields)
+                                
+                                # Execute pattern-action blocks
+                                try:
+                                    for pattern_action in program.patterns:
+                                        # Check if pattern matches (or no pattern)
+                                        should_execute = False
+                                        if pattern_action.pattern is None:
+                                            should_execute = True
+                                        else:
+                                            # Evaluate pattern
+                                            should_execute = self.is_truthy(self.eval(pattern_action.pattern))
+                                        
+                                        if should_execute:
+                                            action_env = Environment(self.global_env)
+                                            saved_env = self.current_env
+                                            self.current_env = action_env
+                                            try:
+                                                self.eval(pattern_action.action)
+                                            except NextException:
+                                                # Skip to next record
+                                                break
+                                            finally:
+                                                self.current_env = saved_env
+                                except NextFileException:
+                                    # Skip to next file
+                                    break
+                        except NextFileException:
+                            # Skip remaining records in this file
+                            pass
+                        except ExitException as e:
+                            # Exit during pattern-action - save exit code and jump to ENDFILE
+                            exit_code = e.code
                     
                     # Execute ENDFILE block
                     if program.endfile_block:
