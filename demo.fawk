@@ -5,31 +5,8 @@
 function double(x) { return x * 2 }
 function square(x) { return x * x }
 
-function map(func, arr) {
-    result = []
-    for (i in arr) {
-        result[i] = func(arr[i])
-    }
-    return result
-}
-
-function filter(pred, arr) {
-    result = []
-    for (key in arr) {
-        if (pred(arr[key])) {
-            result[key] = arr[key]
-        }
-    }
-    return result
-}
-
-function reduce(func, initial, arr) {
-    acc = initial
-    for (i in arr) {
-        acc = func(acc, arr[i])
-    }
-    return acc
-}
+# Note: map, filter, reduce are built-in functions
+# We use them directly without defining them
 
 BEGIN {
     print "==================================="

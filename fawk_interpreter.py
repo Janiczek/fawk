@@ -146,17 +146,24 @@ class Interpreter:
         
         self.fields = []  # Current line fields
         
-        # Built-in functions
+        # Built-in functions - single source of truth
+        self.builtin_functions = {
+            'length': lambda arr: arr.length() if isinstance(arr, FawkArray) else len(str(arr)),
+            'map': self.builtin_map,
+            'filter': self.builtin_filter,
+            'reduce': self.builtin_reduce,
+            'sum_array': self.builtin_sum_array,
+            'match': self.builtin_match,
+            'split': self.builtin_split,
+        }
+        
+        # Register built-in functions
         self.register_builtins()
     
     def register_builtins(self):
-        self.functions['length'] = lambda arr: arr.length() if isinstance(arr, FawkArray) else len(str(arr))
-        self.functions['map'] = self.builtin_map
-        self.functions['filter'] = self.builtin_filter
-        self.functions['reduce'] = self.builtin_reduce
-        self.functions['sum_array'] = self.builtin_sum_array
-        self.functions['match'] = self.builtin_match
-        self.functions['split'] = self.builtin_split
+        """Register all built-in functions"""
+        for name, func in self.builtin_functions.items():
+            self.functions[name] = func
     
     def builtin_map(self, func, arr):
         if not isinstance(arr, FawkArray):
@@ -611,12 +618,9 @@ class Interpreter:
             return ""
     
     def run(self, program: Program, input_lines: List[str] = None):
-        # Built-in function names that cannot be redefined
-        builtin_names = {'length', 'map', 'filter', 'reduce', 'sum_array', 'match', 'split'}
-        
-        # Register functions
+        # Register user-defined functions (protect built-ins)
         for func_def in program.functions:
-            if func_def.name in builtin_names:
+            if func_def.name in self.builtin_functions:
                 raise RuntimeError(f"Cannot redefine built-in function '{func_def.name}'")
             self.functions[func_def.name] = UserFunction(
                 func_def.params, func_def.body, self.global_env
