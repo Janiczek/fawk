@@ -1,0 +1,19 @@
+# Rust compilation artifacts
+/target/
+**/*.rs.bk
+*.pdb
+
+# Cargo lock file (typically excluded for binaries, included for libraries)
+# Uncomment if you want to exclude it:
+# Cargo.lock
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
