@@ -1429,14 +1429,55 @@ class Interpreter:
     
     def eval_FunctionCall(self, node: FunctionCall) -> Any:
         func = self.eval(node.func)
-        args = [self.eval(arg) for arg in node.args]
+        # Special handling for match() and split() - if first argument is a Regex node,
+        # extract the pattern string instead of evaluating it to a boolean
+        args = []
+        for i, arg_node in enumerate(node.args):
+            # Check if this is match() and first arg is a Regex
+            if (func == self.builtin_match and i == 0 and isinstance(arg_node, Regex)):
+                # Extract pattern string from Regex node
+                args.append(arg_node.pattern)
+            else:
+                args.append(self.eval(arg_node))
         
         return self.call_function(func, args)
     
     def call_function(self, func, args):
         if callable(func) and not isinstance(func, UserFunction):
             # Built-in function
-            return func(*args)
+            # Check for common AWK-style function calls that need better error messages
+            if func == self.builtin_match:
+                if len(args) == 3:
+                    self.error("match() in fawk takes 2 arguments (pattern, text), not 3.\n"
+                              "Old AWK style: match(string, regexp, array)\n"
+                              "fawk style: result = match(pattern, text)\n"
+                              "The result is an array with [0]=full match, [1]=first group, etc.")
+                elif len(args) != 2:
+                    self.error(f"match() expects 2 arguments (pattern, text), got {len(args)}")
+            elif func == self.builtin_split:
+                if len(args) == 3:
+                    self.error("split() in fawk takes 2 arguments (separator, text), not 3.\n"
+                              "Old AWK style: split(string, array, separator)\n"
+                              "fawk style: result = split(separator, text)\n"
+                              "The result is an array with the split parts.")
+                elif len(args) != 2:
+                    self.error(f"split() expects 2 arguments (separator, text), got {len(args)}")
+            
+            try:
+                return func(*args)
+            except TypeError as e:
+                # Check if it's an argument count error for match or split
+                if "positional arguments" in str(e) and (func == self.builtin_match or func == self.builtin_split):
+                    # This shouldn't happen now due to checks above, but just in case
+                    if func == self.builtin_match:
+                        self.error("match() in fawk takes 2 arguments (pattern, text), not 3.\n"
+                                  "Old AWK style: match(string, regexp, array)\n"
+                                  "fawk style: result = match(pattern, text)")
+                    elif func == self.builtin_split:
+                        self.error("split() in fawk takes 2 arguments (separator, text), not 3.\n"
+                                  "Old AWK style: split(string, array, separator)\n"
+                                  "fawk style: result = split(separator, text)")
+                raise
         elif isinstance(func, UserFunction):
             # User-defined function
             if len(args) != len(func.params):
