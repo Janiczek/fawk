@@ -12,9 +12,22 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-PASSED=0
-FAILED=0
-TOTAL=0
+# Determine number of parallel jobs (use CPU count, but cap at 8)
+if command -v nproc &> /dev/null; then
+    MAX_JOBS=$(nproc)
+elif [ -f /proc/cpuinfo ]; then
+    MAX_JOBS=$(grep -c processor /proc/cpuinfo)
+else
+    # macOS fallback
+    MAX_JOBS=$(sysctl -n hw.ncpu 2>/dev/null || echo 4)
+fi
+if [ "$MAX_JOBS" -gt 8 ]; then
+    MAX_JOBS=8
+fi
+
+# Results directory for parallel execution
+RESULTS_DIR=$(mktemp -d)
+trap "rm -rf $RESULTS_DIR" EXIT
 
 run_test() {
     local script="$1"
@@ -26,13 +39,12 @@ run_test() {
     local expected_exitcode="tests/${basename}.exitcode"
     local env_file="tests/${basename}.env"
     local check_gawk="false"
+    local result_file="$RESULTS_DIR/${basename}.result"
     
     # Determine if this is a gawk compatibility test
     if [[ "$script" == *.awk ]]; then
         check_gawk="true"
     fi
-    
-    TOTAL=$((TOTAL + 1))
     
     # Run the test with fawk, capturing stdout and stderr separately
     local actual_stdout=$(mktemp)
@@ -69,9 +81,10 @@ run_test() {
     
     # Check exit code (always tested)
     local test_failed=false
+    local output=""
     if [ $exit_code -ne $expected_exit ]; then
-        echo -e "${RED}✗ FAILED${NC}: $basename"
-        echo "  Exit code mismatch: expected $expected_exit, got $exit_code"
+        output="${output}${RED}✗ FAILED${NC}: $basename\n"
+        output="${output}  Exit code mismatch: expected $expected_exit, got $exit_code\n"
         test_failed=true
     fi
     
@@ -79,34 +92,40 @@ run_test() {
     if [ -f "$expected_stdout" ]; then
         if ! diff -q "$expected_stdout" "$actual_stdout" > /dev/null 2>&1; then
             if [ "$test_failed" = "false" ]; then
-                echo -e "${RED}✗ FAILED${NC}: $basename"
+                output="${output}${RED}✗ FAILED${NC}: $basename\n"
             fi
-            echo "  Stdout differs from expected:"
-            diff -u "$expected_stdout" "$actual_stdout" | head -20
+            output="${output}  Stdout differs from expected:\n"
+            output="${output}$(diff -u "$expected_stdout" "$actual_stdout" | head -20)\n"
             test_failed=true
         fi
     fi
     
     # Check stderr (always tested, empty if file missing)
-    local expected_stderr_file=$(mktemp)
+    # Optimize: avoid temp file copy if expected_stderr doesn't exist
     if [ -f "$expected_stderr" ]; then
-        cp "$expected_stderr" "$expected_stderr_file"
-    else
-        touch "$expected_stderr_file"
-    fi
-    
-    if ! diff -q "$expected_stderr_file" "$actual_stderr" > /dev/null 2>&1; then
-        if [ "$test_failed" = "false" ]; then
-            echo -e "${RED}✗ FAILED${NC}: $basename"
+        if ! diff -q "$expected_stderr" "$actual_stderr" > /dev/null 2>&1; then
+            if [ "$test_failed" = "false" ]; then
+                output="${output}${RED}✗ FAILED${NC}: $basename\n"
+            fi
+            output="${output}  Stderr differs from expected:\n"
+            output="${output}$(diff -u "$expected_stderr" "$actual_stderr" | head -20)\n"
+            test_failed=true
         fi
-        echo "  Stderr differs from expected:"
-        diff -u "$expected_stderr_file" "$actual_stderr" | head -20
-        test_failed=true
+    else
+        # Check if stderr is non-empty when it should be empty
+        if [ -s "$actual_stderr" ]; then
+            if [ "$test_failed" = "false" ]; then
+                output="${output}${RED}✗ FAILED${NC}: $basename\n"
+            fi
+            output="${output}  Stderr differs from expected (expected empty):\n"
+            output="${output}$(head -20 "$actual_stderr")\n"
+            test_failed=true
+        fi
     fi
-    rm -f "$expected_stderr_file"
     
     if [ "$test_failed" = "true" ]; then
-        FAILED=$((FAILED + 1))
+        echo -e "FAILED" > "$result_file"
+        echo -e "$output" >> "$result_file"
         rm -f "$actual_stdout" "$actual_stderr"
         return
     fi
@@ -114,9 +133,9 @@ run_test() {
     # Check gawk compatibility if requested (only for tests with expected stdout files)
     if [ "$check_gawk" = "true" ] && [ -f "$expected_stdout" ]; then
         if ! command -v gawk &> /dev/null; then
-            echo -e "${YELLOW}⚠ WARNING${NC}: $basename - gawk not found, skipping compatibility check"
+            echo -e "PASSED" > "$result_file"
+            echo -e "${YELLOW}⚠ WARNING${NC}: $basename - gawk not found, skipping compatibility check" >> "$result_file"
             rm -f "$actual_stdout" "$actual_stderr"
-            PASSED=$((PASSED + 1))
             return
         fi
         
@@ -150,22 +169,28 @@ run_test() {
     
         # Compare fawk and gawk stdout outputs
         if ! diff -q "$actual_stdout" "$gawk_stdout" > /dev/null 2>&1; then
-            echo -e "${RED}✗ GAWK COMPATIBILITY FAILED${NC}: $basename"
-            echo "  FAWK and GAWK stdout outputs differ:"
-            diff -u "$actual_stdout" "$gawk_stdout" | head -20
-            echo ""
-            FAILED=$((FAILED + 1))
-            PASSED=$((PASSED - 1))
+            echo -e "FAILED" > "$result_file"
+            echo -e "${RED}✗ GAWK COMPATIBILITY FAILED${NC}: $basename" >> "$result_file"
+            echo -e "  FAWK and GAWK stdout outputs differ:" >> "$result_file"
+            diff -u "$actual_stdout" "$gawk_stdout" | head -20 >> "$result_file"
+            echo "" >> "$result_file"
+            rm -f "$gawk_stdout" "$gawk_stderr" "$actual_stdout" "$actual_stderr"
+            return
         fi
         
         rm -f "$gawk_stdout" "$gawk_stderr"
     fi
     
-    PASSED=$((PASSED + 1))
+    echo -e "PASSED" > "$result_file"
     rm -f "$actual_stdout" "$actual_stderr"
 }
 
-# Discover and run all tests
+# Export function and variables for parallel execution
+export -f run_test
+export RED GREEN YELLOW NC RESULTS_DIR
+
+# Discover all tests
+TEST_LIST=()
 for script in tests/*.fawk tests/*.awk; do
     if [ -f "$script" ]; then
         # Extract basename without extension
@@ -173,7 +198,6 @@ for script in tests/*.fawk tests/*.awk; do
         basename=$(basename "$basename" .awk)
         
         # Find all matching input files using glob pattern
-        # This automatically handles single or multiple input files
         input_files=()
         for input_file in tests/${basename}.input*; do
             if [ -f "$input_file" ]; then
@@ -181,7 +205,49 @@ for script in tests/*.fawk tests/*.awk; do
             fi
         done
         
-        run_test "$script" "$basename" "${input_files[@]}"
+        TEST_LIST+=("$script|$basename|${input_files[*]}")
+    fi
+done
+
+# Run tests in parallel using background jobs
+TOTAL=${#TEST_LIST[@]}
+PASSED=0
+FAILED=0
+RUNNING=0
+
+for test_spec in "${TEST_LIST[@]}"; do
+    # Wait for a job slot if we're at max capacity
+    while [ $RUNNING -ge $MAX_JOBS ]; do
+        wait -n
+        RUNNING=$((RUNNING - 1))
+    done
+    
+    # Parse test specification
+    IFS='|' read -r script basename input_files_str <<< "$test_spec"
+    IFS=' ' read -r -a input_files <<< "$input_files_str"
+    
+    # Run test in background
+    run_test "$script" "$basename" "${input_files[@]}" &
+    RUNNING=$((RUNNING + 1))
+done
+
+# Wait for all remaining jobs
+while [ $RUNNING -gt 0 ]; do
+    wait -n
+    RUNNING=$((RUNNING - 1))
+done
+
+# Collect and display results
+for result_file in "$RESULTS_DIR"/*.result; do
+    if [ -f "$result_file" ]; then
+        status=$(head -1 "$result_file")
+        if [ "$status" = "PASSED" ]; then
+            PASSED=$((PASSED + 1))
+        else
+            FAILED=$((FAILED + 1))
+            # Display failure output
+            tail -n +2 "$result_file"
+        fi
     fi
 done
 
