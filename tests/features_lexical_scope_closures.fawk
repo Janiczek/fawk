@@ -1,0 +1,12 @@
+function make_adder(k) {
+    return (x) => { return x + k }
+}
+
+BEGIN {
+    src = [1, 2, 3]
+    add5 = make_adder(5)
+    result = src |> map(add5)
+    for (i in result) {
+        print "result[" i "] =", result[i]
+    }
+}

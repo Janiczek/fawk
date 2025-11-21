@@ -171,35 +171,31 @@ END {
 }
 ```
 
-## Complete Example: Processing CSV Data
+## Complete Example
+
+This example demonstrates higher-order functions, arrays returned from functions, lexical scope, and generating ranges.
 
 ```awk
-function sum(arr) {
-    total = 0
-    for (i in arr) { total = total + arr[i] }
-    return total
+function make_adder(k) {
+    return (x) => { return x + k }  # lambdas
 }
 
-function avg(arr) {
-    return sum(arr) / length(arr)
-}
-
-BEGIN {
-    global sales
-    sales = ["electronics" => [], "books" => [], "clothing" => []]
-}
-
-# Parse CSV: category,product,price
-NR > 1 {
-    category = $1
-    price = $3
-    sales[category][length(sales[category])] = price
+function make_range(n) {
+    for (i = 1; i <= n; i++) {  # locals don't leak!
+        arr[length(arr)] = i
+    }
+    return arr  # returning arrays!
 }
 
 END {
-    for (cat in sales) {
-        average = avg(sales[cat])
-        print cat, "average:", average
-    }
+    src = make_range(3)
+    add5 = make_adder(5)
+    result = src |> map(add5)  # pipelines, fns as values, map/filter/reduce
+    print(result)  # printing arrays
 }
+```
+
+**Output:**
+```
+[6, 7, 8]
 ```

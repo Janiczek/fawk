@@ -161,6 +161,7 @@ class Interpreter:
         self.functions = {}
         self.globals_declared = set()
         self.in_function = False  # Track if we're inside a user function
+        self.current_closure_env = None  # Track the closure environment of the current function
         
         # AWK built-in variables
         self.ARGC = argc
@@ -1453,8 +1454,10 @@ class Interpreter:
             # Execute function body
             saved_env = self.current_env
             saved_in_function = self.in_function
+            saved_closure_env = self.current_closure_env
             self.current_env = func_env
             self.in_function = True
+            self.current_closure_env = func.closure_env
             
             try:
                 result = self.eval(func.body)
@@ -1469,6 +1472,7 @@ class Interpreter:
             finally:
                 self.current_env = saved_env
                 self.in_function = saved_in_function
+                self.current_closure_env = saved_closure_env
             
             return result
         else:
@@ -1545,8 +1549,16 @@ class Interpreter:
                 # Local variable
                 return self.current_env.vars[name]
             else:
-                # Undefined local variable
-                return 0
+                # Search up the closure chain for captured variables
+                # But if this is a regular function (closure_env is global_env),
+                # only look for explicitly declared globals, not all globals
+                if self.current_closure_env == self.global_env:
+                    # Regular function: only look for explicitly declared globals
+                    # Don't search global_env for non-declared variables (isolation)
+                    return 0
+                else:
+                    # Lambda: search full closure chain to capture outer variables
+                    return self.current_env.get(name)
         else:
             # Outside function: use normal lookup (which searches up to parent)
             return self.current_env.get(name)
