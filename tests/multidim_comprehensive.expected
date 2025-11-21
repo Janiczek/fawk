@@ -1,0 +1,54 @@
+=== Multi-Dimensional Array Comprehensive Test ===
+
+1. Basic multi-dimensional arrays:
+  matrix[1,1] = a
+  matrix[2,2] = d
+
+2. Three-dimensional arrays:
+  cube[1,2,3] = xyz
+  cube[2,3,4] = abc
+
+3. String indices in multi-dimensional arrays:
+  data[user1,age] = 25
+  data[user1,name] = Alice
+  data[user2,name] = Bob
+
+4. Membership testing:
+  (1,1) is in matrix
+  (3,3) is NOT in matrix
+  (user1,age) is in data
+
+5. Deleting elements:
+  Before delete: matrix[1,1] = a
+  After delete: matrix[1,1] is gone
+
+6. SUBSEP variable:
+  Default SUBSEP length: 1
+  Explicit key (2 SUBSEP 2): 22
+  matrix[key] = d
+
+  With SUBSEP=':', arr2[1,2] = colon-separated
+  Key is: 1:2
+
+7. Iteration over multi-dimensional array:
+  key: 1\0341 => value: NW
+  key: 1\0342 => value: NE
+  key: 2\0341 => value: SW
+  key: 2\0342 => value: SE
+
+8. Using arrays as sets with delete:
+  Initial:
+    a
+    b
+    c
+  After deleting 'b':
+    a
+    c
+
+9. Mixed single and multi-dimensional:
+  mixed[1] = single
+  mixed[1,2] = double
+  mixed[1,2,3] = triple
+  1 is in mixed
+  (1,2) is in mixed
+  (1,2,3) is in mixed

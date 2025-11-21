@@ -1,0 +1,130 @@
+BEGIN {
+    # Demonstrate using AWK associative arrays as sets
+    # Sets store unique keys; the values don't matter
+    
+    print "=== Using Arrays as Sets ==="
+    print ""
+    
+    # Add elements to a set (convention: use 1 as value)
+    set["apple"] = 1
+    set["banana"] = 1
+    set["cherry"] = 1
+    
+    print "Initial set:"
+    for (item in set) {
+        print "  " item
+    }
+    print ""
+    
+    # Test for membership
+    print "Membership tests:"
+    if ("apple" in set) {
+        print "  apple is in the set"
+    }
+    
+    if ("grape" in set) {
+        print "  grape is in the set"
+    } else {
+        print "  grape is NOT in the set"
+    }
+    print ""
+    
+    # Add a new element
+    print "Adding 'grape' to set"
+    set["grape"] = 1
+    if ("grape" in set) {
+        print "  grape is now in the set"
+    }
+    print ""
+    
+    # Remove an element (use delete in real AWK)
+    # For demonstration, we'll show the pattern
+    print "Removing 'banana' from set"
+    delete set["banana"]
+    if ("banana" in set) {
+        print "  banana is still in the set"
+    } else {
+        print "  banana is NOT in the set (removed)"
+    }
+    print ""
+    
+    # Toggle an element (add if not present, remove if present)
+    print "Toggle operations:"
+    item = "cherry"
+    if (item in set) {
+        print "  Removing " item
+        delete set[item]
+    } else {
+        print "  Adding " item
+        set[item] = 1
+    }
+    
+    item = "orange"
+    if (item in set) {
+        print "  Removing " item
+        delete set[item]
+    } else {
+        print "  Adding " item
+        set[item] = 1
+    }
+    print ""
+    
+    # Final set
+    print "Final set:"
+    for (item in set) {
+        print "  " item
+    }
+    print ""
+    
+    # Set operations example: union
+    print "=== Set Union ==="
+    set1["a"] = 1
+    set1["b"] = 1
+    set1["c"] = 1
+    
+    set2["b"] = 1
+    set2["c"] = 1
+    set2["d"] = 1
+    
+    # Union: combine both sets
+    for (item in set1) {
+        union[item] = 1
+    }
+    for (item in set2) {
+        union[item] = 1
+    }
+    
+    print "Set1: a, b, c"
+    print "Set2: b, c, d"
+    print "Union:"
+    for (item in union) {
+        print "  " item
+    }
+    print ""
+    
+    # Intersection: only items in both sets
+    print "=== Set Intersection ==="
+    for (item in set1) {
+        if (item in set2) {
+            intersection[item] = 1
+        }
+    }
+    print "Intersection:"
+    for (item in intersection) {
+        print "  " item
+    }
+    print ""
+    
+    # Difference: items in set1 but not in set2
+    print "=== Set Difference (set1 - set2) ==="
+    for (item in set1) {
+        if (!(item in set2)) {
+            difference[item] = 1
+        }
+    }
+    print "Difference:"
+    for (item in difference) {
+        print "  " item
+    }
+}
+

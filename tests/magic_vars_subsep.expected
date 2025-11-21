@@ -1,3 +1,7 @@
-Default SUBSEP (octal 034): 1 chars
-Changed SUBSEP to comma: ,
-Changed SUBSEP to double colon: ::
+Default SUBSEP length: 1
+arr[1,2] via SUBSEP: one-two
+arr[1,3] via SUBSEP: one-three
+arr[2,1] via SUBSEP: two-one
+Changed SUBSEP to: ,
+arr2[1,2] with comma SUBSEP: comma-sep
+arr3[x,y] with :: SUBSEP: double-colon

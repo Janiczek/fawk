@@ -1,0 +1,136 @@
+BEGIN {
+    print "=== Multi-Dimensional Array Comprehensive Test ==="
+    print ""
+    
+    # 1. Basic multi-dimensional array creation and access
+    print "1. Basic multi-dimensional arrays:"
+    matrix[1,1] = "a"
+    matrix[1,2] = "b"
+    matrix[2,1] = "c"
+    matrix[2,2] = "d"
+    
+    print "  matrix[1,1] =", matrix[1,1]
+    print "  matrix[2,2] =", matrix[2,2]
+    print ""
+    
+    # 2. Three-dimensional arrays
+    print "2. Three-dimensional arrays:"
+    cube[1,2,3] = "xyz"
+    cube[2,3,4] = "abc"
+    print "  cube[1,2,3] =", cube[1,2,3]
+    print "  cube[2,3,4] =", cube[2,3,4]
+    print ""
+    
+    # 3. String indices
+    print "3. String indices in multi-dimensional arrays:"
+    data["user1","age"] = 25
+    data["user1","name"] = "Alice"
+    data["user2","age"] = 30
+    data["user2","name"] = "Bob"
+    
+    print "  data[user1,age] =", data["user1","age"]
+    print "  data[user1,name] =", data["user1","name"]
+    print "  data[user2,name] =", data["user2","name"]
+    print ""
+    
+    # 4. Membership testing with (i,j) in array syntax
+    print "4. Membership testing:"
+    if ((1,1) in matrix) {
+        print "  (1,1) is in matrix"
+    }
+    if ((3,3) in matrix) {
+        print "  (3,3) is in matrix"
+    } else {
+        print "  (3,3) is NOT in matrix"
+    }
+    if (("user1","age") in data) {
+        print "  (user1,age) is in data"
+    }
+    print ""
+    
+    # 5. Delete multi-dimensional array elements
+    print "5. Deleting elements:"
+    print "  Before delete: matrix[1,1] =", matrix[1,1]
+    delete matrix[1,1]
+    if ((1,1) in matrix) {
+        print "  After delete: matrix[1,1] still exists"
+    } else {
+        print "  After delete: matrix[1,1] is gone"
+    }
+    print ""
+    
+    # 6. SUBSEP variable
+    print "6. SUBSEP variable:"
+    print "  Default SUBSEP length:", length(SUBSEP)
+    
+    # Create key using SUBSEP explicitly
+    key = 2 SUBSEP 2
+    print "  Explicit key (2 SUBSEP 2):", key
+    print "  matrix[key] =", matrix[key]
+    print ""
+    
+    # Change SUBSEP
+    SUBSEP = ":"
+    arr2[1,2] = "colon-separated"
+    print "  With SUBSEP=':', arr2[1,2] =", arr2[1,2]
+    
+    # Verify the key
+    for (k in arr2) {
+        print "  Key is:", k
+    }
+    print ""
+    
+    # 7. Iterating over multi-dimensional arrays
+    print "7. Iteration over multi-dimensional array:"
+    SUBSEP = "\034"  # Reset to default
+    
+    grid[1,1] = "NW"
+    grid[1,2] = "NE"
+    grid[2,1] = "SW"
+    grid[2,2] = "SE"
+    
+    for (key in grid) {
+        print "  key:", key, "=> value:", grid[key]
+    }
+    print ""
+    
+    # 8. Associative arrays as sets with delete
+    print "8. Using arrays as sets with delete:"
+    set["a"] = 1
+    set["b"] = 1
+    set["c"] = 1
+    
+    print "  Initial:"
+    for (item in set) {
+        print "    " item
+    }
+    
+    delete set["b"]
+    print "  After deleting 'b':"
+    for (item in set) {
+        print "    " item
+    }
+    print ""
+    
+    # 9. Mixed dimensions
+    print "9. Mixed single and multi-dimensional:"
+    mixed[1] = "single"
+    mixed[1,2] = "double"
+    mixed[1,2,3] = "triple"
+    
+    print "  mixed[1] =", mixed[1]
+    print "  mixed[1,2] =", mixed[1,2]
+    print "  mixed[1,2,3] =", mixed[1,2,3]
+    
+    # These are different keys
+    if (1 in mixed) {
+        print "  1 is in mixed"
+    }
+    if ((1,2) in mixed) {
+        print "  (1,2) is in mixed"
+    }
+    if ((1,2,3) in mixed) {
+        print "  (1,2,3) is in mixed"
+    }
+}
+

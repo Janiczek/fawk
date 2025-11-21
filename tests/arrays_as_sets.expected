@@ -1,0 +1,43 @@
+=== Using Arrays as Sets ===
+
+Initial set:
+  apple
+  banana
+  cherry
+
+Membership tests:
+  apple is in the set
+  grape is NOT in the set
+
+Adding 'grape' to set
+  grape is now in the set
+
+Removing 'banana' from set
+  banana is NOT in the set (removed)
+
+Toggle operations:
+  Removing cherry
+  Adding orange
+
+Final set:
+  apple
+  grape
+  orange
+
+=== Set Union ===
+Set1: a, b, c
+Set2: b, c, d
+Union:
+  a
+  b
+  c
+  d
+
+=== Set Intersection ===
+Intersection:
+  b
+  c
+
+=== Set Difference (set1 - set2) ===
+Difference:
+  a

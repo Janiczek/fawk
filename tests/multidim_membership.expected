@@ -1,0 +1,8 @@
+Found arr[1,2] using concatenated key
+Found arr[1,2] using (1,2) in arr syntax
+arr[1,3] not found (expected)
+Found arr2[1,2,3] using (1,2,3) in arr2 syntax
+All keys in arr:
+  key: 12 value: value
+  key: 34 value: another
+  key: xy value: string indices

@@ -172,6 +172,8 @@ class Parser:
             self.advance()
             self.skip_statement_terminator()
             return ContinueStmt()
+        elif token.type == TokenType.DELETE:
+            return self.parse_delete_stmt()
         elif token.type == TokenType.PRINT:
             return self.parse_print_stmt()
         elif token.type == TokenType.LBRACE:
@@ -192,6 +194,16 @@ class Parser:
         
         self.skip_statement_terminator()
         return GlobalDecl(names)
+    
+    def parse_delete_stmt(self):
+        from fawk_ast import DeleteStmt
+        self.expect(TokenType.DELETE)
+        
+        # Parse the target (identifier or array access)
+        target = self.parse_postfix()
+        
+        self.skip_statement_terminator()
+        return DeleteStmt(target)
     
     def parse_if_stmt(self) -> IfStmt:
         self.expect(TokenType.IF)
@@ -521,12 +533,30 @@ class Parser:
         return left
     
     def parse_equality(self) -> ASTNode:
-        left = self.parse_comparison()
+        left = self.parse_in()
         
         while self.current().type in [TokenType.EQ, TokenType.NE, TokenType.MATCH, TokenType.NOT_MATCH]:
             op = self.advance().value
-            right = self.parse_comparison()
+            right = self.parse_in()
             left = BinaryOp(op, left, right)
+        
+        return left
+    
+    def parse_in(self) -> ASTNode:
+        """Parse 'in' operator for array membership checks"""
+        from fawk_ast import InOp, CommaExpr
+        left = self.parse_comparison()
+        
+        # Check for 'in' operator
+        if self.current().type == TokenType.IN:
+            self.advance()
+            right = self.parse_comparison()
+            
+            # If left is a CommaExpr, extract its expressions as indices
+            if isinstance(left, CommaExpr):
+                return InOp(left.exprs, right)
+            else:
+                return InOp([left], right)
         
         return left
     
@@ -617,11 +647,17 @@ class Parser:
                 expr = FunctionCall(expr, args)
             
             elif self.current().type == TokenType.LBRACKET:
-                # Array access
+                # Array access - support multi-dimensional: arr[i,j,k]
                 self.advance()
-                index = self.parse_expression()
+                indices = [self.parse_expression()]
+                
+                # Check for additional indices separated by commas
+                while self.current().type == TokenType.COMMA:
+                    self.advance()
+                    indices.append(self.parse_expression())
+                
                 self.expect(TokenType.RBRACKET)
-                expr = ArrayAccess(expr, index)
+                expr = ArrayAccess(expr, indices)
             
             else:
                 break
@@ -653,7 +689,7 @@ class Parser:
             return FieldAccess(index)
         
         elif token.type == TokenType.LPAREN:
-            # Could be grouped expression or lambda
+            # Could be grouped expression, comma expression, or lambda
             if self.is_lambda():
                 return self.parse_lambda()
             else:
@@ -662,9 +698,21 @@ class Parser:
                 saved = self.in_print_context
                 self.in_print_context = False
                 try:
-                    expr = self.parse_expression()
-                    self.expect(TokenType.RPAREN)
-                    return expr
+                    # Check if this is a comma expression (i,j) for multi-dimensional array key
+                    exprs = [self.parse_expression()]
+                    
+                    # If we see a comma, this is a comma expression
+                    if self.current().type == TokenType.COMMA:
+                        while self.current().type == TokenType.COMMA:
+                            self.advance()
+                            exprs.append(self.parse_expression())
+                        self.expect(TokenType.RPAREN)
+                        # Return a CommaExpr node
+                        from fawk_ast import CommaExpr
+                        return CommaExpr(exprs)
+                    else:
+                        self.expect(TokenType.RPAREN)
+                        return exprs[0]
                 finally:
                     self.in_print_context = saved
         

@@ -84,7 +84,37 @@ class FawkArray:
         self.data[key] = value
     
     def keys(self):
-        return list(self.data.keys())
+        """Return keys in GAWK-compatible order: numeric keys sorted numerically, string keys lexicographically"""
+        keys_list = list(self.data.keys())
+        
+        # Separate numeric and non-numeric keys
+        numeric_keys = []
+        string_keys = []
+        
+        for key in keys_list:
+            # Try to interpret as number
+            if isinstance(key, int):
+                numeric_keys.append((key, key))
+            elif isinstance(key, str):
+                # Try to parse as number
+                try:
+                    # Check if string looks like a number
+                    num_val = float(key)
+                    # In AWK, numeric strings are sorted numerically
+                    numeric_keys.append((num_val, key))
+                except (ValueError, TypeError):
+                    # Not a number, treat as string
+                    string_keys.append(key)
+            else:
+                string_keys.append(key)
+        
+        # Sort numeric keys by their numeric value, string keys lexicographically
+        numeric_keys.sort(key=lambda x: x[0])
+        string_keys.sort()
+        
+        # Return original keys in sorted order
+        result = [key for _, key in numeric_keys] + string_keys
+        return result
     
     def values(self):
         return list(self.data.values())
@@ -777,6 +807,40 @@ class Interpreter:
     def eval_ContinueStmt(self, node: ContinueStmt) -> None:
         raise ContinueException()
     
+    def eval_DeleteStmt(self, node) -> None:
+        """Delete an array element or entire array"""
+        from fawk_ast import DeleteStmt, Identifier, ArrayAccess
+        
+        if isinstance(node.target, Identifier):
+            # Delete entire array or variable
+            name = node.target.name
+            if name in self.current_env.vars:
+                del self.current_env.vars[name]
+            elif name in self.global_env.vars:
+                del self.global_env.vars[name]
+        
+        elif isinstance(node.target, ArrayAccess):
+            # Delete array element
+            array = self.eval(node.target.array)
+            if isinstance(array, FawkArray):
+                # Compute the index
+                if len(node.target.indices) == 1:
+                    index = self.eval(node.target.indices[0])
+                else:
+                    # Multiple indices: concatenate with SUBSEP
+                    index_values = [self.value_to_string_convert(self.eval(idx)) for idx in node.target.indices]
+                    index = self.SUBSEP.join(index_values)
+                
+                # Convert index to the right type
+                if isinstance(index, (int, float)):
+                    index = int(index)
+                else:
+                    index = str(index)
+                
+                # Delete the key if it exists
+                if index in array.data:
+                    del array.data[index]
+    
     def eval_PrintStmt(self, node: PrintStmt) -> None:
         # Prepare output string
         if not node.args:
@@ -1099,11 +1163,17 @@ class Interpreter:
             # - Variables declared with 'global' keyword are always global
             # - Variables assigned in functions (not declared global) are local
             # - Variables assigned outside functions are global
+            # - BUT: if a variable already exists in current environment (e.g., from for-in loop),
+            #   update it there to maintain proper scoping
             elif name in self.globals_declared:
                 # Explicitly declared global
                 self.global_env.set(name, value)
             elif self.in_function:
                 # Inside function, not declared global: local variable
+                self.current_env.set_local(name, value)
+            elif name in self.current_env.vars:
+                # Variable already exists in current environment (e.g., from for-in loop)
+                # Update it there to maintain proper scoping
                 self.current_env.set_local(name, value)
             else:
                 # Outside function: global by default
@@ -1121,7 +1191,14 @@ class Interpreter:
                     else:
                         self.current_env.set_local(name, array)
             
-            index = self.eval(node.target.index)
+            # Handle multi-dimensional array access
+            if len(node.target.indices) == 1:
+                index = self.eval(node.target.indices[0])
+            else:
+                # Multiple indices: concatenate with SUBSEP
+                index_values = [self.value_to_string_convert(self.eval(idx)) for idx in node.target.indices]
+                index = self.SUBSEP.join(index_values)
+            
             array.set(index, value)
         
         else:
@@ -1148,7 +1225,14 @@ class Interpreter:
         if not isinstance(array, FawkArray):
             return 0  # AWK behavior
         
-        index = self.eval(node.index)
+        # Handle multi-dimensional array access
+        if len(node.indices) == 1:
+            index = self.eval(node.indices[0])
+        else:
+            # Multiple indices: concatenate with SUBSEP
+            index_values = [self.value_to_string_convert(self.eval(idx)) for idx in node.indices]
+            index = self.SUBSEP.join(index_values)
+        
         return array.get(index)
     
     def eval_FunctionCall(self, node: FunctionCall) -> Any:
@@ -1306,6 +1390,38 @@ class Interpreter:
             return self.fields[index - 1]
         else:
             return ""
+    
+    def eval_InOp(self, node) -> bool:
+        """Evaluate 'in' operator for array membership"""
+        from fawk_ast import InOp
+        
+        array = self.eval(node.array)
+        if not isinstance(array, FawkArray):
+            return False
+        
+        # Compute the index from the indices
+        if len(node.indices) == 1:
+            index = self.eval(node.indices[0])
+        else:
+            # Multiple indices: concatenate with SUBSEP
+            index_values = [self.value_to_string_convert(self.eval(idx)) for idx in node.indices]
+            index = self.SUBSEP.join(index_values)
+        
+        # Convert index to the right type for lookup
+        if isinstance(index, (int, float)):
+            index = int(index)
+        else:
+            index = str(index)
+        
+        return index in array.data
+    
+    def eval_CommaExpr(self, node) -> str:
+        """Evaluate comma expression - concatenates values with SUBSEP"""
+        from fawk_ast import CommaExpr
+        
+        # Evaluate all expressions and concatenate with SUBSEP
+        values = [self.value_to_string_convert(self.eval(expr)) for expr in node.exprs]
+        return self.SUBSEP.join(values)
     
     def split_into_records(self, input_text: str) -> List[tuple]:
         """

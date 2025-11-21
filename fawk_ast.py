@@ -172,7 +172,7 @@ class AssocArray(ASTNode):
 @dataclass
 class ArrayAccess(ASTNode):
     array: ASTNode
-    index: ASTNode
+    indices: List[ASTNode]  # Support multiple indices for multi-dimensional arrays
 
 
 @dataclass
@@ -217,3 +217,21 @@ class Regex(ASTNode):
 @dataclass
 class FieldAccess(ASTNode):
     index: ASTNode
+
+
+@dataclass
+class DeleteStmt(ASTNode):
+    target: ASTNode  # Variable or ArrayAccess to delete
+
+
+@dataclass
+class InOp(ASTNode):
+    """Check if key(s) exist in array - supports (i,j) in arr syntax"""
+    indices: List[ASTNode]  # Can be multiple indices for multi-dimensional check
+    array: ASTNode
+
+
+@dataclass
+class CommaExpr(ASTNode):
+    """Comma expression - evaluates all expressions and returns concatenated key"""
+    exprs: List[ASTNode]
