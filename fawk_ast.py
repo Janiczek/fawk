@@ -266,3 +266,9 @@ class PipedGetline(ASTNode):
     """Piped getline: cmd | getline var"""
     command: ASTNode  # Expression that evaluates to command string
     target: Optional[str]  # Variable name to store result, None for $0
+
+
+@dataclass
+class DestructurePattern(ASTNode):
+    """Destructuring pattern for array assignment: [x, y] or [[x, y], [z, w]]"""
+    patterns: List[ASTNode]  # List of patterns (Identifier or nested DestructurePattern)

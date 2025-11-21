@@ -1,0 +1,10 @@
+# Test: Array destructuring overflow error (nested case)
+# This test demonstrates the error when trying to destructure a non-array value as an array
+
+BEGIN {
+    # Array has 1 nested element, but we try to destructure 2
+    # This will error because nested[1] = 0 (default value), and 0 is not an array
+    nested = [[1, 2]]
+    [[x, y], [z, w]] = nested
+}
+

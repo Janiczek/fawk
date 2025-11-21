@@ -283,6 +283,7 @@ class Interpreter:
             fawk_ast.InOp: self.eval_InOp,
             fawk_ast.CommaExpr: self.eval_CommaExpr,
             fawk_ast.PipedGetline: self.eval_PipedGetline,
+            fawk_ast.DestructurePattern: self.eval_DestructurePattern,
         }
         
         # Cache for compiled regex patterns (optimization)
@@ -756,7 +757,7 @@ class Interpreter:
         return -1
     
     def error(self, msg: str):
-        raise RuntimeError(f"Runtime error: {msg}")
+        raise RuntimeError(msg)
     
     def is_truthy(self, value) -> bool:
         if isinstance(value, bool):
@@ -1515,10 +1516,71 @@ class Interpreter:
             
             array.set(index, value)
         
+        elif isinstance(node.target, DestructurePattern):
+            # Destructuring assignment: [x, y] = arr or [[x, y], [z, w]] = nested_arr
+            if not isinstance(value, FawkArray):
+                self.error("Destructuring assignment requires an array")
+            
+            self._destructure_assign(node.target, value)
+        
         else:
             self.error("Invalid assignment target")
         
         return value
+    
+    def _destructure_assign(self, pattern, array: FawkArray) -> None:
+        """Helper method to perform destructuring assignment"""
+        from fawk_ast import DestructurePattern, Identifier
+        
+        # Check if array has enough elements
+        # Convert index to appropriate type for checking
+        num_patterns = len(pattern.patterns)
+        
+        # Check if we're trying to destructure more items than available
+        # We need to check if the key exists in the array, not just if get() returns 0
+        for i in range(num_patterns):
+            # Convert index to the type used in the array
+            if isinstance(i, (int, float)):
+                key = int(i)
+            else:
+                key = str(i)
+            
+            # Check if this index exists in the array
+            if key not in array.data:
+                element_word = "element" if i == 1 else "elements"
+                self.error(f"Destructuring pattern has {num_patterns} elements but array has only {i} {element_word}")
+        
+        for i, pattern_elem in enumerate(pattern.patterns):
+            # Get the value from the array at index i
+            array_value = array.get(i)
+            
+            if isinstance(pattern_elem, Identifier):
+                # Simple identifier: assign the value
+                name = pattern_elem.name
+                
+                # Use same scoping rules as regular assignment
+                if name in self.globals_declared:
+                    self.global_env.set(name, array_value)
+                elif self.in_function:
+                    self.current_env.set_local(name, array_value)
+                elif name in self.current_env.vars:
+                    self.current_env.set_local(name, array_value)
+                else:
+                    self.global_env.set(name, array_value)
+            
+            elif isinstance(pattern_elem, DestructurePattern):
+                # Nested destructuring: recursively destructure
+                if not isinstance(array_value, FawkArray):
+                    self.error(f"Destructuring pattern expects array at index {i}, got {type(array_value).__name__}")
+                self._destructure_assign(pattern_elem, array_value)
+            
+            else:
+                self.error(f"Invalid pattern element in destructuring: {type(pattern_elem).__name__}")
+    
+    def eval_DestructurePattern(self, node) -> Any:
+        """DestructurePattern should not be evaluated directly, only used in assignments"""
+        from fawk_ast import DestructurePattern
+        self.error("DestructurePattern should only appear as assignment target")
     
     def eval_ArrayLiteral(self, node: ArrayLiteral) -> FawkArray:
         arr = FawkArray()

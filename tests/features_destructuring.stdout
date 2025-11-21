@@ -1,0 +1,23 @@
+Test: Array destructuring
+--------------------------------------
+  Simple destructuring:
+    a = 10 (first element)
+    b = 20 (second element)
+
+  Destructuring match() groups:
+    matched = -x42-y99 (matched string)
+    x = 42 (first group)
+    y = 99 (second group)
+
+  Nested destructuring:
+    a = 1 b = 2
+    c = 3 d = 4
+
+  Destructuring from function call:
+    first = 10
+    second = 20
+
+  Destructuring from split():
+    part1 = a
+    part2 = b
+    part3 = c

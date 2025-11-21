@@ -1,0 +1,8 @@
+# Test: Array destructuring overflow (nested case)
+# Testing error when destructuring more nested items than the array has
+
+BEGIN {
+    # Array has 1 nested element, but we try to destructure 2
+    nested = [[1, 2]]
+    [[x, y], [z, w]] = nested
+}

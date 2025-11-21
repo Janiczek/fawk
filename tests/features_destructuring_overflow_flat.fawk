@@ -1,0 +1,8 @@
+# Test: Array destructuring overflow (flat case)
+# Testing error when destructuring more items than the array has
+
+BEGIN {
+    # Array has 2 elements, but we try to destructure 3
+    arr = [10, 20]
+    [a, b, c] = arr
+}

@@ -1,4 +1,4 @@
-Runtime error: Runtime error: match() in fawk takes 2 arguments (pattern, text), not 3.
+Runtime error: match() in fawk takes 2 arguments (pattern, text), not 3.
 Old AWK style: match(string, regexp, array)
 fawk style: result = match(pattern, text)
 The result is an array with [0]=full match, [1]=first group, etc.

@@ -1,0 +1,50 @@
+# Test: Array destructuring
+
+function make_pair(x, y) {
+    return [x, y]
+}
+
+BEGIN {
+    print "Test: Array destructuring"
+    print "--------------------------------------"
+
+    simple_arr = [10, 20, 30]
+    [a, b] = simple_arr
+    print "  Simple destructuring:"
+    print "    a =", a, "(first element)"
+    print "    b =", b, "(second element)"
+    print ""
+    
+    # Simple destructuring from match() result
+    # Note: match() returns [0]=full_match, [1]=first_group, [2]=second_group, etc.
+    # So [x, y] gets indices 0 and 1. To get groups, we'd use [_, x, y] or access coord[1], coord[2]
+    [matched, x, y] = "file-x42-y99.txt" |> match("-x([0-9]+)-y([0-9]+)")
+    print "  Destructuring match() groups:"
+    print "    matched =", matched, "(matched string)"
+    print "    x =", x, "(first group)"
+    print "    y =", y, "(second group)"
+    print ""
+    
+    # Nested destructuring
+    my_nested = [[1, 2], [3, 4]]
+    [[a, b], [c, d]] = my_nested
+    print "  Nested destructuring:"
+    print "    a =", a, "b =", b
+    print "    c =", c, "d =", d
+    print ""
+    
+    # Destructuring from function call
+    [first, second] = make_pair(10, 20)
+    print "  Destructuring from function call:"
+    print "    first =", first
+    print "    second =", second
+    print ""
+    
+    # Destructuring with split()
+    [part1, part2, part3] = split("-", "a-b-c")
+    print "  Destructuring from split():"
+    print "    part1 =", part1
+    print "    part2 =", part2
+    print "    part3 =", part3
+}
+

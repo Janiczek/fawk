@@ -524,6 +524,26 @@ class Parser:
         return left
     
     def parse_assignment(self) -> ASTNode:
+        # Check if this is a destructuring pattern: [identifier, ...]
+        # We need to look ahead to see if we have [ followed by identifier(s) and then =
+        if self.current().type == TokenType.LBRACKET:
+            # Try to parse as destructuring pattern
+            saved_pos = self.pos
+            try:
+                pattern = self.parse_destructure_pattern()
+                if self.current().type == TokenType.ASSIGN:
+                    # This is a destructuring assignment
+                    self.advance()
+                    value = self.parse_expression()
+                    return Assignment(pattern, value)
+                else:
+                    # Not an assignment, backtrack
+                    self.pos = saved_pos
+            except:
+                # Not a valid destructuring pattern, backtrack
+                self.pos = saved_pos
+        
+        # Normal assignment parsing
         expr = self.parse_or()
         
         if self.current().type == TokenType.ASSIGN:
@@ -826,6 +846,42 @@ class Parser:
         body = self.parse_block()
         
         return Lambda(params, body)
+    
+    def parse_destructure_pattern(self) -> ASTNode:
+        """Parse a destructuring pattern: [x, y] or [[x, y], [z, w]]"""
+        from fawk_ast import DestructurePattern, Identifier
+        
+        self.expect(TokenType.LBRACKET)
+        patterns = []
+        
+        if self.current().type != TokenType.RBRACKET:
+            # Parse first pattern element
+            if self.current().type == TokenType.LBRACKET:
+                # Nested destructuring pattern
+                patterns.append(self.parse_destructure_pattern())
+            elif self.current().type == TokenType.IDENTIFIER:
+                # Simple identifier
+                patterns.append(Identifier(self.advance().value))
+            else:
+                self.error("Destructuring pattern must contain identifiers or nested patterns")
+            
+            # Parse remaining elements
+            while self.current().type == TokenType.COMMA:
+                self.advance()
+                if self.current().type == TokenType.RBRACKET:
+                    break
+                
+                if self.current().type == TokenType.LBRACKET:
+                    # Nested destructuring pattern
+                    patterns.append(self.parse_destructure_pattern())
+                elif self.current().type == TokenType.IDENTIFIER:
+                    # Simple identifier
+                    patterns.append(Identifier(self.advance().value))
+                else:
+                    self.error("Destructuring pattern must contain identifiers or nested patterns")
+        
+        self.expect(TokenType.RBRACKET)
+        return DestructurePattern(patterns)
     
     def parse_array_literal(self) -> ASTNode:
         self.expect(TokenType.LBRACKET)

@@ -43,6 +43,7 @@ END {
 5. [Higher-Order Functions](#5-higher-order-functions) - map, filter, and custom combinators
 6. [Lexical Scope](#6-lexical-scope) - local-by-default, no action at a distance
 7. [Explicit Globals](#7-explicit-globals) - declare globals with `global` keyword
+8. [Array Destructuring](#8-array-destructuring) - pluck data from arrays
 
 ### 1. Arrays as First-Class Values
 
@@ -191,4 +192,20 @@ END {
     print "Average:", total / count
     print "Maximum:", max_value
 }
+```
+
+### 8. Array Destructuring
+
+Arrays can be destructured when receiving function call results or assigning from arrays:
+
+**Simple destructuring:**
+```awk
+[_, x, y] = match(/-x([0-9]+)-y([0-9]+)$/, $1)
+[a, b, c] = "a-b-c" |> split("-")
+```
+
+**Nested destructuring:**
+```awk
+my_nested = [[1, 2], [3, 4]]
+[[x, y], [z, w]] = my_nested
 ```
