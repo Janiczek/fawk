@@ -10,7 +10,6 @@ from fawk_lexer import Lexer
 from fawk_parser import Parser
 from fawk_interpreter import Interpreter
 
-
 def main():
     # Parse command line arguments AWK-style
     parser = argparse.ArgumentParser(
@@ -22,7 +21,7 @@ def main():
                '  %(prog)s \'{ print $1 }\' input.txt     # inline script\n'
                '  %(prog)s -f script.fawk f1.txt f2.txt # multiple inputs\n'
                '  cat file.txt | %(prog)s \'{ print $1 }\' # piped input\n'
-               '  %(prog)s -v PREC=100 \'BEGIN {printf("%.50f\\n", 4*atan2(1,1))}\' # arbitrary precision',
+               '  %(prog)s -v PREC=100 \'BEGIN {printf("%%.50f\\n", 4*atan2(1,1))}\' # arbitrary precision',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument('-f', '--file', dest='script_file', metavar='script_file',

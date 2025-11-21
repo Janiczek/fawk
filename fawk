@@ -1,9 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # FAWK Wrapper Script
 # Runs the Python FAWK interpreter
 
 # Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LINK_SOURCE="$(readlink -f "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd "$(dirname "${LINK_SOURCE}")" && pwd)"
 
 # Run the Python interpreter using uv
 cd "$SCRIPT_DIR"
