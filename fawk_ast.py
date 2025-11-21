@@ -245,7 +245,12 @@ class FieldAccess(ASTNode):
 
 @dataclass
 class DeleteStmt(ASTNode):
-    target: ASTNode  # Variable or ArrayAccess to delete
+    target: ASTNode  # Variable, ArrayAccess, or FieldAccess to delete
+
+
+@dataclass
+class DelarrayStmt(ASTNode):
+    target: ASTNode  # Array variable to delete all elements from
 
 
 @dataclass

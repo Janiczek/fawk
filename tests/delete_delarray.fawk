@@ -1,0 +1,66 @@
+# Test: delarray operations
+# Test deleting all elements from an array
+
+BEGIN {
+    print "Test: delarray operations"
+    print "--------------------------------------"
+    
+    # Test 1: Basic delarray
+    arr[1] = 10
+    arr[2] = 20
+    arr[3] = 30
+    arr["key"] = "value"
+    
+    print "Before delarray:"
+    print "  length(arr) =", length(arr)
+    print "  arr[1] =", arr[1]
+    print "  arr[2] =", arr[2]
+    print "  arr[key] =", arr["key"]
+    
+    delarray arr
+    
+    print "After delarray arr:"
+    print "  length(arr) =", length(arr)
+    print "  arr[1] =", arr[1]
+    print "  arr[2] =", arr[2]
+    print "  arr[key] =", arr["key"]
+    print ""
+    
+    # Test 2: delarray on empty array
+    print "Test 2: delarray on empty array"
+    empty_arr[1] = 5
+    delete empty_arr[1]
+    print "  Before delarray: length =", length(empty_arr)
+    delarray empty_arr
+    print "  After delarray: length =", length(empty_arr)
+    print ""
+    
+    # Test 3: delarray on non-existent array (should not error)
+    print "Test 3: delarray on non-existent array"
+    delarray nonexistent
+    print "  delarray nonexistent succeeded - no error"
+    print ""
+    
+    # Test 4: delarray on multi-dimensional array
+    print "Test 4: delarray on multi-dimensional array"
+    matrix[1,1] = "a"
+    matrix[1,2] = "b"
+    matrix[2,1] = "c"
+    matrix[2,2] = "d"
+    print "  Before: length =", length(matrix)
+    delarray matrix
+    print "  After: length =", length(matrix)
+    print "  matrix[1,1] =", matrix[1,1]
+    print ""
+    
+    # Test 5: delarray preserves array variable (doesn't delete the variable)
+    print "Test 5: delarray preserves array variable"
+    test_arr[1] = 100
+    test_arr[2] = 200
+    delarray test_arr
+    # Array should still exist but be empty
+    test_arr[5] = 500
+    print "  After delarray, can still assign: test_arr[5] =", test_arr[5]
+    print "  length =", length(test_arr)
+}
+

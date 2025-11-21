@@ -1,0 +1,77 @@
+Test: Field deletion
+--------------------------------------
+Original record:
+  $0 = a b c d e
+  NF = 5
+  $1 = a
+  $2 = b
+  $3 = c
+  $4 = d
+  $5 = e
+
+Deleting $3:
+  After delete $3:
+    $0 = a b d e
+    NF = 4
+    $1 = a
+    $2 = b
+    $3 = d
+    $4 = e
+
+Deleting $1:
+  After delete $1:
+    $0 = b d e
+    NF = 3
+    $1 = b
+    $2 = d
+    $3 = e
+
+Deleting $3:
+  After delete last field:
+    $0 = b d
+    NF = 2
+    $1 = b
+    $2 = d
+
+Original record:
+  $0 = one two three
+  NF = 3
+  $1 = one
+  $2 = two
+  $3 = three
+
+Deleting $3:
+  After delete $3:
+    $0 = one two
+    NF = 2
+    $1 = one
+    $2 = two
+
+Deleting $1:
+  After delete $1:
+    $0 = two
+    NF = 1
+    $1 = two
+
+Deleting $1:
+  After delete last field:
+    $0 = 
+    NF = 0
+
+Original record:
+  $0 = x y
+  NF = 2
+  $1 = x
+  $2 = y
+
+Deleting $1:
+  After delete $1:
+    $0 = y
+    NF = 1
+    $1 = y
+
+Deleting $1:
+  After delete last field:
+    $0 = 
+    NF = 0
+

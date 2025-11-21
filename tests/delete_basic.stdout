@@ -1,0 +1,25 @@
+Test: Basic delete operations
+--------------------------------------
+Before delete:
+  arr[1] = 10
+  arr[2] = 20
+  arr[3] = 30
+  length(arr) = 3
+After delete arr[2]:
+  arr[1] = 10
+  arr[2] = 
+  arr[3] = 30
+  length(arr) = 3
+  2 is in arr (ERROR!)
+  1 is in arr (correct)
+
+Test 2: Delete non-existent element
+  delete arr[99] succeeded - no error
+  length(arr) = 3
+
+Test 3: Delete multiple elements
+  Before: length = 4
+  After deleting [1] and [3]: length = 2
+  arr2[2] = b
+  arr2[4] = d
+

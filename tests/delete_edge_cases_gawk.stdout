@@ -1,0 +1,31 @@
+Test: Edge cases for delete (GAWK compatible)
+--------------------------------------
+Test 1: Delete from empty array
+  After delete empty[1]: length = 0
+  After delete empty[2] (non-existent): length = 0
+
+Test 2: Delete array element with string key
+  Before: length = 3
+  After delete assoc[key2]: length = 2
+  assoc[key1] = value1
+  assoc[key2] = 
+  assoc[key3] = value3
+
+Test 3: Multiple deletes in sequence
+  Before: length = 5
+  After deleting [2], [4], [1]: length = 2
+  multi[3] = c
+  multi[5] = e
+
+Test 4: Delete non-existent element multiple times
+  Before: length = 1
+  After deleting [99] three times: length = 1
+  test[1] = 10
+
+Test 5: Delete and re-add
+  Before delete: length = 2
+  After delete [1]: length = 1
+  After re-adding [1]: length = 2
+  dynamic[1] = new_first
+  dynamic[2] = second
+

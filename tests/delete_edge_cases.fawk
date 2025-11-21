@@ -1,0 +1,52 @@
+# Test: FAWK-specific edge cases (delarray and field deletion)
+# Test FAWK extensions: delarray and delete $field
+
+BEGIN {
+    print "Test: FAWK-specific edge cases"
+    print "--------------------------------------"
+    
+    # Test 1: Delete $0 (should be ignored)
+    print "Test 1: Delete $0 (should be ignored)"
+    $0 = "test line"
+    print "  Before: $0 =", $0, ", NF =", NF
+    delete $0
+    print "  After delete $0: $0 =", $0, ", NF =", NF
+    print ""
+    
+    # Test 2: Delete negative field (should be ignored)
+    print "Test 2: Delete negative field"
+    $0 = "a b c"
+    print "  Before: NF =", NF
+    delete $(-1)
+    print "  After delete $(-1): NF =", NF
+    print ""
+    
+    # Test 3: Delete field beyond NF (should be ignored)
+    print "Test 3: Delete field beyond NF"
+    $0 = "a b c"
+    print "  Before: NF =", NF
+    delete $10
+    print "  After delete $10: NF =", NF
+    print ""
+    
+    # Test 4: Delete all fields one by one
+    print "Test 4: Delete all fields one by one"
+    $0 = "x y z"
+    print "  Initial: NF =", NF, ", $0 =", $0
+    delete $1
+    print "  After delete $1: NF =", NF, ", $0 =", $0
+    delete $1
+    print "  After delete $1 again: NF =", NF, ", $0 =", $0
+    delete $1
+    print "  After delete $1 third time: NF =", NF, ", $0 =", $0
+    print ""
+    
+    # Test 5: delarray on variable that's not an array
+    print "Test 5: delarray on non-array variable"
+    scalar = 42
+    print "  Before: scalar =", scalar
+    delarray scalar
+    print "  After delarray scalar: scalar =", scalar
+    print ""
+}
+

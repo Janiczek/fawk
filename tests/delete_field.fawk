@@ -1,0 +1,57 @@
+# Test: Field deletion (delete $3, etc.)
+# Test deleting fields from input records
+
+BEGIN {
+    print "Test: Field deletion"
+    print "--------------------------------------"
+}
+
+{
+    print "Original record:"
+    print "  $0 =", $0
+    print "  NF =", NF
+    for (i = 1; i <= NF; i++) {
+        print "  $" i " =", $i
+    }
+    print ""
+    
+    # Test 1: Delete middle field
+    if (NF >= 3) {
+        print "Deleting $3:"
+        delete $3
+        print "  After delete $3:"
+        print "    $0 =", $0
+        print "    NF =", NF
+        for (i = 1; i <= NF; i++) {
+            print "    $" i " =", $i
+        }
+        print ""
+    }
+    
+    # Test 2: Delete first field
+    if (NF >= 1) {
+        print "Deleting $1:"
+        delete $1
+        print "  After delete $1:"
+        print "    $0 =", $0
+        print "    NF =", NF
+        for (i = 1; i <= NF; i++) {
+            print "    $" i " =", $i
+        }
+        print ""
+    }
+    
+    # Test 3: Delete last field
+    if (NF >= 1) {
+        print "Deleting $" NF ":"
+        delete $(NF)
+        print "  After delete last field:"
+        print "    $0 =", $0
+        print "    NF =", NF
+        for (i = 1; i <= NF; i++) {
+            print "    $" i " =", $i
+        }
+        print ""
+    }
+}
+

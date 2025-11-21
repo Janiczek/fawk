@@ -74,7 +74,12 @@ class FawkArray:
             key = int(key)
         else:
             key = str(key)
-        return self.data.get(key, 0)
+        # GAWK behavior: deleted array elements return empty string, not 0
+        # Check if key exists in data (not just if it has a value)
+        if key in self.data:
+            return self.data[key]
+        else:
+            return ""  # GAWK returns empty string for non-existent/deleted elements
     
     def set(self, key, value):
         if isinstance(key, (int, float)):
@@ -259,6 +264,7 @@ class Interpreter:
             fawk_ast.BreakStmt: self.eval_BreakStmt,
             fawk_ast.ContinueStmt: self.eval_ContinueStmt,
             fawk_ast.DeleteStmt: self.eval_DeleteStmt,
+            fawk_ast.DelarrayStmt: self.eval_DelarrayStmt,
             fawk_ast.PrintStmt: self.eval_PrintStmt,
             fawk_ast.PrintfStmt: self.eval_PrintfStmt,
             fawk_ast.ExprStmt: self.eval_ExprStmt,
@@ -945,8 +951,8 @@ class Interpreter:
         raise ContinueException()
     
     def eval_DeleteStmt(self, node) -> None:
-        """Delete an array element or entire array"""
-        from fawk_ast import DeleteStmt, Identifier, ArrayAccess
+        """Delete an array element, field, or entire array/variable"""
+        from fawk_ast import DeleteStmt, Identifier, ArrayAccess, FieldAccess
         
         if isinstance(node.target, Identifier):
             # Delete entire array or variable
@@ -977,6 +983,71 @@ class Interpreter:
                 # Delete the key if it exists
                 if index in array.data:
                     del array.data[index]
+        
+        elif isinstance(node.target, FieldAccess):
+            # Delete field: delete $3
+            index = self.eval(node.target.index)
+            index = int(index)
+            
+            if index <= 0:
+                # Can't delete $0 or negative fields
+                return
+            
+            if index > self.NF:
+                # Field doesn't exist, nothing to delete
+                return
+            
+            # Delete the field by shifting subsequent fields left
+            # Remove field at index (1-based, convert to 0-based)
+            field_idx = index - 1
+            
+            # Shift all fields after this one to the left
+            for i in range(field_idx, len(self.fields) - 1):
+                self.fields[i] = self.fields[i + 1]
+            
+            # Remove the last field (now duplicate)
+            if len(self.fields) > 0:
+                self.fields.pop()
+            
+            # Update NF
+            self.NF = len(self.fields)
+            
+            # Reconstruct $0 by joining fields with OFS
+            if self.NF > 0:
+                self.current_line = self.OFS.join(self.fields)
+            else:
+                # All fields deleted, $0 is empty
+                self.current_line = ""
+    
+    def eval_DelarrayStmt(self, node) -> None:
+        """Delete all elements from an array"""
+        from fawk_ast import DelarrayStmt, Identifier
+        
+        if not isinstance(node.target, Identifier):
+            self.error("delarray target must be an array variable name")
+        
+        name = node.target.name
+        
+        # Get the array from the appropriate environment
+        array = None
+        if name in self.current_env.vars:
+            array = self.current_env.vars[name]
+        elif name in self.global_env.vars:
+            array = self.global_env.vars[name]
+        else:
+            # Array doesn't exist, nothing to do (GAWK behavior)
+            return
+        
+        # Check if it's actually an array
+        if isinstance(array, FawkArray):
+            # Delete all elements
+            array.data.clear()
+        else:
+            # Not an array, delete the variable entirely
+            if name in self.current_env.vars:
+                del self.current_env.vars[name]
+            elif name in self.global_env.vars:
+                del self.global_env.vars[name]
     
     def eval_PrintStmt(self, node: PrintStmt) -> None:
         # Prepare output string
@@ -1629,7 +1700,7 @@ class Interpreter:
     def eval_ArrayAccess(self, node: ArrayAccess) -> Any:
         array = self.eval(node.array)
         if not isinstance(array, FawkArray):
-            return 0  # AWK behavior
+            return ""  # AWK behavior: return empty string for non-array
         
         # Handle multi-dimensional array access
         if len(node.indices) == 1:
@@ -1638,6 +1709,17 @@ class Interpreter:
             # Multiple indices: concatenate with SUBSEP
             index_values = [self.value_to_string_convert(self.eval(idx)) for idx in node.indices]
             index = self.SUBSEP.join(index_values)
+        
+        # GAWK behavior: accessing an array element auto-creates it if it doesn't exist
+        # Convert index to the right type
+        if isinstance(index, (int, float)):
+            index = int(index)
+        else:
+            index = str(index)
+        
+        # If key doesn't exist, auto-create it with empty string (GAWK behavior)
+        if index not in array.data:
+            array.data[index] = ""
         
         return array.get(index)
     

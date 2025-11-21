@@ -1,0 +1,28 @@
+Test: delarray operations
+--------------------------------------
+Before delarray:
+  length(arr) = 4
+  arr[1] = 10
+  arr[2] = 20
+  arr[key] = value
+After delarray arr:
+  length(arr) = 0
+  arr[1] = 
+  arr[2] = 
+  arr[key] = 
+
+Test 2: delarray on empty array
+  Before delarray: length = 0
+  After delarray: length = 0
+
+Test 3: delarray on non-existent array
+  delarray nonexistent succeeded - no error
+
+Test 4: delarray on multi-dimensional array
+  Before: length = 4
+  After: length = 0
+  matrix[1,1] = 
+
+Test 5: delarray preserves array variable
+  After delarray, can still assign: test_arr[5] = 500
+  length = 1

@@ -40,6 +40,7 @@ class TokenType(Enum):
     ENDFILE = auto()
     GLOBAL = auto()
     DELETE = auto()
+    DELARRAY = auto()
     
     # Operators
     PLUS = auto()
@@ -127,6 +128,7 @@ class Lexer:
             'ENDFILE': TokenType.ENDFILE,
             'global': TokenType.GLOBAL,
             'delete': TokenType.DELETE,
+            'delarray': TokenType.DELARRAY,
         }
     
     def error(self, msg: str):

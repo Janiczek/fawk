@@ -174,6 +174,8 @@ class Parser:
             return ContinueStmt()
         elif token.type == TokenType.DELETE:
             return self.parse_delete_stmt()
+        elif token.type == TokenType.DELARRAY:
+            return self.parse_delarray_stmt()
         elif token.type == TokenType.PRINT:
             return self.parse_print_stmt()
         elif token.type == TokenType.LBRACE:
@@ -199,11 +201,21 @@ class Parser:
         from fawk_ast import DeleteStmt
         self.expect(TokenType.DELETE)
         
-        # Parse the target (identifier or array access)
+        # Parse the target (identifier, array access, or field access)
         target = self.parse_postfix()
         
         self.skip_statement_terminator()
         return DeleteStmt(target)
+    
+    def parse_delarray_stmt(self):
+        from fawk_ast import DelarrayStmt
+        self.expect(TokenType.DELARRAY)
+        
+        # Parse the target (must be an identifier - array variable name)
+        target = self.parse_postfix()
+        
+        self.skip_statement_terminator()
+        return DelarrayStmt(target)
     
     def parse_if_stmt(self) -> IfStmt:
         self.expect(TokenType.IF)
