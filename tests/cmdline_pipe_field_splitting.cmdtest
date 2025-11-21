@@ -1,0 +1,2 @@
+bash -c 'echo "one:two:three" | ./fawk "BEGIN { FS = \":\" } { print \$2 }"'
+

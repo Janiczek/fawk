@@ -1,0 +1,2 @@
+./fawk '{ print $0 }' FILE1
+

@@ -1,0 +1,2 @@
+./fawk 'BEGIN { print "line1" >> "APPEND"; print "line2" >> "APPEND"; print "line3" >> "APPEND" }'
+

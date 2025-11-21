@@ -1,0 +1,2 @@
+bash -c 'echo "banana" | ./fawk "{ print \$1 }" FILE1 - FILE3'
+

@@ -1,0 +1,2 @@
+./fawk 'BEGIN { print "line1" > "REDIRECT"; print "line2" > "REDIRECT" }'
+

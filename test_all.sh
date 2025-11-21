@@ -185,11 +185,141 @@ run_test() {
     rm -f "$actual_stdout" "$actual_stderr"
 }
 
-# Export function and variables for parallel execution
-export -f run_test
+# Command-line test runner
+run_cmdline_test() {
+    local cmdtest_file="$1"
+    local basename="$2"
+    local expected_stdout="tests/${basename}.stdout"
+    local expected_stderr="tests/${basename}.stderr"
+    local expected_exitcode="tests/${basename}.exitcode"
+    local result_file="$RESULTS_DIR/${basename}.result"
+    local test_dir=$(mktemp -d)
+    
+    # Read the command from .cmdtest file (trim trailing newline)
+    local test_cmd=$(cat "$cmdtest_file" | tr -d '\n' | sed 's/[[:space:]]*$//')
+    
+    # Create test files in this test's directory
+    echo "apple" > "$test_dir/file1.txt"
+    echo "banana" > "$test_dir/file2.txt"
+    echo "cherry" > "$test_dir/file3.txt"
+    echo "one:two:three" > "$test_dir/fields.txt"
+    echo '{ print $0 }' > "$test_dir/script.fawk"
+    echo 'BEGIN { FS = ":" } { print $2 }' > "$test_dir/fields_script.fawk"
+    
+    # Check if this is a redirect test (command writes to a file) BEFORE placeholder replacement
+    local is_redirect_test=false
+    local redirect_file=""
+    if [[ "$test_cmd" =~ \"REDIRECT\" ]]; then
+        is_redirect_test=true
+        redirect_file="$test_dir/redirect.txt"
+    elif [[ "$test_cmd" =~ \"APPEND\" ]]; then
+        is_redirect_test=true
+        redirect_file="$test_dir/append.txt"
+    elif [[ "$test_cmd" =~ \"PRINTF_REDIRECT\" ]]; then
+        is_redirect_test=true
+        redirect_file="$test_dir/printf_redirect.txt"
+    elif [[ "$test_cmd" =~ \"PRINTF_APPEND\" ]]; then
+        is_redirect_test=true
+        redirect_file="$test_dir/printf_append.txt"
+    fi
+    
+    # Replace placeholders in command with actual paths
+    # Replace longer patterns first to avoid partial matches
+    local cmd="${test_cmd//FIELDS_SCRIPT/$test_dir/fields_script.fawk}"
+    cmd="${cmd//PRINTF_REDIRECT/$test_dir/printf_redirect.txt}"
+    cmd="${cmd//PRINTF_APPEND/$test_dir/printf_append.txt}"
+    cmd="${cmd//FILE1/$test_dir/file1.txt}"
+    cmd="${cmd//FILE2/$test_dir/file2.txt}"
+    cmd="${cmd//FILE3/$test_dir/file3.txt}"
+    cmd="${cmd//FIELDS/$test_dir/fields.txt}"
+    cmd="${cmd//SCRIPT/$test_dir/script.fawk}"
+    cmd="${cmd//REDIRECT/$test_dir/redirect.txt}"
+    cmd="${cmd//APPEND/$test_dir/append.txt}"
+    
+    # Determine expected exit code (default 0 if file missing)
+    local expected_exit=0
+    if [ -f "$expected_exitcode" ]; then
+        expected_exit=$(cat "$expected_exitcode" | tr -d '[:space:]')
+        if [ -z "$expected_exit" ]; then
+            expected_exit=0
+        fi
+    fi
+    
+    # Run the command, capturing stdout and stderr separately
+    local actual_stdout=$(mktemp)
+    local actual_stderr=$(mktemp)
+    local exit_code=0
+    
+    if [ "$is_redirect_test" = "true" ]; then
+        # For redirect tests, run command and read from the output file
+        eval "$cmd" > /dev/null 2> "$actual_stderr" || exit_code=$?
+        if [ -f "$redirect_file" ]; then
+            cat "$redirect_file" > "$actual_stdout"
+        fi
+    else
+        # Normal test - capture stdout and stderr
+        eval "$cmd" > "$actual_stdout" 2> "$actual_stderr" || exit_code=$?
+    fi
+    
+    # Check exit code
+    local test_failed=false
+    local output=""
+    if [ $exit_code -ne $expected_exit ]; then
+        output="${output}${RED}✗ FAILED${NC}: $basename\n"
+        output="${output}  Exit code mismatch: expected $expected_exit, got $exit_code\n"
+        test_failed=true
+    fi
+    
+    # Check stdout (if expected file exists)
+    if [ -f "$expected_stdout" ]; then
+        if ! diff -q "$expected_stdout" "$actual_stdout" > /dev/null 2>&1; then
+            if [ "$test_failed" = "false" ]; then
+                output="${output}${RED}✗ FAILED${NC}: $basename\n"
+            fi
+            output="${output}  Stdout differs from expected:\n"
+            output="${output}$(diff -u "$expected_stdout" "$actual_stdout" | head -20)\n"
+            test_failed=true
+        fi
+    fi
+    
+    # Check stderr (always tested, empty if file missing)
+    if [ -f "$expected_stderr" ]; then
+        if ! diff -q "$expected_stderr" "$actual_stderr" > /dev/null 2>&1; then
+            if [ "$test_failed" = "false" ]; then
+                output="${output}${RED}✗ FAILED${NC}: $basename\n"
+            fi
+            output="${output}  Stderr differs from expected:\n"
+            output="${output}$(diff -u "$expected_stderr" "$actual_stderr" | head -20)\n"
+            test_failed=true
+        fi
+    else
+        # Check if stderr is non-empty when it should be empty
+        if [ -s "$actual_stderr" ]; then
+            if [ "$test_failed" = "false" ]; then
+                output="${output}${RED}✗ FAILED${NC}: $basename\n"
+            fi
+            output="${output}  Stderr differs from expected (expected empty):\n"
+            output="${output}$(head -20 "$actual_stderr")\n"
+            test_failed=true
+        fi
+    fi
+    
+    if [ "$test_failed" = "true" ]; then
+        echo -e "FAILED" > "$result_file"
+        echo -e "$output" >> "$result_file"
+    else
+        echo -e "PASSED" > "$result_file"
+    fi
+    
+    rm -f "$actual_stdout" "$actual_stderr"
+    rm -rf "$test_dir"
+}
+
+# Export functions and variables for parallel execution
+export -f run_test run_cmdline_test
 export RED GREEN YELLOW NC RESULTS_DIR
 
-# Discover all tests
+# Discover all file-based tests
 TEST_LIST=()
 for script in tests/*.fawk tests/*.awk; do
     if [ -f "$script" ]; then
@@ -205,7 +335,16 @@ for script in tests/*.fawk tests/*.awk; do
             fi
         done
         
-        TEST_LIST+=("$script|$basename|${input_files[*]}")
+        TEST_LIST+=("file|$script|$basename|${input_files[*]}")
+    fi
+done
+
+# Discover all command-line tests
+for cmdtest_file in tests/*.cmdtest; do
+    if [ -f "$cmdtest_file" ]; then
+        # Extract basename without extension
+        basename=$(basename "$cmdtest_file" .cmdtest)
+        TEST_LIST+=("cmdline|$cmdtest_file|$basename")
     fi
 done
 
@@ -223,11 +362,17 @@ for test_spec in "${TEST_LIST[@]}"; do
     done
     
     # Parse test specification
-    IFS='|' read -r script basename input_files_str <<< "$test_spec"
-    IFS=' ' read -r -a input_files <<< "$input_files_str"
+    IFS='|' read -r test_type rest <<< "$test_spec"
     
-    # Run test in background
-    run_test "$script" "$basename" "${input_files[@]}" &
+    if [ "$test_type" = "file" ]; then
+        IFS='|' read -r script basename input_files_str <<< "$rest"
+        IFS=' ' read -r -a input_files <<< "$input_files_str"
+        run_test "$script" "$basename" "${input_files[@]}" &
+    elif [ "$test_type" = "cmdline" ]; then
+        IFS='|' read -r cmdtest_file basename <<< "$rest"
+        run_cmdline_test "$cmdtest_file" "$basename" &
+    fi
+    
     RUNNING=$((RUNNING + 1))
 done
 
@@ -238,20 +383,40 @@ while [ $RUNNING -gt 0 ]; do
 done
 
 # Collect and display results
+E2E_PASSED=0
+E2E_FAILED=0
+CMDLINE_PASSED=0
+CMDLINE_FAILED=0
+
 for result_file in "$RESULTS_DIR"/*.result; do
     if [ -f "$result_file" ]; then
         status=$(head -1 "$result_file")
+        basename=$(basename "$result_file" .result)
+        
         if [ "$status" = "PASSED" ]; then
-            PASSED=$((PASSED + 1))
+            if [[ "$basename" =~ ^cmdline_ ]]; then
+                CMDLINE_PASSED=$((CMDLINE_PASSED + 1))
+            else
+                E2E_PASSED=$((E2E_PASSED + 1))
+            fi
         else
-            FAILED=$((FAILED + 1))
+            if [[ "$basename" =~ ^cmdline_ ]]; then
+                CMDLINE_FAILED=$((CMDLINE_FAILED + 1))
+            else
+                E2E_FAILED=$((E2E_FAILED + 1))
+            fi
             # Display failure output
             tail -n +2 "$result_file"
         fi
     fi
 done
 
-# Summary of .fawk tests
-echo "E2E tests: $PASSED passed, $FAILED failed"
+# Summary
+echo "E2E tests: $E2E_PASSED passed, $E2E_FAILED failed"
+echo "Command-line tests: $CMDLINE_PASSED passed, $CMDLINE_FAILED failed"
 
-./tests/test_command_line.sh
+if [ $E2E_FAILED -eq 0 ] && [ $CMDLINE_FAILED -eq 0 ]; then
+    exit 0
+else
+    exit 1
+fi

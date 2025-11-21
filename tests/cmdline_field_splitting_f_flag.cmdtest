@@ -1,0 +1,2 @@
+./fawk -f FIELDS_SCRIPT FIELDS
+

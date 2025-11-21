@@ -1,0 +1,2 @@
+./fawk 'BEGIN { print "Hello, World!" }'
+

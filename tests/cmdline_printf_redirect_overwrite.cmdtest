@@ -1,0 +1,2 @@
+./fawk 'BEGIN { printf("number: %d\n", 42) > "PRINTF_REDIRECT" }'
+

@@ -1,0 +1,2 @@
+bash -c 'echo "apple" | ./fawk "{ print \$1 }" -'
+

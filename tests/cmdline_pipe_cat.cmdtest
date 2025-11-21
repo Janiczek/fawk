@@ -1,0 +1,2 @@
+bash -c 'cat FILE1 | ./fawk "{ print \$1 }"'
+

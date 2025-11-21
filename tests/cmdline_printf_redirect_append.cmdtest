@@ -1,0 +1,2 @@
+./fawk 'BEGIN { printf("a=%d ", 1) >> "PRINTF_APPEND"; printf("b=%d\n", 2) >> "PRINTF_APPEND" }'
+
