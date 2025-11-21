@@ -9,3 +9,15 @@ Iterating over arr:
   key: 13 value: b
   key: 21 value: c
   key: 22 value: d
+Testing array literals with multi-dimensional keys:
+arr2[1,2] = a
+arr2[2,1] = c
+matrix2[row1,col1] = 10
+matrix2[row2,col2] = 40
+cube2[1,2,3] = xyz
+cube2[1,2,4] = xyz2
+Iterating over arr2:
+  key: 12 value: a
+  key: 13 value: b
+  key: 21 value: c
+  key: 22 value: d

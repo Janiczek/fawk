@@ -32,5 +32,27 @@ BEGIN {
     for (key in arr) {
         print "  key:", key, "value:", arr[key]
     }
+    
+    # Test array literals with multi-dimensional keys
+    print "Testing array literals with multi-dimensional keys:"
+    arr2 = [(1,2) => "a", (1,3) => "b", (2,1) => "c", (2,2) => "d"]
+    print "arr2[1,2] =", arr2[1,2]
+    print "arr2[2,1] =", arr2[2,1]
+    
+    # Test with string indices
+    matrix2 = [("row1","col1") => 10, ("row1","col2") => 20, ("row2","col1") => 30, ("row2","col2") => 40]
+    print "matrix2[row1,col1] =", matrix2["row1","col1"]
+    print "matrix2[row2,col2] =", matrix2["row2","col2"]
+    
+    # Test with 3 dimensions
+    cube2 = [(1,2,3) => "xyz", (1,2,4) => "xyz2"]
+    print "cube2[1,2,3] =", cube2[1,2,3]
+    print "cube2[1,2,4] =", cube2[1,2,4]
+    
+    # Test iteration over array literal
+    print "Iterating over arr2:"
+    for (key in arr2) {
+        print "  key:", key, "value:", arr2[key]
+    }
 }
 
