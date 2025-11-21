@@ -21,7 +21,9 @@ run_test() {
     local basename="$2"
     shift 2
     local input_files=("$@")
-    local expected="tests/${basename}.expected"
+    local expected_stdout="tests/${basename}.stdout"
+    local expected_stderr="tests/${basename}.stderr"
+    local expected_exitcode="tests/${basename}.exitcode"
     local env_file="tests/${basename}.env"
     local check_gawk="false"
     
@@ -32,8 +34,9 @@ run_test() {
     
     TOTAL=$((TOTAL + 1))
     
-    # Run the test with fawk
-    local actual_output=$(mktemp)
+    # Run the test with fawk, capturing stdout and stderr separately
+    local actual_stdout=$(mktemp)
+    local actual_stderr=$(mktemp)
     local exit_code=0
     
     # Run in a subshell to isolate environment variables
@@ -52,87 +55,114 @@ run_test() {
         else
             ./fawk "$script"
         fi
-    ) > "$actual_output" 2>&1 || exit_code=$?
+    ) > "$actual_stdout" 2> "$actual_stderr" || exit_code=$?
     
-    # Check results
-    if [ -f "$expected" ]; then
-        # Expected file exists, compare output
-        if diff -q "$expected" "$actual_output" > /dev/null 2>&1; then
-            PASSED=$((PASSED + 1))
-        else
+    # Determine expected exit code (default 0 if file missing)
+    local expected_exit=0
+    if [ -f "$expected_exitcode" ]; then
+        expected_exit=$(cat "$expected_exitcode" | tr -d '[:space:]')
+        # Handle empty file as 0
+        if [ -z "$expected_exit" ]; then
+            expected_exit=0
+        fi
+    fi
+    
+    # Check exit code (always tested)
+    local test_failed=false
+    if [ $exit_code -ne $expected_exit ]; then
+        echo -e "${RED}✗ FAILED${NC}: $basename"
+        echo "  Exit code mismatch: expected $expected_exit, got $exit_code"
+        test_failed=true
+    fi
+    
+    # Check stdout (if expected file exists)
+    if [ -f "$expected_stdout" ]; then
+        if ! diff -q "$expected_stdout" "$actual_stdout" > /dev/null 2>&1; then
+            if [ "$test_failed" = "false" ]; then
+                echo -e "${RED}✗ FAILED${NC}: $basename"
+            fi
+            echo "  Stdout differs from expected:"
+            diff -u "$expected_stdout" "$actual_stdout" | head -20
+            test_failed=true
+        fi
+    fi
+    
+    # Check stderr (always tested, empty if file missing)
+    local expected_stderr_file=$(mktemp)
+    if [ -f "$expected_stderr" ]; then
+        cp "$expected_stderr" "$expected_stderr_file"
+    else
+        touch "$expected_stderr_file"
+    fi
+    
+    if ! diff -q "$expected_stderr_file" "$actual_stderr" > /dev/null 2>&1; then
+        if [ "$test_failed" = "false" ]; then
             echo -e "${RED}✗ FAILED${NC}: $basename"
-            echo "  Expected output differs from actual output:"
-            diff -u "$expected" "$actual_output" | head -20
-            echo ""
-            FAILED=$((FAILED + 1))
-            rm -f "$actual_output"
+        fi
+        echo "  Stderr differs from expected:"
+        diff -u "$expected_stderr_file" "$actual_stderr" | head -20
+        test_failed=true
+    fi
+    rm -f "$expected_stderr_file"
+    
+    if [ "$test_failed" = "true" ]; then
+        FAILED=$((FAILED + 1))
+        rm -f "$actual_stdout" "$actual_stderr"
+        return
+    fi
+    
+    # Check gawk compatibility if requested (only for tests with expected stdout files)
+    if [ "$check_gawk" = "true" ] && [ -f "$expected_stdout" ]; then
+        if ! command -v gawk &> /dev/null; then
+            echo -e "${YELLOW}⚠ WARNING${NC}: $basename - gawk not found, skipping compatibility check"
+            rm -f "$actual_stdout" "$actual_stderr"
+            PASSED=$((PASSED + 1))
             return
         fi
         
-        # Check gawk compatibility if requested (only for tests with expected files)
-        if [ "$check_gawk" = "true" ]; then
-            if ! command -v gawk &> /dev/null; then
-                echo -e "${YELLOW}⚠ WARNING${NC}: $basename - gawk not found, skipping compatibility check"
-                rm -f "$actual_output"
-                return
-            fi
-            
-            # Check if script uses PREC variable (requires gawk -M)
-            local gawk_flags=""
-            if grep -q "PREC" "$script" 2>/dev/null; then
-                gawk_flags="-M"
-            fi
-            
-            local gawk_output=$(mktemp)
-            local gawk_exit_code=0
-            
-            # Run with gawk
-            (
-                # Load environment variables if .env file exists
-                if [ -n "$env_file" ] && [ -f "$env_file" ]; then
-                    while IFS='=' read -r key value || [ -n "$key" ]; do
-                        # Skip empty lines and comments
-                        [[ -z "$key" || "$key" =~ ^[[:space:]]*# ]] && continue
-                        export "$key=$value"
-                    done < "$env_file"
-                fi
-                
-                if [ ${#input_files[@]} -gt 0 ]; then
-                    gawk $gawk_flags -f "$script" "${input_files[@]}"
-                else
-                    gawk $gawk_flags -f "$script"
-                fi
-            ) > "$gawk_output" 2>&1 || gawk_exit_code=$?
+        # Check if script uses PREC variable (requires gawk -M)
+        local gawk_flags=""
+        if grep -q "PREC" "$script" 2>/dev/null; then
+            gawk_flags="-M"
+        fi
         
-        # Compare fawk and gawk outputs
-        if ! diff -q "$actual_output" "$gawk_output" > /dev/null 2>&1; then
+        local gawk_stdout=$(mktemp)
+        local gawk_stderr=$(mktemp)
+        local gawk_exit_code=0
+        
+        # Run with gawk
+        (
+            # Load environment variables if .env file exists
+            if [ -n "$env_file" ] && [ -f "$env_file" ]; then
+                while IFS='=' read -r key value || [ -n "$key" ]; do
+                    # Skip empty lines and comments
+                    [[ -z "$key" || "$key" =~ ^[[:space:]]*# ]] && continue
+                    export "$key=$value"
+                done < "$env_file"
+            fi
+            
+            if [ ${#input_files[@]} -gt 0 ]; then
+                gawk $gawk_flags -f "$script" "${input_files[@]}"
+            else
+                gawk $gawk_flags -f "$script"
+            fi
+        ) > "$gawk_stdout" 2> "$gawk_stderr" || gawk_exit_code=$?
+    
+        # Compare fawk and gawk stdout outputs
+        if ! diff -q "$actual_stdout" "$gawk_stdout" > /dev/null 2>&1; then
             echo -e "${RED}✗ GAWK COMPATIBILITY FAILED${NC}: $basename"
-            echo "  FAWK and GAWK outputs differ:"
-            diff -u "$actual_output" "$gawk_output" | head -20
+            echo "  FAWK and GAWK stdout outputs differ:"
+            diff -u "$actual_stdout" "$gawk_stdout" | head -20
             echo ""
             FAILED=$((FAILED + 1))
             PASSED=$((PASSED - 1))
         fi
         
-            rm -f "$gawk_output"
-        fi
-    else
-        # No expected file, just check exit code
-        if [ $exit_code -eq 0 ]; then
-            PASSED=$((PASSED + 1))
-        else
-            echo -e "${RED}✗ FAILED${NC}: $basename"
-            echo "  Script exited with code $exit_code"
-            echo "  Output:"
-            cat "$actual_output" | head -20
-            echo ""
-            FAILED=$((FAILED + 1))
-            rm -f "$actual_output"
-            return
-        fi
+        rm -f "$gawk_stdout" "$gawk_stderr"
     fi
     
-    rm -f "$actual_output"
+    PASSED=$((PASSED + 1))
+    rm -f "$actual_stdout" "$actual_stderr"
 }
 
 # Discover and run all tests

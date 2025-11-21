@@ -1,0 +1,11 @@
+# Test: split() function with old 3-argument style (should fail)
+# This tests that the old AWK-style split(string, array, separator) is rejected
+
+BEGIN {
+    text = "apple,banana,cherry"
+    # Old AWK style: split(string, array, separator)
+    # This should fail with an error
+    split(text, arr, ",")
+    print "This should not be printed"
+}
+

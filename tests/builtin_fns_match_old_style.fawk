@@ -1,0 +1,11 @@
+# Test: match() function with old 3-argument style (should fail)
+# This tests that the old AWK-style match(string, regexp, array) is rejected
+
+BEGIN {
+    text = "The price is $42.50"
+    # Old AWK style: match(string, regexp, array)
+    # This should fail with an error
+    match(text, "\$([0-9]+)\.([0-9]+)", arr)
+    print "This should not be printed"
+}
+

@@ -1,0 +1,4 @@
+Runtime error: Runtime error: split() in fawk takes 2 arguments (separator, text), not 3.
+Old AWK style: split(string, array, separator)
+fawk style: result = split(separator, text)
+The result is an array with the split parts.
