@@ -238,6 +238,77 @@ class Interpreter:
         
         # Register built-in functions
         self.register_builtins()
+        
+        # Build eval dispatch dictionary for fast method lookup (optimization)
+        # Import AST classes for dispatch table
+        import fawk_ast
+        self._eval_dispatch = {
+            fawk_ast.Program: self.eval_Program,
+            fawk_ast.Block: self.eval_Block,
+            fawk_ast.GlobalDecl: self.eval_GlobalDecl,
+            fawk_ast.IfStmt: self.eval_IfStmt,
+            fawk_ast.ForInStmt: self.eval_ForInStmt,
+            fawk_ast.ForStmt: self.eval_ForStmt,
+            fawk_ast.WhileStmt: self.eval_WhileStmt,
+            fawk_ast.DoWhileStmt: self.eval_DoWhileStmt,
+            fawk_ast.SwitchStmt: self.eval_SwitchStmt,
+            fawk_ast.ReturnStmt: self.eval_ReturnStmt,
+            fawk_ast.ExitStmt: self.eval_ExitStmt,
+            fawk_ast.NextStmt: self.eval_NextStmt,
+            fawk_ast.NextFileStmt: self.eval_NextFileStmt,
+            fawk_ast.BreakStmt: self.eval_BreakStmt,
+            fawk_ast.ContinueStmt: self.eval_ContinueStmt,
+            fawk_ast.DeleteStmt: self.eval_DeleteStmt,
+            fawk_ast.PrintStmt: self.eval_PrintStmt,
+            fawk_ast.PrintfStmt: self.eval_PrintfStmt,
+            fawk_ast.ExprStmt: self.eval_ExprStmt,
+            fawk_ast.BinaryOp: self.eval_BinaryOp,
+            fawk_ast.UnaryOp: self.eval_UnaryOp,
+            fawk_ast.PrefixIncrement: self.eval_PrefixIncrement,
+            fawk_ast.PrefixDecrement: self.eval_PrefixDecrement,
+            fawk_ast.PostfixIncrement: self.eval_PostfixIncrement,
+            fawk_ast.PostfixDecrement: self.eval_PostfixDecrement,
+            fawk_ast.Assignment: self.eval_Assignment,
+            fawk_ast.ArrayLiteral: self.eval_ArrayLiteral,
+            fawk_ast.AssocArray: self.eval_AssocArray,
+            fawk_ast.ArrayAccess: self.eval_ArrayAccess,
+            fawk_ast.FunctionCall: self.eval_FunctionCall,
+            fawk_ast.Lambda: self.eval_Lambda,
+            fawk_ast.Pipeline: self.eval_Pipeline,
+            fawk_ast.Identifier: self.eval_Identifier,
+            fawk_ast.Number: self.eval_Number,
+            fawk_ast.String: self.eval_String,
+            fawk_ast.Regex: self.eval_Regex,
+            fawk_ast.FieldAccess: self.eval_FieldAccess,
+            fawk_ast.InOp: self.eval_InOp,
+            fawk_ast.CommaExpr: self.eval_CommaExpr,
+            fawk_ast.PipedGetline: self.eval_PipedGetline,
+        }
+        
+        # Cache for compiled regex patterns (optimization)
+        self._regex_cache = {}
+        
+        # Cache for built-in variable lookups (optimization)
+        self._builtin_vars = {
+            'ARGC': lambda: self.ARGC,
+            'ARGV': lambda: self.ARGV,
+            'CONVFMT': lambda: self.CONVFMT,
+            'ENVIRON': lambda: self.ENVIRON,
+            'FILENAME': lambda: self.FILENAME,
+            'FNR': lambda: self.FNR,
+            'FS': lambda: self.FS,
+            'NF': lambda: self.NF,
+            'NR': lambda: self.NR,
+            'OFMT': lambda: self.OFMT,
+            'OFS': lambda: self.OFS,
+            'ORS': lambda: self.ORS,
+            'PREC': lambda: self.PREC,
+            'RLENGTH': lambda: self.RLENGTH,
+            'RS': lambda: self.RS,
+            'RSTART': lambda: self.RSTART,
+            'RT': lambda: self.RT,
+            'SUBSEP': lambda: self.SUBSEP,
+        }
     
     def register_builtins(self):
         """Register all built-in functions"""
@@ -313,7 +384,14 @@ class Interpreter:
     def builtin_match(self, pattern, text):
         """Match a regex pattern and return array with full match and groups"""
         text_str = str(text)
-        match = re.search(pattern, text_str)
+        # Cache compiled regex patterns for better performance
+        if pattern not in self._regex_cache:
+            try:
+                self._regex_cache[pattern] = re.compile(pattern)
+            except re.error as e:
+                self.error(f"Invalid regex pattern: {e}")
+        compiled_pattern = self._regex_cache[pattern]
+        match = compiled_pattern.search(text_str)
         
         result = FawkArray()
         if match:
@@ -602,9 +680,17 @@ class Interpreter:
         pattern_str = self.value_to_string(pattern)
         replacement_str = self.value_to_string(replacement)
         
+        # Cache compiled regex patterns
+        if pattern_str not in self._regex_cache:
+            try:
+                self._regex_cache[pattern_str] = re.compile(pattern_str)
+            except re.error as e:
+                self.error(f"Invalid regex pattern: {e}")
+        compiled_pattern = self._regex_cache[pattern_str]
+        
         # Count number of substitutions
-        count = len(re.findall(pattern_str, target_str))
-        result = re.sub(pattern_str, replacement_str, target_str)
+        count = len(compiled_pattern.findall(target_str))
+        result = compiled_pattern.sub(replacement_str, target_str)
         
         # Update $0 if no target was specified
         if target is None:
@@ -623,8 +709,16 @@ class Interpreter:
         pattern_str = self.value_to_string(pattern)
         replacement_str = self.value_to_string(replacement)
         
+        # Cache compiled regex patterns
+        if pattern_str not in self._regex_cache:
+            try:
+                self._regex_cache[pattern_str] = re.compile(pattern_str)
+            except re.error as e:
+                self.error(f"Invalid regex pattern: {e}")
+        compiled_pattern = self._regex_cache[pattern_str]
+        
         # Replace only first occurrence
-        result, count = re.subn(pattern_str, replacement_str, target_str, count=1)
+        result, count = compiled_pattern.subn(replacement_str, target_str, count=1)
         
         # Update $0 if no target was specified
         if target is None:
@@ -679,26 +773,36 @@ class Interpreter:
     
     def to_number(self, value):
         """Convert value to number (like AWK does)"""
-        if isinstance(value, (int, float)):
+        # Fast path for common types
+        if isinstance(value, int):
             return value
-        elif isinstance(value, str):
+        if isinstance(value, float):
+            return value
+        if isinstance(value, str):
             # Try to parse as number
+            # Optimize: check if string looks numeric before parsing
+            if not value:
+                return 0
             try:
-                if '.' in value:
-                    return float(value)
-                else:
+                # Fast path for integers (most common case)
+                if value.isdigit() or (value[0] == '-' and value[1:].isdigit()):
                     return int(value)
+                # Check for float
+                if '.' in value or 'e' in value.lower():
+                    return float(value)
+                return int(value)
             except (ValueError, AttributeError):
                 return 0  # AWK default for non-numeric strings
         return 0
     
     def eval(self, node: ASTNode) -> Any:
-        method_name = f'eval_{node.__class__.__name__}'
-        method = getattr(self, method_name, None)
+        # Use dispatch dictionary instead of getattr for better performance
+        node_type = type(node)
+        method = self._eval_dispatch.get(node_type)
         if method:
             return method(node)
         else:
-            self.error(f"No eval method for {node.__class__.__name__}")
+            self.error(f"No eval method for {node_type.__name__}")
     
     def eval_Program(self, node: Program) -> None:
         # Program evaluation is handled by run() method
@@ -1121,16 +1225,25 @@ class Interpreter:
                 flags = 0
                 if 'i' in node.right.flags:
                     flags |= re.IGNORECASE
-                try:
-                    return bool(re.search(pattern, text, flags))
-                except re.error as e:
-                    self.error(f"Invalid regex pattern: {e}")
+                # Cache compiled regex patterns
+                cache_key = (pattern, flags)
+                if cache_key not in self._regex_cache:
+                    try:
+                        self._regex_cache[cache_key] = re.compile(pattern, flags)
+                    except re.error as e:
+                        self.error(f"Invalid regex pattern: {e}")
+                compiled_pattern = self._regex_cache[cache_key]
+                return bool(compiled_pattern.search(text))
             else:
                 pattern = self.value_to_string(right)
-                try:
-                    return bool(re.search(pattern, text))
-                except re.error as e:
-                    self.error(f"Invalid regex pattern: {e}")
+                # Cache compiled regex patterns
+                if pattern not in self._regex_cache:
+                    try:
+                        self._regex_cache[pattern] = re.compile(pattern)
+                    except re.error as e:
+                        self.error(f"Invalid regex pattern: {e}")
+                compiled_pattern = self._regex_cache[pattern]
+                return bool(compiled_pattern.search(text))
         elif op == '!~':
             # String !~ pattern: check if string does not match pattern
             text = self.value_to_string(left)
@@ -1140,16 +1253,25 @@ class Interpreter:
                 flags = 0
                 if 'i' in node.right.flags:
                     flags |= re.IGNORECASE
-                try:
-                    return not bool(re.search(pattern, text, flags))
-                except re.error as e:
-                    self.error(f"Invalid regex pattern: {e}")
+                # Cache compiled regex patterns
+                cache_key = (pattern, flags)
+                if cache_key not in self._regex_cache:
+                    try:
+                        self._regex_cache[cache_key] = re.compile(pattern, flags)
+                    except re.error as e:
+                        self.error(f"Invalid regex pattern: {e}")
+                compiled_pattern = self._regex_cache[cache_key]
+                return not bool(compiled_pattern.search(text))
             else:
                 pattern = self.value_to_string(right)
-                try:
-                    return not bool(re.search(pattern, text))
-                except re.error as e:
-                    self.error(f"Invalid regex pattern: {e}")
+                # Cache compiled regex patterns
+                if pattern not in self._regex_cache:
+                    try:
+                        self._regex_cache[pattern] = re.compile(pattern)
+                    except re.error as e:
+                        self.error(f"Invalid regex pattern: {e}")
+                compiled_pattern = self._regex_cache[pattern]
+                return not bool(compiled_pattern.search(text))
         else:
             self.error(f"Unknown binary operator: {op}")
     
@@ -1538,43 +1660,9 @@ class Interpreter:
     def eval_Identifier(self, node: Identifier) -> Any:
         name = node.name
         
-        # Check for built-in variables
-        if name == 'ARGC':
-            return self.ARGC
-        elif name == 'ARGV':
-            return self.ARGV
-        elif name == 'CONVFMT':
-            return self.CONVFMT
-        elif name == 'ENVIRON':
-            return self.ENVIRON
-        elif name == 'FILENAME':
-            return self.FILENAME
-        elif name == 'FNR':
-            return self.FNR
-        elif name == 'FS':
-            return self.FS
-        elif name == 'NF':
-            return self.NF
-        elif name == 'NR':
-            return self.NR
-        elif name == 'OFMT':
-            return self.OFMT
-        elif name == 'OFS':
-            return self.OFS
-        elif name == 'ORS':
-            return self.ORS
-        elif name == 'PREC':
-            return self.PREC
-        elif name == 'RLENGTH':
-            return self.RLENGTH
-        elif name == 'RS':
-            return self.RS
-        elif name == 'RSTART':
-            return self.RSTART
-        elif name == 'RT':
-            return self.RT
-        elif name == 'SUBSEP':
-            return self.SUBSEP
+        # Check for built-in variables using cached lookup (optimization)
+        if name in self._builtin_vars:
+            return self._builtin_vars[name]()
         
         # Check for functions
         if name in self.functions:
@@ -1587,7 +1675,7 @@ class Interpreter:
                 # Explicitly global variable
                 return self.global_env.get(name)
             elif name in self.current_env.vars:
-                # Local variable
+                # Local variable - fast path, no need to call get()
                 return self.current_env.vars[name]
             else:
                 # Search up the closure chain for captured variables
@@ -1619,10 +1707,15 @@ class Interpreter:
         flags = 0
         if 'i' in node.flags:
             flags |= re.IGNORECASE
-        try:
-            return bool(re.search(node.pattern, line, flags))
-        except re.error as e:
-            self.error(f"Invalid regex pattern: {e}")
+        # Cache compiled regex patterns
+        cache_key = (node.pattern, flags)
+        if cache_key not in self._regex_cache:
+            try:
+                self._regex_cache[cache_key] = re.compile(node.pattern, flags)
+            except re.error as e:
+                self.error(f"Invalid regex pattern: {e}")
+        compiled_pattern = self._regex_cache[cache_key]
+        return bool(compiled_pattern.search(line))
     
     def eval_FieldAccess(self, node: FieldAccess) -> Any:
         index = self.eval(node.index)

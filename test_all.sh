@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # FAWK Test Suite
 # Runs all tests and validates output against expected results
 
@@ -412,7 +412,7 @@ for result_file in "$RESULTS_DIR"/*.result; do
 done
 
 # Summary
-echo "E2E tests: $E2E_PASSED passed, $E2E_FAILED failed"
+echo "E2E tests:          $E2E_PASSED passed, $E2E_FAILED failed"
 echo "Command-line tests: $CMDLINE_PASSED passed, $CMDLINE_FAILED failed"
 
 if [ $E2E_FAILED -eq 0 ] && [ $CMDLINE_FAILED -eq 0 ]; then
