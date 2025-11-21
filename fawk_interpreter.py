@@ -198,6 +198,9 @@ class Interpreter:
         # File handles for print redirection
         self.redirect_files = {}  # filename -> file handle
         
+        # Command pipes for getline
+        self.open_pipes = {}  # command string -> subprocess.Popen object
+        
         # Built-in functions - single source of truth
         self.builtin_functions = {
             'length': self.builtin_length,
@@ -225,6 +228,7 @@ class Interpreter:
             'toupper': self.builtin_toupper,
             'gsub': self.builtin_gsub,
             'sub': self.builtin_sub,
+            'close': self.builtin_close,
         }
         
         # Random number generator seed
@@ -628,6 +632,33 @@ class Interpreter:
             self.NF = len(self.fields)
         
         return count
+    
+    def builtin_close(self, filename_or_cmd):
+        """Close a file or command pipe"""
+        key = self.value_to_string(filename_or_cmd)
+        
+        # Check if it's a command pipe
+        if key in self.open_pipes:
+            pipe = self.open_pipes[key]
+            try:
+                pipe.stdout.close()
+                pipe.wait()
+            except:
+                pass
+            del self.open_pipes[key]
+            return 0
+        
+        # Check if it's a redirect file
+        if key in self.redirect_files:
+            try:
+                self.redirect_files[key].close()
+            except:
+                pass
+            del self.redirect_files[key]
+            return 0
+        
+        # File/command not open
+        return -1
     
     def error(self, msg: str):
         raise RuntimeError(f"Runtime error: {msg}")
@@ -1423,6 +1454,57 @@ class Interpreter:
         values = [self.value_to_string_convert(self.eval(expr)) for expr in node.exprs]
         return self.SUBSEP.join(values)
     
+    def eval_PipedGetline(self, node) -> int:
+        """Evaluate piped getline: cmd | getline var"""
+        from fawk_ast import PipedGetline
+        import subprocess
+        
+        # Get the command string
+        cmd = self.value_to_string(self.eval(node.command))
+        
+        # Open pipe if not already open
+        if cmd not in self.open_pipes:
+            try:
+                pipe = subprocess.Popen(
+                    cmd,
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                self.open_pipes[cmd] = pipe
+            except Exception as e:
+                # Error opening command
+                return -1
+        
+        pipe = self.open_pipes[cmd]
+        
+        # Read one line from the pipe
+        try:
+            line = pipe.stdout.readline()
+            if line:
+                # Remove trailing newline if present
+                if line.endswith('\n'):
+                    line = line[:-1]
+                
+                # Store in target variable or $0
+                if node.target:
+                    # Store in variable
+                    self.current_env.set_local(node.target, line)
+                else:
+                    # Store in $0 and update fields
+                    self.current_line = line
+                    self.fields = self.split_fields(line)
+                    self.NF = len(self.fields)
+                
+                return 1  # Success
+            else:
+                # EOF
+                return 0
+        except Exception as e:
+            # Error reading
+            return -1
+    
     def split_into_records(self, input_text: str) -> List[tuple]:
         """
         Split input text into records based on RS value.
@@ -1715,6 +1797,15 @@ class Interpreter:
             except:
                 pass
         self.redirect_files.clear()
+        
+        # Close all open pipes
+        for pipe in self.open_pipes.values():
+            try:
+                pipe.stdout.close()
+                pipe.wait()
+            except:
+                pass
+        self.open_pipes.clear()
         
         # Exit with saved code if exit was called
         if exit_code is not None:

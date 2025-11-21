@@ -485,7 +485,28 @@ class Parser:
             self.advance()
     
     def parse_expression(self) -> ASTNode:
-        return self.parse_pipeline()
+        return self.parse_piped_getline()
+    
+    def parse_piped_getline(self) -> ASTNode:
+        """Parse piped getline: cmd | getline var"""
+        left = self.parse_pipeline()
+        
+        # Check for | getline
+        if self.current().type == TokenType.PIPE:
+            self.advance()
+            if self.current().type == TokenType.GETLINE:
+                self.advance()
+                # Get target variable (optional)
+                target = None
+                if self.current().type == TokenType.IDENTIFIER:
+                    target = self.current().value
+                    self.advance()
+                from fawk_ast import PipedGetline
+                return PipedGetline(left, target)
+            else:
+                self.error("Expected 'getline' after '|'")
+        
+        return left
     
     def parse_pipeline(self) -> ASTNode:
         left = self.parse_assignment()

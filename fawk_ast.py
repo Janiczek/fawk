@@ -235,3 +235,10 @@ class InOp(ASTNode):
 class CommaExpr(ASTNode):
     """Comma expression - evaluates all expressions and returns concatenated key"""
     exprs: List[ASTNode]
+
+
+@dataclass
+class PipedGetline(ASTNode):
+    """Piped getline: cmd | getline var"""
+    command: ASTNode  # Expression that evaluates to command string
+    target: Optional[str]  # Variable name to store result, None for $0

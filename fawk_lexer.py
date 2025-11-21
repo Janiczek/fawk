@@ -33,6 +33,7 @@ class TokenType(Enum):
     NEXTFILE = auto()
     PRINT = auto()
     PRINTF = auto()
+    GETLINE = auto()
     BEGIN = auto()
     END = auto()
     BEGINFILE = auto()
@@ -61,6 +62,7 @@ class TokenType(Enum):
     NOT_MATCH = auto()    # !~
     ARROW = auto()        # =>
     PIPELINE = auto()     # |>
+    PIPE = auto()         # | (for getline redirection)
     ASSOC_ARROW = auto()  # => (for associative arrays)
     REDIRECT_APPEND = auto()  # >> (for print redirection)
     
@@ -116,6 +118,7 @@ class Lexer:
             'next': TokenType.NEXT,
             'nextfile': TokenType.NEXTFILE,
             'print': TokenType.PRINT,
+            'getline': TokenType.GETLINE,
             'BEGIN': TokenType.BEGIN,
             'END': TokenType.END,
             'BEGINFILE': TokenType.BEGINFILE,
@@ -324,6 +327,12 @@ class Lexer:
                 self.tokens.append(Token(TokenType.PIPELINE, '|>', start_line, start_col))
                 continue
             
+            if self.peek() == '|' and self.peek(1) == '|':
+                self.advance()
+                self.advance()
+                self.tokens.append(Token(TokenType.OR, '||', start_line, start_col))
+                continue
+            
             if self.peek() == '=' and self.peek(1) == '=':
                 self.advance()
                 self.advance()
@@ -366,12 +375,6 @@ class Lexer:
                 self.tokens.append(Token(TokenType.AND, '&&', start_line, start_col))
                 continue
             
-            if self.peek() == '|' and self.peek(1) == '|':
-                self.advance()
-                self.advance()
-                self.tokens.append(Token(TokenType.OR, '||', start_line, start_col))
-                continue
-            
             # Single-character tokens
             char = self.peek()
             single_char_tokens = {
@@ -386,6 +389,7 @@ class Lexer:
                 '>': TokenType.GT,
                 '!': TokenType.NOT,
                 '~': TokenType.MATCH,
+                '|': TokenType.PIPE,
                 '(': TokenType.LPAREN,
                 ')': TokenType.RPAREN,
                 '{': TokenType.LBRACE,
