@@ -2,12 +2,34 @@
 
 A functional AWK dialect with first-class functions, arrays and lexical scope.
 
-All AWK features are not supported, but should be enough of them to be dangerous.
+Not all AWK features are supported, but should be enough of them to be dangerous.
+
+```awk
+function make_adder(k) {
+    return (x) => { return x + k }  # lambdas
+}
+
+function make_range(n) {
+    for (i = 1; i <= n; i++) {  # locals don't leak!
+        arr[length(arr)] = i
+    }
+    return arr  # returning arrays!
+}
+
+END {
+    src = make_range(3)
+    add5 = make_adder(5)
+    result = src |> map(add5)  # pipelines, fns as values, map/filter/reduce
+    print(result)  # printing arrays
+}
+
+# --> [6, 7, 8]
+```
 
 > [!WARNING]  
 > I am ~ashamed~ surprised to say the implementation of this interpreter is 100%
-> written by a LLM. I've only steered it via the test suite, and it is passing
-> it (alongside GAWK compatibility, where tested).
+> written by a LLM. I've only steered it via the test suite, and it _is_ passing
+> it (alongside compatibility with GAWK, where tested).
 >
 > Unfortunately this means that I am not familiar with the codebase. Do not rely
 > on this in production. I'm only planning on using this on Advent of Code myself.
@@ -169,33 +191,4 @@ END {
     print "Average:", total / count
     print "Maximum:", max_value
 }
-```
-
-## Complete Example
-
-This example demonstrates higher-order functions, arrays returned from functions, lexical scope, and generating ranges.
-
-```awk
-function make_adder(k) {
-    return (x) => { return x + k }  # lambdas
-}
-
-function make_range(n) {
-    for (i = 1; i <= n; i++) {  # locals don't leak!
-        arr[length(arr)] = i
-    }
-    return arr  # returning arrays!
-}
-
-END {
-    src = make_range(3)
-    add5 = make_adder(5)
-    result = src |> map(add5)  # pipelines, fns as values, map/filter/reduce
-    print(result)  # printing arrays
-}
-```
-
-**Output:**
-```
-[6, 7, 8]
 ```
