@@ -2,7 +2,17 @@
 
 A functional AWK dialect with first-class functions, arrays and lexical scope.
 
-## What's New
+All AWK features are not supported, but should be enough of them to be dangerous.
+
+> [!WARNING]  
+> I am ~ashamed~ surprised to say the implementation of this interpreter is 100%
+> written by a LLM. I've only steered it via the test suite, and it is passing
+> it (alongside GAWK compatibility, where tested).
+>
+> Unfortunately this means that I am not familiar with the codebase. Do not rely
+> on this in production. I'm only planning on using this on Advent of Code myself.
+
+## What's Different
 
 1. [Arrays as First-Class Values](#1-arrays-as-first-class-values) - create, pass, and return arrays
 2. [Functions as First-Class Values](#2-functions-as-first-class-values) - pass functions as arguments
@@ -11,8 +21,6 @@ A functional AWK dialect with first-class functions, arrays and lexical scope.
 5. [Higher-Order Functions](#5-higher-order-functions) - map, filter, and custom combinators
 6. [Lexical Scope](#6-lexical-scope) - local-by-default, no action at a distance
 7. [Explicit Globals](#7-explicit-globals) - declare globals with `global` keyword
-
-## Key Features
 
 ### 1. Arrays as First-Class Values
 
@@ -97,24 +105,8 @@ result = [1, 2, 3, 4, 5]
 Combine arrays and functions for powerful data processing:
 
 ```awk
-function map(func, arr) {
-    result = []
-    for (i in arr) {
-        result[i] = func(arr[i])
-    }
-    return result
-}
-
-function filter(pred, arr) {
-    result = []
-    # Works with both regular and associative arrays
-    for (key in arr) {
-        if (pred(arr[key])) {
-            result[key] = arr[key]
-        }
-    }
-    return result
-}
+# map, filter, reduce, sum_array are built-in (but you could have written them youself)
+# split, match return an array instead of taking one as an "out-parameter"
 
 BEGIN {
     # Works with regular arrays
@@ -127,7 +119,7 @@ BEGIN {
     # Works with associative arrays too
     scores = ["alice" => 95, "bob" => 67, "carol" => 88]
     passing = scores |> filter((s) => { s >= 70 })
-    print passing  # [95, 88] (values that passed the filter)
+    print passing  # [95, 88]
 }
 ```
 
@@ -211,4 +203,3 @@ END {
     }
 }
 ```
-
