@@ -1516,6 +1516,36 @@ class Interpreter:
             
             array.set(index, value)
         
+        elif isinstance(node.target, FieldAccess):
+            # Field assignment: $2 = value or $0 = value
+            index = self.eval(node.target.index)
+            index = int(index)
+            
+            # Convert value to string (fields are strings in AWK)
+            value_str = self.value_to_string(value)
+            
+            if index == 0:
+                # Assigning to $0: update the whole record and re-split fields
+                self.current_line = value_str
+                self.fields = self.split_fields(value_str)
+                self.NF = len(self.fields)
+            elif index > 0:
+                # Assigning to $1, $2, etc.
+                # Extend fields array if necessary
+                while len(self.fields) < index:
+                    self.fields.append("")
+                
+                # Update the field (1-based to 0-based index)
+                self.fields[index - 1] = value_str
+                
+                # Update NF if we extended beyond current NF
+                if index > self.NF:
+                    self.NF = index
+                
+                # Reconstruct $0 by joining fields with OFS
+                self.current_line = self.OFS.join(self.fields)
+            # Negative indices are ignored (AWK behavior)
+        
         elif isinstance(node.target, DestructurePattern):
             # Destructuring assignment: [x, y] = arr or [[x, y], [z, w]] = nested_arr
             if not isinstance(value, FawkArray):

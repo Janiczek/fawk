@@ -1,0 +1,48 @@
+Test: Edge cases for field assignment
+--------------------------------------
+Test 1: Assign to $1
+  Before: $0 = 5 10 15 , $1 = 5
+  After: $0 = FIRST 10 15 , $1 = FIRST
+
+Test 2: Assign to last field ($3)
+  Before: $0 = FIRST 10 15 , $3 = 15
+  After: $0 = FIRST 10 LAST , $3 = LAST
+
+Test 3: Assign to $10
+  Before: NF = 3 , $0 = FIRST 10 LAST
+  After: NF = 10 , $0 = FIRST 10 LAST       TENTH
+  $10 = TENTH
+
+Test 4: Multiple assignments with expressions
+  Before: $1 = FIRST , $2 = 10
+  After: $1 = 0 , $2 = 20 , $0 = 0 20 LAST       TENTH
+
+Test 5: Assign empty string to field
+  Before: $2 = 20
+  After: $2 =  (empty), $0 = 0  LAST       TENTH
+
+--------------------------------------
+
+Test 1: Assign to $1
+  Before: $0 = 100 200 , $1 = 100
+  After: $0 = FIRST 200 , $1 = FIRST
+
+Test 2: Assign to last field ($2)
+  Before: $0 = FIRST 200 , $2 = 200
+  After: $0 = FIRST LAST , $2 = LAST
+
+Test 3: Assign to $10
+  Before: NF = 2 , $0 = FIRST LAST
+  After: NF = 10 , $0 = FIRST LAST        TENTH
+  $10 = TENTH
+
+Test 4: Multiple assignments with expressions
+  Before: $1 = FIRST , $2 = LAST
+  After: $1 = 0 , $2 = 10 , $0 = 0 10        TENTH
+
+Test 5: Assign empty string to field
+  Before: $2 = 10
+  After: $2 =  (empty), $0 = 0         TENTH
+
+--------------------------------------
+

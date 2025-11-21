@@ -1,0 +1,29 @@
+Test: Basic field assignment
+--------------------------------------
+Before assignment:
+  $0: 10 100 1000
+  $2: 100
+  NF: 3
+After $2 = "modified":
+  $0: 10 modified 1000
+  $2: modified
+  NF: 3
+
+Before assignment:
+  $0: apple banana cherry
+  $2: banana
+  NF: 3
+After $2 = "modified":
+  $0: apple modified cherry
+  $2: modified
+  NF: 3
+
+Before assignment:
+  $0: x y z
+  $2: y
+  NF: 3
+After $2 = "modified":
+  $0: x modified z
+  $2: modified
+  NF: 3
+

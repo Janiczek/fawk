@@ -1,0 +1,14 @@
+Test: Multiple field assignments
+--------------------------------------
+Original: $0 = a b c
+  $1 = a , $2 = b , $3 = c
+After assignments:
+  $0: first second third
+  $1 = first , $2 = second , $3 = third
+
+Original: $0 = x y z
+  $1 = x , $2 = y , $3 = z
+After assignments:
+  $0: first second third
+  $1 = first , $2 = second , $3 = third
+

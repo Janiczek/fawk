@@ -1,0 +1,20 @@
+Test: Assigning to $0
+--------------------------------------
+Original:
+  $0: old1 old2 old3
+  NF: 3
+  $1: old1 $2: old2 $3: old3
+After $0 = "new first new second new third":
+  $0: new first new second new third
+  NF: 6
+  $1: new $2: first $3: new
+
+Original:
+  $0: a b
+  NF: 2
+  $1: a $2: b $3: 
+After $0 = "new first new second new third":
+  $0: new first new second new third
+  NF: 6
+  $1: new $2: first $3: new
+

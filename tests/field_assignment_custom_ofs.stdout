@@ -1,0 +1,18 @@
+Test: Field assignment with custom OFS
+--------------------------------------
+OFS set to ':'
+
+Before assignment:
+  $0 = a b c
+  $2 = b
+After $2 = "modified":
+  $0 = a:modified:c
+  $2 = modified
+
+Before assignment:
+  $0 = 10 20 30
+  $2 = 20
+After $2 = "modified":
+  $0 = 10:modified:30
+  $2 = modified
+

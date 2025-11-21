@@ -1,0 +1,20 @@
+Test: Assigning to fields beyond NF
+--------------------------------------
+Before assignment:
+  $0: a b c
+  NF: 3
+  $1: a $2: b $3: c
+After $5 = "fifth":
+  $0: a b c  fifth
+  NF: 5
+  $1: a $2: b $3: c $4:  $5: fifth
+
+Before assignment:
+  $0: 10 20 30
+  NF: 3
+  $1: 10 $2: 20 $3: 30
+After $5 = "fifth":
+  $0: 10 20 30  fifth
+  NF: 5
+  $1: 10 $2: 20 $3: 30 $4:  $5: fifth
+
