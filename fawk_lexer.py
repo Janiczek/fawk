@@ -65,6 +65,8 @@ class TokenType(Enum):
     PIPE = auto()         # | (for getline redirection)
     ASSOC_ARROW = auto()  # => (for associative arrays)
     REDIRECT_APPEND = auto()  # >> (for print redirection)
+    INCREMENT = auto()    # ++
+    DECREMENT = auto()    # --
     
     # Delimiters
     LPAREN = auto()
@@ -373,6 +375,18 @@ class Lexer:
                 self.advance()
                 self.advance()
                 self.tokens.append(Token(TokenType.AND, '&&', start_line, start_col))
+                continue
+            
+            if self.peek() == '+' and self.peek(1) == '+':
+                self.advance()
+                self.advance()
+                self.tokens.append(Token(TokenType.INCREMENT, '++', start_line, start_col))
+                continue
+            
+            if self.peek() == '-' and self.peek(1) == '-':
+                self.advance()
+                self.advance()
+                self.tokens.append(Token(TokenType.DECREMENT, '--', start_line, start_col))
                 continue
             
             # Single-character tokens

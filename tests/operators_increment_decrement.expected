@@ -1,0 +1,51 @@
+Test: Increment and Decrement Operators
+--------------------------------------
+Prefix increment:
+  x = 5
+  ++x = 6
+  x = 6
+
+Prefix decrement:
+  y = 10
+  --y = 9
+  y = 9
+
+Postfix increment:
+  a = 3
+  a++ = 3
+  a = 4
+
+Postfix decrement:
+  b = 7
+  b-- = 7
+  b = 6
+
+In expressions:
+  c = 5 , d = 10
+  c + ++d = 16
+  c = 5 , d = 11
+
+  e = 5 , f = 10
+  e + f++ = 15
+  e = 5 , f = 11
+
+Multiple increments:
+  g = 0
+  ++g = 1
+  ++g = 2
+  g++ = 2
+  g = 3
+
+Array elements:
+  arr[0] = 10
+  ++arr[0] = 11
+  arr[0] = 11
+  arr[1]++ = 20
+  arr[1] = 21
+
+Precedence:
+  h = 5 , i = 10
+  -++h = -6
+  h = 6
+  -i++ = -10
+  i = 11

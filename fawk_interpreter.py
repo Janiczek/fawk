@@ -1165,6 +1165,166 @@ class Interpreter:
         else:
             self.error(f"Unknown unary operator: {node.op}")
     
+    def eval_PrefixIncrement(self, node) -> Any:
+        """Prefix increment: ++x - increment and return new value"""
+        from fawk_ast import PrefixIncrement, Identifier, ArrayAccess
+        
+        # Get current value
+        current_value = self.eval(node.operand)
+        new_value = self.to_number(current_value) + 1
+        
+        # Update the variable/array element
+        if isinstance(node.operand, Identifier):
+            name = node.operand.name
+            if name in self.globals_declared:
+                self.global_env.set(name, new_value)
+            elif self.in_function:
+                self.current_env.set_local(name, new_value)
+            else:
+                self.global_env.set(name, new_value)
+        elif isinstance(node.operand, ArrayAccess):
+            array = self.eval(node.operand.array)
+            if not isinstance(array, FawkArray):
+                array = FawkArray()
+                if isinstance(node.operand.array, Identifier):
+                    name = node.operand.array.name
+                    if name in self.globals_declared:
+                        self.global_env.set(name, array)
+                    else:
+                        self.current_env.set_local(name, array)
+            
+            if len(node.operand.indices) == 1:
+                index = self.eval(node.operand.indices[0])
+            else:
+                index_values = [self.value_to_string_convert(self.eval(idx)) for idx in node.operand.indices]
+                index = self.SUBSEP.join(index_values)
+            
+            array.set(index, new_value)
+        else:
+            self.error("Prefix increment operand must be a variable or array element")
+        
+        return new_value
+    
+    def eval_PrefixDecrement(self, node) -> Any:
+        """Prefix decrement: --x - decrement and return new value"""
+        from fawk_ast import PrefixDecrement, Identifier, ArrayAccess
+        
+        # Get current value
+        current_value = self.eval(node.operand)
+        new_value = self.to_number(current_value) - 1
+        
+        # Update the variable/array element
+        if isinstance(node.operand, Identifier):
+            name = node.operand.name
+            if name in self.globals_declared:
+                self.global_env.set(name, new_value)
+            elif self.in_function:
+                self.current_env.set_local(name, new_value)
+            else:
+                self.global_env.set(name, new_value)
+        elif isinstance(node.operand, ArrayAccess):
+            array = self.eval(node.operand.array)
+            if not isinstance(array, FawkArray):
+                array = FawkArray()
+                if isinstance(node.operand.array, Identifier):
+                    name = node.operand.array.name
+                    if name in self.globals_declared:
+                        self.global_env.set(name, array)
+                    else:
+                        self.current_env.set_local(name, array)
+            
+            if len(node.operand.indices) == 1:
+                index = self.eval(node.operand.indices[0])
+            else:
+                index_values = [self.value_to_string_convert(self.eval(idx)) for idx in node.operand.indices]
+                index = self.SUBSEP.join(index_values)
+            
+            array.set(index, new_value)
+        else:
+            self.error("Prefix decrement operand must be a variable or array element")
+        
+        return new_value
+    
+    def eval_PostfixIncrement(self, node) -> Any:
+        """Postfix increment: x++ - return old value, then increment"""
+        from fawk_ast import PostfixIncrement, Identifier, ArrayAccess
+        
+        # Get current value (this is what we'll return)
+        old_value = self.eval(node.operand)
+        new_value = self.to_number(old_value) + 1
+        
+        # Update the variable/array element
+        if isinstance(node.operand, Identifier):
+            name = node.operand.name
+            if name in self.globals_declared:
+                self.global_env.set(name, new_value)
+            elif self.in_function:
+                self.current_env.set_local(name, new_value)
+            else:
+                self.global_env.set(name, new_value)
+        elif isinstance(node.operand, ArrayAccess):
+            array = self.eval(node.operand.array)
+            if not isinstance(array, FawkArray):
+                array = FawkArray()
+                if isinstance(node.operand.array, Identifier):
+                    name = node.operand.array.name
+                    if name in self.globals_declared:
+                        self.global_env.set(name, array)
+                    else:
+                        self.current_env.set_local(name, array)
+            
+            if len(node.operand.indices) == 1:
+                index = self.eval(node.operand.indices[0])
+            else:
+                index_values = [self.value_to_string_convert(self.eval(idx)) for idx in node.operand.indices]
+                index = self.SUBSEP.join(index_values)
+            
+            array.set(index, new_value)
+        else:
+            self.error("Postfix increment operand must be a variable or array element")
+        
+        return old_value
+    
+    def eval_PostfixDecrement(self, node) -> Any:
+        """Postfix decrement: x-- - return old value, then decrement"""
+        from fawk_ast import PostfixDecrement, Identifier, ArrayAccess
+        
+        # Get current value (this is what we'll return)
+        old_value = self.eval(node.operand)
+        new_value = self.to_number(old_value) - 1
+        
+        # Update the variable/array element
+        if isinstance(node.operand, Identifier):
+            name = node.operand.name
+            if name in self.globals_declared:
+                self.global_env.set(name, new_value)
+            elif self.in_function:
+                self.current_env.set_local(name, new_value)
+            else:
+                self.global_env.set(name, new_value)
+        elif isinstance(node.operand, ArrayAccess):
+            array = self.eval(node.operand.array)
+            if not isinstance(array, FawkArray):
+                array = FawkArray()
+                if isinstance(node.operand.array, Identifier):
+                    name = node.operand.array.name
+                    if name in self.globals_declared:
+                        self.global_env.set(name, array)
+                    else:
+                        self.current_env.set_local(name, array)
+            
+            if len(node.operand.indices) == 1:
+                index = self.eval(node.operand.indices[0])
+            else:
+                index_values = [self.value_to_string_convert(self.eval(idx)) for idx in node.operand.indices]
+                index = self.SUBSEP.join(index_values)
+            
+            array.set(index, new_value)
+        else:
+            self.error("Postfix decrement operand must be a variable or array element")
+        
+        return old_value
+    
     def eval_Assignment(self, node: Assignment) -> Any:
         value = self.eval(node.value)
         

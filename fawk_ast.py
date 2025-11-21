@@ -154,6 +154,30 @@ class UnaryOp(ASTNode):
 
 
 @dataclass
+class PrefixIncrement(ASTNode):
+    """Prefix increment: ++x"""
+    operand: ASTNode
+
+
+@dataclass
+class PrefixDecrement(ASTNode):
+    """Prefix decrement: --x"""
+    operand: ASTNode
+
+
+@dataclass
+class PostfixIncrement(ASTNode):
+    """Postfix increment: x++"""
+    operand: ASTNode
+
+
+@dataclass
+class PostfixDecrement(ASTNode):
+    """Postfix decrement: x--"""
+    operand: ASTNode
+
+
+@dataclass
 class Assignment(ASTNode):
     target: ASTNode
     value: ASTNode

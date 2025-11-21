@@ -642,6 +642,18 @@ class Parser:
         return left
     
     def parse_unary(self) -> ASTNode:
+        if self.current().type == TokenType.INCREMENT:
+            self.advance()
+            operand = self.parse_unary()
+            from fawk_ast import PrefixIncrement
+            return PrefixIncrement(operand)
+        
+        if self.current().type == TokenType.DECREMENT:
+            self.advance()
+            operand = self.parse_unary()
+            from fawk_ast import PrefixDecrement
+            return PrefixDecrement(operand)
+        
         if self.current().type in [TokenType.NOT, TokenType.MINUS]:
             op = self.advance().value
             operand = self.parse_unary()
@@ -679,6 +691,18 @@ class Parser:
                 
                 self.expect(TokenType.RBRACKET)
                 expr = ArrayAccess(expr, indices)
+            
+            elif self.current().type == TokenType.INCREMENT:
+                # Postfix increment: x++
+                self.advance()
+                from fawk_ast import PostfixIncrement
+                expr = PostfixIncrement(expr)
+            
+            elif self.current().type == TokenType.DECREMENT:
+                # Postfix decrement: x--
+                self.advance()
+                from fawk_ast import PostfixDecrement
+                expr = PostfixDecrement(expr)
             
             else:
                 break

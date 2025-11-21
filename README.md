@@ -1,6 +1,6 @@
 # FAWK - Functional AWK
 
-A functional AWK dialect with first-class functions and arrays. FAWK keeps AWK's succinct syntax while adding modern functional programming features.
+A functional AWK dialect with first-class functions, arrays and lexical scope.
 
 ## What's New
 
@@ -38,6 +38,7 @@ for (i in matrix) {
 scores = ["alice" => 95, "bob" => 87, "carol" => 92]
 print scores["alice"]
 ```
+
 
 ### 2. Functions as First-Class Values
 
@@ -151,6 +152,9 @@ BEGIN {
     # y and w don't exist here
 }
 ```
+
+Arrays and scalars are passed to functions by-value (the function cannot change their contents, it can only return a new array).
+On the other hand global values are mutable.
 
 ### 7. Explicit Globals
 
