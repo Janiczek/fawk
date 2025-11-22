@@ -2258,7 +2258,12 @@ class Interpreter:
         elif isinstance(func, UserFunction):
             # User-defined function
             if len(args) != len(func.params):
-                self.error(f"Function expects {len(func.params)} arguments, got {len(args)}")
+                # Extract function name if available
+                if func_node and isinstance(func_node, Identifier):
+                    func_name = f"'{func_node.name}'"
+                    self.error(f"Function {func_name} expects {len(func.params)} arguments, got {len(args)}")
+                else:
+                    self.error(f"Function expects {len(func.params)} arguments, got {len(args)}")
             
             # Create new environment for function
             func_env = Environment(func.closure_env)

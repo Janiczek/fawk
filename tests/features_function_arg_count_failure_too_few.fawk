@@ -1,0 +1,12 @@
+# Test: Calling a function with too few arguments - failure
+
+function multiply(a, b, c) {
+    return a * b * c
+}
+
+BEGIN {
+    # This should fail - calling multiply() with 2 arguments instead of 3
+    result = multiply(1, 2)
+    print result
+}
+

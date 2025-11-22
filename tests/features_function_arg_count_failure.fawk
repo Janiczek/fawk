@@ -1,0 +1,12 @@
+# Test: Calling a function with wrong number of arguments - failure
+
+function add(a, b) {
+    return a + b
+}
+
+BEGIN {
+    # This should fail - calling add() with 3 arguments instead of 2
+    result = add(1, 2, 3)
+    print result
+}
+
