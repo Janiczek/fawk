@@ -1,0 +1,96 @@
+# Test: set_diff() function
+
+BEGIN {
+    print "Test: set_diff() function"
+    print "--------------------------------------"
+    
+    # Basic difference test (set1 - set2)
+    set1["a"] = 1
+    set1["b"] = 1
+    set1["c"] = 1
+    
+    set2["b"] = 1
+    set2["c"] = 1
+    set2["d"] = 1
+    
+    diff = set_diff(set1, set2)
+    
+    print "  Set1: a, b, c"
+    print "  Set2: b, c, d"
+    print "  Difference (set1 - set2):"
+    for (item in diff) {
+        print "    " item
+    }
+    print ""
+    
+    # Test with empty set (set1 - empty)
+    empty = []
+    diff2 = set_diff(set1, empty)
+    print "  Difference with empty set (set1 - empty):"
+    for (item in diff2) {
+        print "    " item
+    }
+    print ""
+    
+    # Test with empty set (empty - set1)
+    diff3 = set_diff(empty, set1)
+    print "  Difference with empty set (empty - set1):"
+    count = 0
+    for (item in diff3) {
+        count++
+        print "    " item
+    }
+    if (count == 0) {
+        print "    (empty)"
+    }
+    print ""
+    
+    # Test with disjoint sets
+    set3["x"] = 1
+    set3["y"] = 1
+    set4["z"] = 1
+    diff4 = set_diff(set3, set4)
+    print "  Disjoint sets (x,y) - (z):"
+    for (item in diff4) {
+        print "    " item
+    }
+    print ""
+    
+    # Test with identical sets
+    diff5 = set_diff(set1, set1)
+    print "  Difference of set with itself (set1 - set1):"
+    count = 0
+    for (item in diff5) {
+        count++
+        print "    " item
+    }
+    if (count == 0) {
+        print "    (empty)"
+    }
+    print ""
+    
+    # Test with subset
+    set5["a"] = 1
+    set5["b"] = 1
+    set6["a"] = 1
+    set6["b"] = 1
+    set6["c"] = 1
+    diff6 = set_diff(set5, set6)
+    print "  Set5 (a,b) - Set6 (a,b,c):"
+    count = 0
+    for (item in diff6) {
+        count++
+        print "    " item
+    }
+    if (count == 0) {
+        print "    (empty)"
+    }
+    print ""
+    
+    diff7 = set_diff(set6, set5)
+    print "  Set6 (a,b,c) - Set5 (a,b):"
+    for (item in diff7) {
+        print "    " item
+    }
+}
+

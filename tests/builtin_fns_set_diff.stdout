@@ -1,0 +1,27 @@
+Test: set_diff() function
+--------------------------------------
+  Set1: a, b, c
+  Set2: b, c, d
+  Difference (set1 - set2):
+    a
+
+  Difference with empty set (set1 - empty):
+    a
+    b
+    c
+
+  Difference with empty set (empty - set1):
+    (empty)
+
+  Disjoint sets (x,y) - (z):
+    x
+    y
+
+  Difference of set with itself (set1 - set1):
+    (empty)
+
+  Set5 (a,b) - Set6 (a,b,c):
+    (empty)
+
+  Set6 (a,b,c) - Set5 (a,b):
+    c

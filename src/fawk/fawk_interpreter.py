@@ -324,6 +324,9 @@ class Interpreter:
             ('reduce', 'func, initial, array', 'value'),
             ('sum', 'array', 'number'),
             ('is_associative', 'array', '0|1'),
+            ('set_union', 'set1, set2', 'array'),
+            ('set_intersection', 'set1, set2', 'array'),
+            ('set_diff', 'set1, set2', 'array'),
         ],
         'String functions': [
             ('match', 'pattern, text', 'array'),
@@ -600,6 +603,50 @@ class Interpreter:
         if not isinstance(arr, FawkArray):
             return 0  # Not an array, so not associative (but also not regular)
         return 1 if arr.is_associative() else 0
+    
+    def builtin_set_union(self, set1, set2):
+        """Return a new set containing all elements from both set1 and set2"""
+        if not isinstance(set1, FawkArray):
+            raise RuntimeError("set_union requires arrays as arguments")
+        if not isinstance(set2, FawkArray):
+            raise RuntimeError("set_union requires arrays as arguments")
+        
+        result = FawkArray()
+        # Add all elements from set1
+        for key in set1.keys():
+            result.set(key, 1)
+        # Add all elements from set2
+        for key in set2.keys():
+            result.set(key, 1)
+        return result
+    
+    def builtin_set_intersection(self, set1, set2):
+        """Return a new set containing only elements that are in both set1 and set2"""
+        if not isinstance(set1, FawkArray):
+            raise RuntimeError("set_intersection requires arrays as arguments")
+        if not isinstance(set2, FawkArray):
+            raise RuntimeError("set_intersection requires arrays as arguments")
+        
+        result = FawkArray()
+        # Only add elements that are in both sets
+        for key in set1.keys():
+            if key in set2.data:
+                result.set(key, 1)
+        return result
+    
+    def builtin_set_diff(self, set1, set2):
+        """Return a new set containing elements in set1 but not in set2"""
+        if not isinstance(set1, FawkArray):
+            raise RuntimeError("set_diff requires arrays as arguments")
+        if not isinstance(set2, FawkArray):
+            raise RuntimeError("set_diff requires arrays as arguments")
+        
+        result = FawkArray()
+        # Add elements from set1 that are not in set2
+        for key in set1.keys():
+            if key not in set2.data:
+                result.set(key, 1)
+        return result
     
     def builtin_match(self, pattern, text):
         """Match a regex pattern and return array with full match and groups"""

@@ -1,0 +1,24 @@
+Test: set_union() function
+--------------------------------------
+  Set1: a, b, c
+  Set2: b, c, d
+  Union:
+    a
+    b
+    c
+    d
+
+  Union with empty set:
+    a
+    b
+    c
+
+  Disjoint sets (x,y) and (z):
+    x
+    y
+    z
+
+  Union of set with itself:
+    a
+    b
+    c

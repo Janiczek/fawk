@@ -1,0 +1,53 @@
+# Test: set_union() function
+
+BEGIN {
+    print "Test: set_union() function"
+    print "--------------------------------------"
+    
+    # Basic union test
+    set1["a"] = 1
+    set1["b"] = 1
+    set1["c"] = 1
+    
+    set2["b"] = 1
+    set2["c"] = 1
+    set2["d"] = 1
+    
+    union = set_union(set1, set2)
+    
+    print "  Set1: a, b, c"
+    print "  Set2: b, c, d"
+    print "  Union:"
+    for (item in union) {
+        print "    " item
+    }
+    print ""
+    
+    # Test with empty set
+    empty = []
+    union2 = set_union(set1, empty)
+    print "  Union with empty set:"
+    for (item in union2) {
+        print "    " item
+    }
+    print ""
+    
+    # Test with disjoint sets
+    set3["x"] = 1
+    set3["y"] = 1
+    set4["z"] = 1
+    union3 = set_union(set3, set4)
+    print "  Disjoint sets (x,y) and (z):"
+    for (item in union3) {
+        print "    " item
+    }
+    print ""
+    
+    # Test with identical sets
+    union4 = set_union(set1, set1)
+    print "  Union of set with itself:"
+    for (item in union4) {
+        print "    " item
+    }
+}
+

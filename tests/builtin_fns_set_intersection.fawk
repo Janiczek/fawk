@@ -1,0 +1,76 @@
+# Test: set_intersection() function
+
+BEGIN {
+    print "Test: set_intersection() function"
+    print "--------------------------------------"
+    
+    # Basic intersection test
+    set1["a"] = 1
+    set1["b"] = 1
+    set1["c"] = 1
+    
+    set2["b"] = 1
+    set2["c"] = 1
+    set2["d"] = 1
+    
+    intersection = set_intersection(set1, set2)
+    
+    print "  Set1: a, b, c"
+    print "  Set2: b, c, d"
+    print "  Intersection:"
+    for (item in intersection) {
+        print "    " item
+    }
+    print ""
+    
+    # Test with empty set
+    empty = []
+    intersection2 = set_intersection(set1, empty)
+    print "  Intersection with empty set:"
+    count = 0
+    for (item in intersection2) {
+        count++
+        print "    " item
+    }
+    if (count == 0) {
+        print "    (empty)"
+    }
+    print ""
+    
+    # Test with disjoint sets
+    set3["x"] = 1
+    set3["y"] = 1
+    set4["z"] = 1
+    intersection3 = set_intersection(set3, set4)
+    print "  Disjoint sets (x,y) and (z):"
+    count = 0
+    for (item in intersection3) {
+        count++
+        print "    " item
+    }
+    if (count == 0) {
+        print "    (empty)"
+    }
+    print ""
+    
+    # Test with identical sets
+    intersection4 = set_intersection(set1, set1)
+    print "  Intersection of set with itself:"
+    for (item in intersection4) {
+        print "    " item
+    }
+    print ""
+    
+    # Test with subset
+    set5["a"] = 1
+    set5["b"] = 1
+    set6["a"] = 1
+    set6["b"] = 1
+    set6["c"] = 1
+    intersection5 = set_intersection(set5, set6)
+    print "  Set5 (a,b) is subset of Set6 (a,b,c):"
+    for (item in intersection5) {
+        print "    " item
+    }
+}
+

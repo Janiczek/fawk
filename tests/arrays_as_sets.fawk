@@ -5,10 +5,7 @@ BEGIN {
     print "=== Using Arrays as Sets ==="
     print ""
     
-    # Add elements to a set (convention: use 1 as value)
-    set["apple"] = 1
-    set["banana"] = 1
-    set["cherry"] = 1
+    set = ["apple" => 1, "banana" => 1, "cherry" => 1]
     
     print "Initial set:"
     for (item in set) {
@@ -76,55 +73,15 @@ BEGIN {
     }
     print ""
     
-    # Set operations example: union
     print "=== Set Union ==="
-    set1["a"] = 1
-    set1["b"] = 1
-    set1["c"] = 1
+    set1 = ["a" => 1, "b" => 1, "c" => 1]
+    set2 = ["b" => 1, "c" => 1, "d" => 1]
     
-    set2["b"] = 1
-    set2["c"] = 1
-    set2["d"] = 1
-    
-    # Union: combine both sets
-    for (item in set1) {
-        union[item] = 1
-    }
-    for (item in set2) {
-        union[item] = 1
-    }
-    
-    print "Set1: a, b, c"
-    print "Set2: b, c, d"
-    print "Union:"
-    for (item in union) {
-        print "  " item
-    }
-    print ""
-    
-    # Intersection: only items in both sets
-    print "=== Set Intersection ==="
-    for (item in set1) {
-        if (item in set2) {
-            intersection[item] = 1
-        }
-    }
-    print "Intersection:"
-    for (item in intersection) {
-        print "  " item
-    }
-    print ""
-    
-    # Difference: items in set1 but not in set2
-    print "=== Set Difference (set1 - set2) ==="
-    for (item in set1) {
-        if (!(item in set2)) {
-            difference[item] = 1
-        }
-    }
-    print "Difference:"
-    for (item in difference) {
-        print "  " item
-    }
+    print "Set1: ", set1
+    print "Set2: ", set2
+
+    print "Union: ", set_union(set1, set2)
+    print "Intersection: ", set_intersection(set1, set2)
+    print "Difference: ", set_diff(set1, set2)
 }
 
