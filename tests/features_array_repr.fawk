@@ -91,5 +91,17 @@ BEGIN {
     print "   [42] =", arr16
     arr17 = ["single" => "value"]
     print "   [\"single\" => \"value\"] =", arr17
+    print ""
+    
+    # 11. Escaped quotes in keys and values
+    print "11. Escaped quotes in associative array keys and values:"
+    arr18 = ["key\"with\"quotes" => "normal_value"]
+    print "   [\"key\\\"with\\\"quotes\" => \"normal_value\"] =", arr18
+    arr19 = ["normal_key" => "value\"with\"quotes"]
+    print "   [\"normal_key\" => \"value\\\"with\\\"quotes\"] =", arr19
+    arr20 = ["key\"test" => "val\"ue"]
+    print "   [\"key\\\"test\" => \"val\\\"ue\"] =", arr20
+    arr21 = ["both\"quoted" => "both\"quoted"]
+    print "   [\"both\\\"quoted\" => \"both\\\"quoted\"] =", arr21
 }
 

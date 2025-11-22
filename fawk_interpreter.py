@@ -169,7 +169,23 @@ class FawkArray:
             return "[" + ", ".join(str(self.data[i]) for i in range(1, max_idx + 1)) + "]"
         
         # Display as associative array
-        items = [f"{k} => {v}" for k, v in self.data.items()]
+        def format_key(k):
+            """Format key with double quotes if it's a string, escaping quotes inside"""
+            if isinstance(k, str):
+                # Escape double quotes by replacing " with \"
+                escaped = k.replace('"', '\\"')
+                return f'"{escaped}"'
+            return str(k)
+        
+        def format_value(v):
+            """Format value with double quotes if it's a string, escaping quotes inside"""
+            if isinstance(v, str):
+                # Escape double quotes by replacing " with \"
+                escaped = v.replace('"', '\\"')
+                return f'"{escaped}"'
+            return str(v)
+        
+        items = [f"{format_key(k)} => {format_value(v)}" for k, v in self.data.items()]
         return "[" + ", ".join(items) + "]"
 
 
