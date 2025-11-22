@@ -1,0 +1,4 @@
+Test: close() function
+--------------------------------------
+  close("nonexistent.txt"): -1
+  close("|nonexistent_command"): -1

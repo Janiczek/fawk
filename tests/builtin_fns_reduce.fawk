@@ -5,11 +5,11 @@ BEGIN {
     print "--------------------------------------"
     
     values = [1, 2, 3, 4, 5]
-    sum = reduce((acc, x) => { acc + x }, 0, values)
+    total = reduce((acc, x) => { acc + x }, 0, values)
     product = reduce((acc, x) => { acc * x }, 1, values)
     
     print "  Array:", values
-    print "  Sum:", sum
+    print "  Total:", total
     print "  Product:", product
     
     print ""

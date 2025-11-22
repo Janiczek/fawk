@@ -1,0 +1,11 @@
+# Test: Shadowing built-in functions - failure cases
+
+BEGIN {
+    # Shadow sum with a variable
+    sum = 1 + 2 + 3
+    
+    # This should fail - trying to call sum() after shadowing
+    result = sum([1, 2, 3])
+    print result
+}
+

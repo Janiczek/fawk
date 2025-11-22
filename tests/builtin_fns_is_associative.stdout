@@ -1,0 +1,8 @@
+Test: is_associative() function
+--------------------------------------
+  Regular array [1,2,3,4,5]: 0
+  Empty array []: 0
+  Associative array ["a"=>1, "b"=>2, "c"=>3]: 1
+  Sparse array [1=>10, 5=>50, 10=>100]: 1
+  0-based array [0=>0, 1=>1, 2=>2]: 1
+  Single element [42]: 0

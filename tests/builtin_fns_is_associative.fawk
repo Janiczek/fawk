@@ -1,0 +1,37 @@
+# Test: is_associative() function
+
+BEGIN {
+    print "Test: is_associative() function"
+    print "--------------------------------------"
+    
+    # Regular array (1-based consecutive)
+    regular = [1, 2, 3, 4, 5]
+    print "  Regular array [1,2,3,4,5]:", is_associative(regular)
+    
+    # Empty array
+    empty = []
+    print "  Empty array []:", is_associative(empty)
+    
+    # Associative array (non-integer keys)
+    assoc = ["a" => 1, "b" => 2, "c" => 3]
+    print "  Associative array [\"a\"=>1, \"b\"=>2, \"c\"=>3]:", is_associative(assoc)
+    
+    # Sparse array (gaps in indices)
+    sparse = []
+    sparse[1] = 10
+    sparse[5] = 50
+    sparse[10] = 100
+    print "  Sparse array [1=>10, 5=>50, 10=>100]:", is_associative(sparse)
+    
+    # Array starting at 0 (not 1)
+    zero_based = []
+    zero_based[0] = 0
+    zero_based[1] = 1
+    zero_based[2] = 2
+    print "  0-based array [0=>0, 1=>1, 2=>2]:", is_associative(zero_based)
+    
+    # Array with single element at index 1
+    single = [42]
+    print "  Single element [42]:", is_associative(single)
+}
+

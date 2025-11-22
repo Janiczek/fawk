@@ -1,0 +1,27 @@
+# Test: Shadowing built-in functions in function scope
+
+function test_shadow() {
+    # Shadow sum locally in function
+    sum = 100
+    print "  Inside function, sum = 100:", sum
+    
+    # Can't call sum() here either
+    # (This will be tested in a failure test)
+}
+
+BEGIN {
+    print "Test: Shadowing built-in functions in function scope"
+    print "--------------------------------------"
+    
+    # Global sum still works
+    result = sum([1, 2, 3])
+    print "  Global sum([1, 2, 3]):", result
+    
+    # Call function that shadows sum
+    test_shadow()
+    
+    # Global sum still works after function call
+    result2 = sum([4, 5, 6])
+    print "  Global sum([4, 5, 6]):", result2
+}
+

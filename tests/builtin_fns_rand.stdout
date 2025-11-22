@@ -1,0 +1,11 @@
+Test: rand() function
+--------------------------------------
+  Generating 5 random numbers (seeded with 42):
+  rand() #1: 0.639427
+  rand() #2: 0.025011
+  rand() #3: 0.275029
+  rand() #4: 0.223211
+  rand() #5: 0.736471
+
+  Verifying range:
+  After 100 calls: min=0.006499, max=0.997538

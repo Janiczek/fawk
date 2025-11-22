@@ -1,0 +1,9 @@
+Test: Printing functions
+--------------------------------------
+  Built-in function (length): <function>
+  User function (my_func): <function>
+  Lambda function: <function>
+  Function passed to apply_func: <function>
+  Built-in (map): <function>
+  Built-in (filter): <function>
+  Built-in (sum): <function>

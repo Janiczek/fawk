@@ -1,0 +1,8 @@
+Test: Shadowing built-in functions
+--------------------------------------
+  sum = 1 + 2 + 3: 6
+  map = "world": world
+  length = 42: 42
+  filter = [1, 2, 3]: [1, 2, 3]
+  Can still use reduce(): 6
+  sum = 10: 10

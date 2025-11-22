@@ -1,0 +1,24 @@
+Test: sub() function
+--------------------------------------
+  Original: foo bar foo baz foo
+  Pattern: "foo", Replacement: "qux"
+  Variable unchanged: foo bar foo baz foo
+  Count: 1
+
+  Using $0:
+  Original: "hello hello world"
+  Pattern: "hello", Replacement: "hi"
+  Result: hello hello world
+  Count: 1
+
+  No matches:
+  Original: abc def ghi
+  Pattern: "xyz", Replacement: "123"
+  Variable unchanged: abc def ghi
+  Count: 0
+
+  Regex pattern:
+  Original: cat bat hat
+  Pattern: "[aeiou]", Replacement: "X"
+  Variable unchanged: cat bat hat
+  Count: 1

@@ -201,12 +201,12 @@ class Interpreter:
     # Format: category -> [(name, args_string, return_hint), ...]
     BUILTIN_FUNCTION_SIGNATURES = {
         'Array functions': [
-            ('length', '[value]', 'number'),
-            ('map', 'func, arr', 'array'),
-            ('filter', 'pred, arr', 'array'),
-            ('reduce', 'func, initial, arr', 'value'),
-            ('sum_array', 'arr', 'number'),
-            ('is_associative', 'arr', 'number'),
+            ('length', '[value]', 'int'),
+            ('map', 'func, array', 'array'),
+            ('filter', 'pred, array', 'array'),
+            ('reduce', 'func, initial, array', 'value'),
+            ('sum', 'array', 'number'),
+            ('is_associative', 'array', '0|1'),
         ],
         'String functions': [
             ('match', 'pattern, text', 'array'),
@@ -224,12 +224,12 @@ class Interpreter:
             ('exp', 'x', 'number'),
             ('log', 'x', 'number'),
             ('sqrt', 'x', 'number'),
-            ('int', 'x', 'number'),
-            ('rand', '', 'number'),
-            ('srand', '[seed]', 'number'),
+            ('int', 'x', 'int'),
+            ('rand', '', '0.0...1.0'),
+            ('srand', '[seed]', 'seed'),
         ],
         'I/O functions': [
-            ('printf', 'fmt, ...', 'number'),
+            ('printf', 'fmt, ...', 'int'),
             ('sprintf', 'fmt, ...', 'string'),
             ('close', 'filename_or_cmd', 'number'),
         ],
@@ -465,7 +465,7 @@ class Interpreter:
             acc = self.call_function(func, [acc, value])
         return acc
     
-    def builtin_sum_array(self, arr):
+    def builtin_sum(self, arr):
         if not isinstance(arr, FawkArray):
             return 0
         total = 0
@@ -935,7 +935,9 @@ class Interpreter:
             self.error("for-in requires an array")
         
         for key in iterable.keys():
-            self.current_env.set_local(node.var, key)
+            # Use set() instead of set_local() to ensure it updates the variable
+            # even if it already exists in the environment
+            self.current_env.set(node.var, key)
             try:
                 self.eval(node.body)
             except BreakException:
@@ -1229,6 +1231,16 @@ class Interpreter:
             return str(value)
         elif isinstance(value, bool):
             return "1" if value else "0"
+        elif isinstance(value, UserFunction):
+            return "<function>"
+        elif callable(value):
+            # Check if it's a built-in function by comparing with known built-ins
+            for builtin_func in self.builtin_functions.values():
+                if value is builtin_func:
+                    return "<function>"
+            # If it's callable but not a known built-in, still treat as function
+            # (could be a lambda or other callable passed from outside)
+            return "<function>"
         elif isinstance(value, Decimal):
             # Format Decimal values using OFMT
             try:
@@ -1945,22 +1957,21 @@ class Interpreter:
         name = node.name
         
         # Check for built-in variables using cached lookup (optimization)
+        # Built-in variables cannot be shadowed
         if name in self._builtin_vars:
             return self._builtin_vars[name]()
         
-        # Check for functions
-        if name in self.functions:
-            return self.functions[name]
-        
-        # Check for variables
+        # Check for variables first (variables can shadow functions)
         # FAWK scoping: inside functions, only access local vars or explicitly global vars
+        variable_value = None
         if self.in_function:
             if name in self.globals_declared:
                 # Explicitly global variable
-                return self.global_env.get(name)
+                if name in self.global_env.vars:
+                    variable_value = self.global_env.vars[name]
             elif name in self.current_env.vars:
                 # Local variable - fast path, no need to call get()
-                return self.current_env.vars[name]
+                variable_value = self.current_env.vars[name]
             else:
                 # Search up the closure chain for captured variables
                 # But if this is a regular function (closure_env is global_env),
@@ -1968,12 +1979,35 @@ class Interpreter:
                 if self.current_closure_env == self.global_env:
                     # Regular function: only look for explicitly declared globals
                     # Don't search global_env for non-declared variables (isolation)
-                    return 0
+                    pass
                 else:
                     # Lambda: search full closure chain to capture outer variables
-                    return self.current_env.get(name)
+                    if self.current_env.has(name):
+                        variable_value = self.current_env.get(name)
         else:
-            # Outside function: use normal lookup (which searches up to parent)
+            # Outside function: check if variable exists
+            # First check current_env.vars (for for-in loop variables)
+            # Then check global_env.vars (for regular assignments)
+            if name in self.current_env.vars:
+                variable_value = self.current_env.vars[name]
+            elif name in self.global_env.vars:
+                variable_value = self.global_env.vars[name]
+        
+        # If variable exists, return it (this shadows any function with the same name)
+        if variable_value is not None:
+            return variable_value
+        
+        # Check for functions (only if no variable was found)
+        if name in self.functions:
+            return self.functions[name]
+        
+        # No variable or function found - return default (0 for undefined variables)
+        if self.in_function:
+            if self.current_closure_env == self.global_env:
+                return 0
+            else:
+                return self.current_env.get(name)
+        else:
             return self.current_env.get(name)
     
     def eval_Number(self, node: Number):

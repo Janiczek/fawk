@@ -223,12 +223,31 @@ class Parser:
         condition = self.parse_expression()
         self.expect(TokenType.RPAREN)
         
-        then_block = self.parse_block()
+        # Check if braces are present - if not, parse single statement
+        if self.current().type == TokenType.LBRACE:
+            then_block = self.parse_block()
+        else:
+            # Parse single statement and wrap in Block
+            stmt = self.parse_statement()
+            if stmt is None:
+                self.error("Expected statement after if condition")
+            from fawk_ast import Block
+            then_block = Block([stmt])
+        
         else_block = None
         
         if self.current().type == TokenType.ELSE:
             self.advance()
-            else_block = self.parse_block()
+            # Check if braces are present for else - if not, parse single statement
+            if self.current().type == TokenType.LBRACE:
+                else_block = self.parse_block()
+            else:
+                # Parse single statement and wrap in Block
+                stmt = self.parse_statement()
+                if stmt is None:
+                    self.error("Expected statement after else")
+                from fawk_ast import Block
+                else_block = Block([stmt])
         
         return IfStmt(condition, then_block, else_block)
     

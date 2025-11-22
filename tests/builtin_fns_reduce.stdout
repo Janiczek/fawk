@@ -1,7 +1,7 @@
 Test: reduce() function
 --------------------------------------
   Array: [1, 2, 3, 4, 5]
-  Sum: 15
+  Total: 15
   Product: 120
 
   Pipeline: [1..10] |> filter(>3) |> map(square) |> reduce(sum)

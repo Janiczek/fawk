@@ -1,0 +1,14 @@
+Test: tolower() function
+--------------------------------------
+  Original: Hello World
+  tolower: hello world
+
+  Original: ALL CAPS
+  tolower: all caps
+
+  Original: mixed Case 123
+  tolower: mixed case 123
+
+  Edge cases:
+  tolower(""): 
+  tolower("123"): 123

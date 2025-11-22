@@ -1,4 +1,4 @@
-Test: sum_array() function
+Test: sum() function
 --------------------------------------
   Array: [10, 20, 30, 40, 50]
   Sum: 150

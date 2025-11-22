@@ -52,7 +52,7 @@ Arrays can be created, passed to functions, and returned from functions.
 **Regular arrays:**
 ```awk
 numbers = [1, 2, 3, 4, 5]
-sum_array(numbers)
+sum(numbers)
 ```
 
 **Nested arrays:**
@@ -128,7 +128,7 @@ result = [1, 2, 3, 4, 5]
 Combine arrays and functions for powerful data processing:
 
 ```awk
-# map, filter, reduce, sum_array are built-in (but you could have written them youself)
+# map, filter, reduce, sum are built-in (but you could have written them youself)
 # split, match return an array instead of taking one as an "out-parameter"
 
 BEGIN {

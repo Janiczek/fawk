@@ -1,0 +1,11 @@
+Test: printf() function
+--------------------------------------
+  Integer: 42
+  Float: 3.14
+  String: hello
+  Multiple: 10 test 2.5
+  Width:         42
+  Precision: 1.23457
+  Percent: %
+  Return value test: test
+  (printf returned: 26)

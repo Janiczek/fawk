@@ -1,0 +1,20 @@
+# Test: close() function
+
+BEGIN {
+    print "Test: close() function"
+    print "--------------------------------------"
+    
+    # Test closing a file that doesn't exist (should return -1)
+    result1 = close("nonexistent.txt")
+    print "  close(\"nonexistent.txt\"):", result1
+    
+    # Test closing a command pipe that doesn't exist (should return -1)
+    result2 = close("|nonexistent_command")
+    print "  close(\"|nonexistent_command\"):", result2
+    
+    # Note: Testing actual file/pipe closing would require opening them first
+    # which is more complex. The basic functionality is tested here.
+    # Full integration tests would be in other test files that use getline
+    # and print redirection.
+}
+

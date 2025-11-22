@@ -1,0 +1,32 @@
+# Test: printf() function
+
+BEGIN {
+    print "Test: printf() function"
+    print "--------------------------------------"
+    
+    # Integer formatting
+    printf("  Integer: %d\n", 42)
+    
+    # Float formatting
+    printf("  Float: %.2f\n", 3.14159)
+    
+    # String formatting
+    printf("  String: %s\n", "hello")
+    
+    # Multiple arguments
+    printf("  Multiple: %d %s %.1f\n", 10, "test", 2.5)
+    
+    # Width formatting
+    printf("  Width: %10d\n", 42)
+    
+    # Precision formatting
+    printf("  Precision: %.5f\n", 1.23456789)
+    
+    # Percent sign
+    printf("  Percent: %%\n")
+    
+    # Test return value (printf returns number of characters printed)
+    len = printf("  Return value test: %s\n", "test")
+    printf("  (printf returned: %d)\n", len)
+}
+

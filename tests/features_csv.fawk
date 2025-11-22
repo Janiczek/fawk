@@ -1,11 +1,5 @@
 # Test: Complete CSV Processing Example
 
-function sum(arr) {
-    total = 0
-    for (i in arr) { total = total + arr[i] }
-    return total
-}
-
 function avg(arr) {
     return sum(arr) / length(arr)
 }
@@ -20,7 +14,7 @@ BEGIN {
 {
     if (NR > 1) {
         category = $1
-        price = $3
+        price = int($3)
         sales[category][length(sales[category])] = price
     }
 }

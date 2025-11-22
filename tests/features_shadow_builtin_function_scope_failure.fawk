@@ -1,0 +1,15 @@
+# Test: Shadowing built-in functions in function scope - failure
+
+function test_shadow() {
+    # Shadow sum locally in function
+    sum = 100
+    
+    # This should fail - trying to call sum() after shadowing in function
+    result = sum([1, 2, 3])
+    print result
+}
+
+BEGIN {
+    test_shadow()
+}
+

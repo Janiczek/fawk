@@ -1,0 +1,33 @@
+# Test: Printing functions
+
+function my_func(x) {
+    return x * 2
+}
+
+function apply_func(f, x) {
+    return f(x)
+}
+
+BEGIN {
+    print "Test: Printing functions"
+    print "--------------------------------------"
+    
+    # Print built-in function
+    print "  Built-in function (length):", length
+    
+    # Print user-defined function
+    print "  User function (my_func):", my_func
+    
+    # Print lambda function
+    lambda_func = (x) => { return x + 1 }
+    print "  Lambda function:", lambda_func
+    
+    # Print function passed as argument
+    print "  Function passed to apply_func:", apply_func
+    
+    # Multiple built-ins
+    print "  Built-in (map):", map
+    print "  Built-in (filter):", filter
+    print "  Built-in (sum):", sum
+}
+

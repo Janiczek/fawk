@@ -1,0 +1,31 @@
+# Test: Shadowing built-in functions with variables
+
+BEGIN {
+    print "Test: Shadowing built-in functions"
+    print "--------------------------------------"
+    
+    # Shadow sum with a variable
+    sum = 1 + 2 + 3
+    print "  sum = 1 + 2 + 3:", sum
+    
+    # Shadow map with a variable
+    map = "world"
+    print "  map = \"world\":", map
+    
+    # Shadow length with a variable
+    length = 42
+    print "  length = 42:", length
+    
+    # Shadow filter with a variable
+    filter = [1, 2, 3]
+    print "  filter = [1, 2, 3]:", filter
+    
+    # Can still use other built-ins
+    arr = [1, 2, 3]
+    print "  Can still use reduce():", reduce((a, b) => { return a + b }, 0, arr)
+    
+    # Can reassign the variable
+    sum = 10
+    print "  sum = 10:", sum
+}
+

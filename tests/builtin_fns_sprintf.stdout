@@ -1,0 +1,9 @@
+Test: sprintf() function
+--------------------------------------
+  sprintf("Number: %%d", 42): Number: 42
+  sprintf("Float: %%.2f", 3.14159): Float: 3.14
+  sprintf("String: %%s", "hello"): String: hello
+  sprintf("Multiple: %%d %%s %%.1f", 10, "test", 2.5): Multiple: 10 test 2.5
+  sprintf("Width: %%10d", 42): Width:         42
+  sprintf("Precision: %%.5f", 1.23456789): Precision: 1.23457
+  sprintf("Percent: %%%%"): Percent: %

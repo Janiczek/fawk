@@ -1,0 +1,37 @@
+# Test: srand() function
+
+BEGIN {
+    print "Test: srand() function"
+    print "--------------------------------------"
+    
+    # Seed with specific value
+    seed1 = srand(42)
+    print "  srand(42) returned:", seed1
+    
+    # Generate random number after seeding
+    r1 = rand()
+    printf("  First rand() after seed(42): %.6f\n", r1)
+    
+    print ""
+    
+    # Seed again with same value (should produce same sequence)
+    seed2 = srand(42)
+    r2 = rand()
+    printf("  After srand(42) again, rand(): %.6f\n", r2)
+    print "  (Should match first rand() if seeding works correctly)"
+    
+    print ""
+    
+    # Seed with different value
+    seed3 = srand(100)
+    r3 = rand()
+    printf("  After srand(100), rand(): %.6f\n", r3)
+    print "  (Should be different from previous values)"
+    
+    print ""
+    
+    # Seed without argument (uses current time)
+    seed4 = srand()
+    print "  srand() (no arg) returns the current timestamp"
+}
+

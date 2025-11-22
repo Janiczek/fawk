@@ -1,0 +1,14 @@
+Test: toupper() function
+--------------------------------------
+  Original: Hello World
+  toupper: HELLO WORLD
+
+  Original: all lowercase
+  toupper: ALL LOWERCASE
+
+  Original: mixed Case 123
+  toupper: MIXED CASE 123
+
+  Edge cases:
+  toupper(""): 
+  toupper("123"): 123

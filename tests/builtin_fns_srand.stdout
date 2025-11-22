@@ -1,0 +1,12 @@
+Test: srand() function
+--------------------------------------
+  srand(42) returned: 42
+  First rand() after seed(42): 0.639427
+
+  After srand(42) again, rand(): 0.639427
+  (Should match first rand() if seeding works correctly)
+
+  After srand(100), rand(): 0.145669
+  (Should be different from previous values)
+
+  srand() (no arg) returns the current timestamp

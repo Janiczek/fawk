@@ -1,0 +1,5 @@
+Test: Shadowing built-in functions in function scope
+--------------------------------------
+  Global sum([1, 2, 3]): 6
+  Inside function, sum = 100: 100
+  Global sum([4, 5, 6]): 15

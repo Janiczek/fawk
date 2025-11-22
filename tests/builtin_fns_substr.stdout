@@ -1,0 +1,13 @@
+Test: substr() function
+--------------------------------------
+  Original string: Hello World
+  substr(s, 1, 5): Hello
+  substr(s, 7): World
+  substr(s, 1, 11): Hello World
+  substr(s, 7, 5): World
+
+  Edge cases:
+  substr("abc", 1, 0): 
+  substr("abc", 2, 10): bc
+  substr("abc", 10, 5): 
+  substr("", 1, 1): 

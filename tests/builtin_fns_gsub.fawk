@@ -1,0 +1,48 @@
+# Test: gsub() function
+
+BEGIN {
+    print "Test: gsub() function"
+    print "--------------------------------------"
+    
+    # Test with explicit target (note: doesn't modify the variable, only returns count)
+    text = "foo bar foo baz foo"
+    count = gsub("foo", "qux", text)
+    print "  Original:", "foo bar foo baz foo"
+    print "  Pattern: \"foo\", Replacement: \"qux\""
+    print "  Variable unchanged:", text
+    print "  Count:", count
+    
+    print ""
+    
+    # Test with $0 (implicit target)
+    $0 = "hello hello world"
+    count2 = gsub("hello", "hi")
+    print "  Using $0:"
+    print "  Original: \"hello hello world\""
+    print "  Pattern: \"hello\", Replacement: \"hi\""
+    print "  Result:", $0
+    print "  Count:", count2
+    
+    print ""
+    
+    # Test with no matches
+    text3 = "abc def ghi"
+    count3 = gsub("xyz", "123", text3)
+    print "  No matches:"
+    print "  Original:", "abc def ghi"
+    print "  Pattern: \"xyz\", Replacement: \"123\""
+    print "  Variable unchanged:", text3
+    print "  Count:", count3
+    
+    print ""
+    
+    # Test with regex pattern
+    text4 = "cat bat hat"
+    count4 = gsub("[aeiou]", "X", text4)
+    print "  Regex pattern:"
+    print "  Original:", "cat bat hat"
+    print "  Pattern: \"[aeiou]\", Replacement: \"X\""
+    print "  Variable unchanged:", text4
+    print "  Count:", count4
+}
+
