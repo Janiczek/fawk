@@ -1,0 +1,20 @@
+Test: match() with regex literals in pipelines
+--------------------------------------
+  Text: node-x42-y99
+  Pattern: /-x([0-9]+)-y([0-9]+)$/
+  Extracted x: 42
+  Extracted y: 99
+
+  Text: Hello WORLD
+  Pattern: /world/i (case-insensitive)
+  Matched: 
+
+  Text: date: 2024-12-25
+  Pattern: /([0-9]{4})-([0-9]{2})-([0-9]{2})/
+  Year: 2024
+  Month: 12
+  Day: 25
+
+  Text: price: $99.99
+  Regex literal result: 99 dollars, 99 cents
+  String pattern result: 99 dollars, 99 cents
