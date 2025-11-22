@@ -47,11 +47,11 @@ class Parser:
     
     def parse(self) -> Program:
         functions = []
-        begin_block = None
-        beginfile_block = None
+        begin_blocks = []
+        beginfile_blocks = []
         patterns = []
-        endfile_block = None
-        end_block = None
+        endfile_blocks = []
+        end_blocks = []
         
         self.skip_newlines()
         
@@ -62,25 +62,17 @@ class Parser:
             if self.current().type == TokenType.FUNCTION:
                 functions.append(self.parse_function_def())
             elif self.current().type == TokenType.BEGIN:
-                if begin_block is not None:
-                    self.error("Multiple BEGIN blocks not allowed")
                 self.advance()
-                begin_block = self.parse_block()
+                begin_blocks.append(self.parse_block())
             elif self.current().type == TokenType.BEGINFILE:
-                if beginfile_block is not None:
-                    self.error("Multiple BEGINFILE blocks not allowed")
                 self.advance()
-                beginfile_block = self.parse_block()
+                beginfile_blocks.append(self.parse_block())
             elif self.current().type == TokenType.ENDFILE:
-                if endfile_block is not None:
-                    self.error("Multiple ENDFILE blocks not allowed")
                 self.advance()
-                endfile_block = self.parse_block()
+                endfile_blocks.append(self.parse_block())
             elif self.current().type == TokenType.END:
-                if end_block is not None:
-                    self.error("Multiple END blocks not allowed")
                 self.advance()
-                end_block = self.parse_block()
+                end_blocks.append(self.parse_block())
             elif self.current().type == TokenType.LBRACE:
                 # Pattern-action with no pattern
                 action = self.parse_block()
@@ -101,7 +93,7 @@ class Parser:
             
             self.skip_newlines()
         
-        return Program(functions, begin_block, beginfile_block, patterns, endfile_block, end_block)
+        return Program(functions, begin_blocks, beginfile_blocks, patterns, endfile_blocks, end_blocks)
     
     def parse_function_def(self) -> FunctionDef:
         self.expect(TokenType.FUNCTION)

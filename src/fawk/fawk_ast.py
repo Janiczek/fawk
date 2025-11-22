@@ -15,11 +15,11 @@ class ASTNode:
 @dataclass
 class Program(ASTNode):
     functions: List['FunctionDef']
-    begin_block: Optional['Block']
-    beginfile_block: Optional['Block']
+    begin_blocks: List['Block']
+    beginfile_blocks: List['Block']
     patterns: List['PatternAction']
-    endfile_block: Optional['Block']
-    end_block: Optional['Block']
+    endfile_blocks: List['Block']
+    end_blocks: List['Block']
 
 
 @dataclass

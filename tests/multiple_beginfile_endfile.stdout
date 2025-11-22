@@ -1,0 +1,22 @@
+BEGINFILE 1 for tests/multiple_beginfile_endfile.input1
+BEGINFILE 2 for tests/multiple_beginfile_endfile.input1
+BEGINFILE 3 for tests/multiple_beginfile_endfile.input1
+file_x = 3
+line1
+line2
+
+ENDFILE 1 for tests/multiple_beginfile_endfile.input1
+ENDFILE 2 for tests/multiple_beginfile_endfile.input1
+ENDFILE 3 for tests/multiple_beginfile_endfile.input1
+file_y = 30
+BEGINFILE 1 for tests/multiple_beginfile_endfile.input2
+BEGINFILE 2 for tests/multiple_beginfile_endfile.input2
+BEGINFILE 3 for tests/multiple_beginfile_endfile.input2
+file_x = 3
+line3
+line4
+
+ENDFILE 1 for tests/multiple_beginfile_endfile.input2
+ENDFILE 2 for tests/multiple_beginfile_endfile.input2
+ENDFILE 3 for tests/multiple_beginfile_endfile.input2
+file_y = 30

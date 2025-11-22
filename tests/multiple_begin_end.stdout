@@ -1,0 +1,8 @@
+BEGIN 1
+BEGIN 2
+BEGIN 3
+x = 3
+END 1
+END 2
+END 3
+y = 30

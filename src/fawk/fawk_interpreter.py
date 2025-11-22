@@ -2618,13 +2618,13 @@ class Interpreter:
                 func_def.params, func_def.body, self.global_env
             )
         
-        # Execute BEGIN block with its own local environment
-        if program.begin_block:
+        # Execute all BEGIN blocks in order with their own local environments
+        for begin_block in program.begin_blocks:
             begin_env = Environment(self.global_env)
             saved_env = self.current_env
             self.current_env = begin_env
             try:
-                self.eval(program.begin_block)
+                self.eval(begin_block)
             except ExitException as e:
                 # Exit during BEGIN
                 import sys
@@ -2644,13 +2644,13 @@ class Interpreter:
                     # Track if we should skip record processing (but still run ENDFILE)
                     skip_file = False
                     
-                    # Execute BEGINFILE block
-                    if program.beginfile_block:
+                    # Execute all BEGINFILE blocks in order
+                    for beginfile_block in program.beginfile_blocks:
                         beginfile_env = Environment(self.global_env)
                         saved_env = self.current_env
                         self.current_env = beginfile_env
                         try:
-                            self.eval(program.beginfile_block)
+                            self.eval(beginfile_block)
                         except NextFileException:
                             # Skip this file's records but still run ENDFILE
                             skip_file = True
@@ -2662,6 +2662,8 @@ class Interpreter:
                         finally:
                             if self.current_env == beginfile_env:
                                 self.current_env = saved_env
+                        if exit_code is not None:
+                            break
                     
                     # Process this file's records (unless skipped by nextfile in BEGINFILE)
                     if not skip_file:
@@ -2710,18 +2712,20 @@ class Interpreter:
                             # Exit during pattern-action - save exit code and jump to ENDFILE
                             exit_code = e.code
                     
-                    # Execute ENDFILE block
-                    if program.endfile_block:
+                    # Execute all ENDFILE blocks in order
+                    for endfile_block in program.endfile_blocks:
                         endfile_env = Environment(self.global_env)
                         saved_env = self.current_env
                         self.current_env = endfile_env
                         try:
-                            self.eval(program.endfile_block)
+                            self.eval(endfile_block)
                         except ExitException as e:
                             # Exit during ENDFILE
                             exit_code = e.code
                         finally:
                             self.current_env = saved_env
+                        if exit_code is not None:
+                            break
                     
                     # If exit was called, stop processing files
                     if exit_code is not None:
@@ -2749,13 +2753,13 @@ class Interpreter:
                 # Exit during pattern-action - save exit code and jump to END
                 exit_code = e.code
         
-        # Execute END block with its own local environment
-        if program.end_block:
+        # Execute all END blocks in order with their own local environments
+        for end_block in program.end_blocks:
             end_env = Environment(self.global_env)
             saved_env = self.current_env
             self.current_env = end_env
             try:
-                self.eval(program.end_block)
+                self.eval(end_block)
             except ExitException as e:
                 # Exit during END - update exit code
                 exit_code = e.code

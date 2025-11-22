@@ -1,0 +1,24 @@
+BEGIN A
+BEGIN B
+BEGINFILE A
+BEGINFILE B
+Pattern: file1_line1
+Pattern: file1_line2
+Pattern: 
+ENDFILE A
+ENDFILE B
+BEGINFILE A
+BEGINFILE B
+Pattern: file2_line1
+Pattern: file2_line2
+Pattern: 
+ENDFILE A
+ENDFILE B
+BEGINFILE A
+BEGINFILE B
+Pattern: file3_line1
+Pattern: 
+ENDFILE A
+ENDFILE B
+END A
+END B
