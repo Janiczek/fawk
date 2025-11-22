@@ -1862,7 +1862,16 @@ class Interpreter:
         # We append the left value as the last argument
         if isinstance(node.right, FunctionCall):
             func = self.eval(node.right.func)
-            args = [self.eval(arg) for arg in node.right.args]
+            # Special handling for match() and split() - if first argument is a Regex node,
+            # extract the pattern string instead of evaluating it to a boolean
+            args = []
+            for i, arg_node in enumerate(node.right.args):
+                # Check if this is match() and first arg is a Regex
+                if (func == self.builtin_match and i == 0 and isinstance(arg_node, Regex)):
+                    # Extract pattern string from Regex node
+                    args.append(arg_node.pattern)
+                else:
+                    args.append(self.eval(arg_node))
             args.append(left_value)  # Add piped value as last argument
             return self.call_function(func, args)
         else:
