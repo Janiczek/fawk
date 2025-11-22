@@ -27,6 +27,6 @@ Final set:
 === Set Operations ===
 Set1:  ["a", "b", "c"]
 Set2:  ["b", "c", "d"]
-Union: ["a", "b", "c", "d"]
-Intersection: ["b", "c"]
-Difference: ["a"]
+Union:  ["a", "b", "c", "d"]
+Intersection:  ["b", "c"]
+Difference:  ["a"]

@@ -1,5 +1,5 @@
 arr1 = [1, 2, 3]
-arr2 = [a, b, c]
+arr2 = ["a", "b", "c"]
 arr3 = ["used" => [], "avai" => 123, "total" => 456]
 arr3[used] = []
 arr3[avai] = 123

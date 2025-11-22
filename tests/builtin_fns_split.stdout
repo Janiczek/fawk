@@ -5,7 +5,7 @@ Test: split() function
   Item 2: banana
   Item 3: cherry
 
-  Split by ':': [apple, banana, cherry, date]
+  Split by ':': ["apple", "banana", "cherry", "date"]
   Count: 4
 
   Pipeline: text |> split(",") works!
