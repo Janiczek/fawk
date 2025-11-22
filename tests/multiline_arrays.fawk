@@ -1,0 +1,78 @@
+# Test: Multi-line Arrays
+
+BEGIN {
+    # Simple multi-line array
+    arr1 = [
+        1,
+        2,
+        3
+    ]
+    print "arr1 =", arr1
+    
+    # Multi-line array with strings
+    arr2 = [
+        "a",
+        "b",
+        "c"
+    ]
+    print "arr2 =", arr2
+    
+    # Multi-line associative array
+    arr3 = [
+        "used" => [],
+        "avai" => 123,
+        "total" => 456
+    ]
+    print "arr3 =", arr3
+    print "arr3[used] =", arr3["used"]
+    print "arr3[avai] =", arr3["avai"]
+    
+    # Multi-line nested arrays
+    arr4 = [
+        [1, 2],
+        [3, 4],
+        [5, 6]
+    ]
+    print "arr4 =", arr4
+    print "arr4[1] =", arr4[1]
+    print "arr4[2] =", arr4[2]
+    
+    # Multi-line associative array with nested arrays
+    arr5 = [
+        "first" => [1, 2, 3],
+        "second" => [4, 5, 6],
+        "third" => [7, 8, 9]
+    ]
+    print "arr5 =", arr5
+    print "arr5[first] =", arr5["first"]
+    
+    # Mixed single-line and multi-line
+    arr6 = [1, 2,
+        3, 4]
+    print "arr6 =", arr6
+    
+    # Multi-line with expressions
+    x = 10
+    arr7 = [
+        x + 1,
+        x * 2,
+        x - 5
+    ]
+    print "arr7 =", arr7
+    
+    # Multi-dimensional keys in multi-line format
+    arr8 = [
+        (1, 2) => "a",
+        (1, 3) => "b",
+        (2, 1) => "c"
+    ]
+    print "arr8 =", arr8
+    print "arr8[1,2] =", arr8[1,2]
+    print "arr8[2,1] =", arr8[2,1]
+    
+    # Empty multi-line array
+    arr9 = [
+    ]
+    print "arr9 =", arr9
+}
+

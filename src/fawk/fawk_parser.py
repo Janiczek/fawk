@@ -964,6 +964,7 @@ class Parser:
     
     def parse_array_literal(self) -> ASTNode:
         self.expect(TokenType.LBRACKET)
+        self.skip_newlines()  # Allow newlines after opening bracket
         elements = []
         pairs = []
         is_assoc = False
@@ -980,8 +981,9 @@ class Parser:
                 
                 while self.current().type == TokenType.COMMA:
                     self.advance()
+                    self.skip_newlines()  # Allow newlines after comma
                     if self.current().type == TokenType.RBRACKET:
-                        break
+                        break  # Trailing comma allowed
                     key_expr = self.parse_expression()
                     self.expect(TokenType.ARROW)
                     value_expr = self.parse_expression()
@@ -990,8 +992,9 @@ class Parser:
                 elements.append(first_expr)
                 while self.current().type == TokenType.COMMA:
                     self.advance()
+                    self.skip_newlines()  # Allow newlines after comma
                     if self.current().type == TokenType.RBRACKET:
-                        break
+                        break  # Trailing comma allowed
                     elements.append(self.parse_expression())
         
         self.expect(TokenType.RBRACKET)

@@ -1,0 +1,123 @@
+# Test: Trailing Commas in Arrays
+
+BEGIN {
+    # One-line array with trailing comma
+    arr1 = [1, 2, 3,]
+    print "arr1 =", arr1
+    
+    # One-line array without trailing comma (baseline)
+    arr2 = [1, 2, 3]
+    print "arr2 =", arr2
+    
+    # Multi-line array with trailing comma
+    arr3 = [
+        1,
+        2,
+        3,
+    ]
+    print "arr3 =", arr3
+    
+    # Multi-line array without trailing comma
+    arr4 = [
+        1,
+        2,
+        3
+    ]
+    print "arr4 =", arr4
+    
+    # Single element with trailing comma
+    arr5 = [42,]
+    print "arr5 =", arr5
+    
+    # Single element without trailing comma
+    arr6 = [42]
+    print "arr6 =", arr6
+    
+    # Nested arrays with trailing commas
+    arr7 = [
+        [1, 2,],
+        [3, 4,],
+        [5, 6,],
+    ]
+    print "arr7 =", arr7
+    
+    # Nested arrays without trailing commas
+    arr8 = [
+        [1, 2],
+        [3, 4],
+        [5, 6]
+    ]
+    print "arr8 =", arr8
+    
+    # Multi-dimensional nested with trailing commas
+    arr9 = [
+        [[1, 2,], [3, 4,],],
+        [[5, 6,], [7, 8,],],
+    ]
+    print "arr9 =", arr9
+    
+    # Associative array one-line with trailing comma
+    arr10 = ["a" => 1, "b" => 2, "c" => 3,]
+    print "arr10 =", arr10
+    
+    # Associative array multi-line with trailing comma
+    arr11 = [
+        "a" => 1,
+        "b" => 2,
+        "c" => 3,
+    ]
+    print "arr11 =", arr11
+    
+    # Associative array multi-line without trailing comma
+    arr12 = [
+        "a" => 1,
+        "b" => 2,
+        "c" => 3
+    ]
+    print "arr12 =", arr12
+    
+    # Nested associative arrays with trailing commas
+    arr13 = [
+        "first" => [1, 2, 3,],
+        "second" => [4, 5, 6,],
+        "third" => [7, 8, 9,],
+    ]
+    print "arr13 =", arr13
+    
+    # Multi-dimensional keys with trailing comma
+    arr14 = [
+        (1, 2) => "a",
+        (1, 3) => "b",
+        (2, 1) => "c",
+    ]
+    print "arr14 =", arr14
+    print "arr14[1,2] =", arr14[1,2]
+    
+    # Mixed: some elements with trailing, some without (should work)
+    arr15 = [
+        1,
+        2,
+        3,
+        4
+    ]
+    print "arr15 =", arr15
+    
+    # Complex: nested associative with trailing commas
+    arr16 = [
+        "x" => ["a" => 1, "b" => 2,],
+        "y" => ["c" => 3, "d" => 4,],
+    ]
+    print "arr16 =", arr16
+    print "arr16[x][a] =", arr16["x"]["a"]
+    
+    # Empty array (edge case - no trailing comma possible)
+    arr17 = []
+    print "arr17 =", arr17
+    
+    # Single trailing comma in multi-line (edge case)
+    arr18 = [
+        100,
+    ]
+    print "arr18 =", arr18
+}
+
