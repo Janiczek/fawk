@@ -12,9 +12,9 @@ BEGIN {
     result = sprintf("Number: %d, Float: %.2f", 42, 3.14)
     print "sprintf:", result
     
-    # Note: sub and gsub with explicit target not fully supported yet
+    # Note: sub and gsub return the new string (immutable behavior, differs from GAWK)
     # Testing with string functions only
-    print "sub count:", sub("foo", "baz", "foo bar foo")
-    print "gsub count:", gsub("foo", "baz", "foo bar foo")
+    print "sub result:", sub("foo", "baz", "foo bar foo")
+    print "gsub result:", gsub("foo", "baz", "foo bar foo")
 }
 

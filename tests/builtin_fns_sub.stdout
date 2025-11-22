@@ -3,22 +3,22 @@ Test: sub() function
   Original: foo bar foo baz foo
   Pattern: "foo", Replacement: "qux"
   Variable unchanged: foo bar foo baz foo
-  Count: 1
+  Result: qux bar foo baz foo
 
   Using $0:
   Original: "hello hello world"
   Pattern: "hello", Replacement: "hi"
-  Result: hello hello world
-  Count: 1
+  $0 unchanged: hello hello world
+  Result: hi hello world
 
   No matches:
   Original: abc def ghi
   Pattern: "xyz", Replacement: "123"
   Variable unchanged: abc def ghi
-  Count: 0
+  Result: abc def ghi
 
   Regex pattern:
   Original: cat bat hat
   Pattern: "[aeiou]", Replacement: "X"
   Variable unchanged: cat bat hat
-  Count: 1
+  Result: cXt bat hat

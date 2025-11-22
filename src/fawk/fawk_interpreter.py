@@ -772,7 +772,7 @@ class Interpreter:
         return self.value_to_string(string).upper()
     
     def builtin_gsub(self, pattern, replacement, target=None):
-        """Global substitution (replace all occurrences)"""
+        """Global substitution (replace all occurrences) - returns new string, does not mutate"""
         if target is None:
             target = self.current_line
         
@@ -788,20 +788,12 @@ class Interpreter:
                 self.error(f"Invalid regex pattern: {e}")
         compiled_pattern = self._regex_cache[pattern_str]
         
-        # Count number of substitutions
-        count = len(compiled_pattern.findall(target_str))
+        # Return the new string (immutable behavior)
         result = compiled_pattern.sub(replacement_str, target_str)
-        
-        # Update $0 if no target was specified
-        if target is None:
-            self.current_line = result
-            self.fields = self.split_fields(result)
-            self.NF = len(self.fields)
-        
-        return count
+        return result
     
     def builtin_sub(self, pattern, replacement, target=None):
-        """Substitution (replace first occurrence)"""
+        """Substitution (replace first occurrence) - returns new string, does not mutate"""
         if target is None:
             target = self.current_line
         
@@ -817,16 +809,9 @@ class Interpreter:
                 self.error(f"Invalid regex pattern: {e}")
         compiled_pattern = self._regex_cache[pattern_str]
         
-        # Replace only first occurrence
+        # Replace only first occurrence and return the new string (immutable behavior)
         result, count = compiled_pattern.subn(replacement_str, target_str, count=1)
-        
-        # Update $0 if no target was specified
-        if target is None:
-            self.current_line = result
-            self.fields = self.split_fields(result)
-            self.NF = len(self.fields)
-        
-        return count
+        return result
     
     def builtin_close(self, filename_or_cmd):
         """Close a file or command pipe"""

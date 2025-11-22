@@ -4,5 +4,5 @@ tolower: hello world
 substr(s,1,5): Hello
 substr(s,7): World
 sprintf: Number: 42, Float: 3.14
-sub count: 1
-gsub count: 2
+sub result: baz bar foo
+gsub result: baz bar baz

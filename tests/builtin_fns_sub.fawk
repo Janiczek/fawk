@@ -6,43 +6,43 @@ BEGIN {
     
     # Test with explicit target (replaces first occurrence only, note: doesn't modify the variable)
     text = "foo bar foo baz foo"
-    count = sub("foo", "qux", text)
+    result = sub("foo", "qux", text)
     print "  Original:", "foo bar foo baz foo"
     print "  Pattern: \"foo\", Replacement: \"qux\""
     print "  Variable unchanged:", text
-    print "  Count:", count
+    print "  Result:", result
     
     print ""
     
     # Test with $0 (implicit target)
     $0 = "hello hello world"
-    count2 = sub("hello", "hi")
+    result2 = sub("hello", "hi")
     print "  Using $0:"
     print "  Original: \"hello hello world\""
     print "  Pattern: \"hello\", Replacement: \"hi\""
-    print "  Result:", $0
-    print "  Count:", count2
+    print "  $0 unchanged:", $0
+    print "  Result:", result2
     
     print ""
     
     # Test with no matches
     text3 = "abc def ghi"
-    count3 = sub("xyz", "123", text3)
+    result3 = sub("xyz", "123", text3)
     print "  No matches:"
     print "  Original:", "abc def ghi"
     print "  Pattern: \"xyz\", Replacement: \"123\""
     print "  Variable unchanged:", text3
-    print "  Count:", count3
+    print "  Result:", result3
     
     print ""
     
     # Test with regex pattern
     text4 = "cat bat hat"
-    count4 = sub("[aeiou]", "X", text4)
+    result4 = sub("[aeiou]", "X", text4)
     print "  Regex pattern:"
     print "  Original:", "cat bat hat"
     print "  Pattern: \"[aeiou]\", Replacement: \"X\""
     print "  Variable unchanged:", text4
-    print "  Count:", count4
+    print "  Result:", result4
 }
 
