@@ -8,4 +8,3 @@ Test: int() function with mixed alphanumeric strings
   int("0.5abc"): 0
   int("123"): 123
   int("123.45"): 123
-
