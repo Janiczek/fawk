@@ -385,10 +385,19 @@ class Interpreter:
             raise RuntimeError("filter requires an array")
         
         result = FawkArray()
+        is_assoc = arr.is_associative()
+        new_index = 1  # For regular arrays, start reindexing from 1 (AWK convention)
+        
         for key in arr.keys():
             value = arr.get(key)
             if self.is_truthy(self.call_function(pred, [value])):
-                result.set(key, value)
+                if is_assoc:
+                    # For associative arrays, preserve original keys
+                    result.set(key, value)
+                else:
+                    # For regular arrays, reindex starting from 1
+                    result.set(new_index, value)
+                    new_index += 1
         return result
     
     def builtin_reduce(self, func, initial, arr):
