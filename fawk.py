@@ -14,7 +14,7 @@ def main():
     # Parse command line arguments AWK-style
     parser = argparse.ArgumentParser(
         description='FAWK - Functional AWK Interpreter',
-        usage='%(prog)s [-v var=value] [-f script_file] [script_string] [input_file ...]',
+        usage='%(prog)s [-F fs] [-v var=value] [-f script_file] [script_string] [input_file ...]',
         epilog='Examples:\n'
                '  %(prog)s -f script.fawk input.txt     # script from file\n'
                '  %(prog)s \'{ print $1 }\' input.txt     # inline script\n'
@@ -23,6 +23,8 @@ def main():
                '  %(prog)s -v PREC=100 \'BEGIN {printf("%%.50f\\n", 4*atan2(1,1))}\' # arbitrary precision',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
+    parser.add_argument('-F', '--field-separator', dest='field_separator', metavar='fs',
+                        help='set field separator (FS variable)')
     parser.add_argument('-f', '--file', dest='script_file', metavar='script_file',
                         help='read script from file')
     parser.add_argument('-v', dest='variables', action='append', metavar='var=value',
@@ -74,6 +76,10 @@ def main():
     argv = ['fawk'] + input_files
     argc = len(argv)
     interpreter = Interpreter(argc, argv)
+    
+    # Set field separator from -F flag
+    if args.field_separator is not None:
+        interpreter.FS = args.field_separator
     
     # Set variables from -v flags
     if args.variables:

@@ -1,0 +1,2 @@
+./fawk -F : '{ print $1, $3 }' INPUT
+

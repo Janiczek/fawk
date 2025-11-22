@@ -198,43 +198,54 @@ run_cmdline_test() {
     # Read the command from .cmdtest file (trim trailing newline)
     local test_cmd=$(cat "$cmdtest_file" | tr -d '\n' | sed 's/[[:space:]]*$//')
     
-    # Create test files in this test's directory
-    echo "apple" > "$test_dir/file1.txt"
-    echo "banana" > "$test_dir/file2.txt"
-    echo "cherry" > "$test_dir/file3.txt"
-    echo "one:two:three" > "$test_dir/fields.txt"
-    echo '{ print $0 }' > "$test_dir/script.fawk"
-    echo 'BEGIN { FS = ":" } { print $2 }' > "$test_dir/fields_script.fawk"
+    # Look for input files named after the test (e.g., .input, .input1, .input2, etc.)
+    local input_files=()
+    for input_file in tests/${basename}.input*; do
+        if [ -f "$input_file" ]; then
+            input_files+=("$input_file")
+        fi
+    done
     
     # Check if this is a redirect test (command writes to a file) BEFORE placeholder replacement
+    # Use /tmp/ with unique filenames based on test name so they get cleaned up automatically
     local is_redirect_test=false
     local redirect_file=""
+    local tmp_redirect="/tmp/fawk_test_${basename}_redirect.txt"
+    local tmp_append="/tmp/fawk_test_${basename}_append.txt"
+    local tmp_printf_redirect="/tmp/fawk_test_${basename}_printf_redirect.txt"
+    local tmp_printf_append="/tmp/fawk_test_${basename}_printf_append.txt"
+    
     if [[ "$test_cmd" =~ \"REDIRECT\" ]]; then
         is_redirect_test=true
-        redirect_file="$test_dir/redirect.txt"
+        redirect_file="$tmp_redirect"
     elif [[ "$test_cmd" =~ \"APPEND\" ]]; then
         is_redirect_test=true
-        redirect_file="$test_dir/append.txt"
+        redirect_file="$tmp_append"
     elif [[ "$test_cmd" =~ \"PRINTF_REDIRECT\" ]]; then
         is_redirect_test=true
-        redirect_file="$test_dir/printf_redirect.txt"
+        redirect_file="$tmp_printf_redirect"
     elif [[ "$test_cmd" =~ \"PRINTF_APPEND\" ]]; then
         is_redirect_test=true
-        redirect_file="$test_dir/printf_append.txt"
+        redirect_file="$tmp_printf_append"
     fi
     
-    # Replace placeholders in command with actual paths
-    # Replace longer patterns first to avoid partial matches
-    local cmd="${test_cmd//FIELDS_SCRIPT/$test_dir/fields_script.fawk}"
-    cmd="${cmd//PRINTF_REDIRECT/$test_dir/printf_redirect.txt}"
-    cmd="${cmd//PRINTF_APPEND/$test_dir/printf_append.txt}"
-    cmd="${cmd//FILE1/$test_dir/file1.txt}"
-    cmd="${cmd//FILE2/$test_dir/file2.txt}"
-    cmd="${cmd//FILE3/$test_dir/file3.txt}"
-    cmd="${cmd//FIELDS/$test_dir/fields.txt}"
-    cmd="${cmd//SCRIPT/$test_dir/script.fawk}"
-    cmd="${cmd//REDIRECT/$test_dir/redirect.txt}"
-    cmd="${cmd//APPEND/$test_dir/append.txt}"
+    # Replace INPUT placeholder with actual input file paths from tests directory
+    local cmd="$test_cmd"
+    if [ ${#input_files[@]} -gt 0 ]; then
+        if [ ${#input_files[@]} -eq 1 ]; then
+            cmd="${cmd//INPUT/${input_files[0]}}"
+        else
+            # Multiple input files - replace INPUT with all of them
+            local input_paths="${input_files[*]}"
+            cmd="${cmd//INPUT/$input_paths}"
+        fi
+    fi
+    
+    # Replace redirect placeholders with /tmp/ paths (will be cleaned up by system automatically)
+    cmd="${cmd//PRINTF_REDIRECT/$tmp_printf_redirect}"
+    cmd="${cmd//PRINTF_APPEND/$tmp_printf_append}"
+    cmd="${cmd//REDIRECT/$tmp_redirect}"
+    cmd="${cmd//APPEND/$tmp_append}"
     
     # Determine expected exit code (default 0 if file missing)
     local expected_exit=0
@@ -311,8 +322,13 @@ run_cmdline_test() {
         echo -e "PASSED" > "$result_file"
     fi
     
+    # Clean up temp files
     rm -f "$actual_stdout" "$actual_stderr"
     rm -rf "$test_dir"
+    # Clean up redirect files in /tmp/ if they exist
+    if [ "$is_redirect_test" = "true" ] && [ -n "$redirect_file" ]; then
+        rm -f "$redirect_file"
+    fi
 }
 
 # Export functions and variables for parallel execution

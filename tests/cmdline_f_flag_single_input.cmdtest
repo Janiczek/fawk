@@ -1,2 +1,2 @@
-./fawk -f SCRIPT FILE1
+./fawk -f tests/cmdline_f_flag_single_input.fawk INPUT
 

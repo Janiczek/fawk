@@ -1,2 +1,2 @@
-./fawk 'BEGIN { FS = ":" } { print $2 }' FIELDS
+./fawk 'BEGIN { FS = ":" } { print $2 }' INPUT
 

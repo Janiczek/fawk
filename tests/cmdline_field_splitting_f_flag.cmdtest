@@ -1,2 +1,2 @@
-./fawk -f FIELDS_SCRIPT FIELDS
+./fawk -f tests/cmdline_field_splitting_f_flag.fawk INPUT
 

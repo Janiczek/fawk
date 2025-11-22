@@ -1,2 +1,2 @@
-./fawk -f SCRIPT FILE1 FILE2 FILE3
+./fawk -f tests/cmdline_f_flag_multiple_input.fawk INPUT
 
