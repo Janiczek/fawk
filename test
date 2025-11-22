@@ -29,6 +29,15 @@ fi
 RESULTS_DIR=$(mktemp -d)
 trap "rm -rf $RESULTS_DIR" EXIT
 
+# Helper function to print progress with immediate flush
+print_progress() {
+    if command -v stdbuf >/dev/null 2>&1; then
+        stdbuf -o0 printf "%s" "$1"
+    else
+        printf "%s" "$1"
+    fi
+}
+
 run_test() {
     local script="$1"
     local basename="$2"
@@ -126,6 +135,7 @@ run_test() {
     if [ "$test_failed" = "true" ]; then
         echo -e "FAILED" > "$result_file"
         echo -e "$output" >> "$result_file"
+        print_progress "F"
         rm -f "$actual_stdout" "$actual_stderr"
         return
     fi
@@ -135,6 +145,7 @@ run_test() {
         if ! command -v gawk &> /dev/null; then
             echo -e "PASSED" > "$result_file"
             echo -e "${YELLOW}⚠ WARNING${NC}: $basename - gawk not found, skipping compatibility check" >> "$result_file"
+            print_progress "."
             rm -f "$actual_stdout" "$actual_stderr"
             return
         fi
@@ -174,6 +185,7 @@ run_test() {
             echo -e "  FAWK and GAWK stdout outputs differ:" >> "$result_file"
             diff -u "$actual_stdout" "$gawk_stdout" | head -20 >> "$result_file"
             echo "" >> "$result_file"
+            print_progress "F"
             rm -f "$gawk_stdout" "$gawk_stderr" "$actual_stdout" "$actual_stderr"
             return
         fi
@@ -182,6 +194,7 @@ run_test() {
     fi
     
     echo -e "PASSED" > "$result_file"
+    print_progress "."
     rm -f "$actual_stdout" "$actual_stderr"
 }
 
@@ -281,8 +294,10 @@ run_cmdline_test() {
     if [ "$test_failed" = "true" ]; then
         echo -e "FAILED" > "$result_file"
         echo -e "$output" >> "$result_file"
+        print_progress "F"
     else
         echo -e "PASSED" > "$result_file"
+        print_progress "."
     fi
     
     # Clean up temp files
@@ -291,16 +306,22 @@ run_cmdline_test() {
 }
 
 # Export functions and variables for parallel execution
-export -f run_test run_cmdline_test
+export -f run_test run_cmdline_test print_progress
 export RED GREEN YELLOW NC RESULTS_DIR
 
 # Discover all file-based tests
 TEST_LIST=()
+declare -A SEEN_TESTS
 for script in tests/*.fawk tests/*.awk; do
     if [ -f "$script" ]; then
         # Extract basename without extension
         basename=$(basename "$script" .fawk)
         basename=$(basename "$basename" .awk)
+        
+        # Skip if we've already seen this test name
+        if [ -n "${SEEN_TESTS[$basename]}" ]; then
+            continue
+        fi
         
         # Find all matching input files using glob pattern
         input_files=()
@@ -311,6 +332,7 @@ for script in tests/*.fawk tests/*.awk; do
         done
         
         TEST_LIST+=("file|$script|$basename|${input_files[*]}")
+        SEEN_TESTS[$basename]=1
     fi
 done
 
@@ -319,7 +341,14 @@ for cmdtest_file in tests/*.cmdtest; do
     if [ -f "$cmdtest_file" ]; then
         # Extract basename without extension
         basename=$(basename "$cmdtest_file" .cmdtest)
+        
+        # Skip if we've already seen this test name
+        if [ -n "${SEEN_TESTS[$basename]}" ]; then
+            continue
+        fi
+        
         TEST_LIST+=("cmdline|$cmdtest_file|$basename")
+        SEEN_TESTS[$basename]=1
     fi
 done
 
@@ -358,6 +387,7 @@ while [ $RUNNING -gt 0 ]; do
 done
 
 # Collect and display results
+printf "\n"
 E2E_PASSED=0
 E2E_FAILED=0
 CMDLINE_PASSED=0
