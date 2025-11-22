@@ -1,0 +1,15 @@
+# Test: Assignment should copy arrays instead of referencing them
+
+BEGIN {
+  todos = ["x" => ["used" => 1, "avai" => 2]]
+
+  todo = todos["x"]
+
+  delete todo["used"]
+
+  delete todo["avai"]
+
+  print("todo:", todo)
+  print("todos[x]:", todos["x"])
+}
+

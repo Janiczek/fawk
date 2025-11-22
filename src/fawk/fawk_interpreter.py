@@ -1740,6 +1740,10 @@ class Interpreter:
         value = self.eval(node.value)
         
         if isinstance(node.target, Identifier):
+            # Copy FawkArray objects when assigning to variables to avoid reference sharing
+            if isinstance(value, FawkArray):
+                value = value.copy()
+            
             name = node.target.name
             
             # Check if it's a built-in variable
