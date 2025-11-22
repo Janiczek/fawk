@@ -324,6 +324,7 @@ class Interpreter:
             ('reduce', 'func, initial, array', 'value'),
             ('sum', 'array', 'number'),
             ('is_associative', 'array', '0|1'),
+            ('keys', 'array', 'array'),
             ('set_union', 'set1, set2', 'array'),
             ('set_intersection', 'set1, set2', 'array'),
             ('set_diff', 'set1, set2', 'array'),
@@ -603,6 +604,19 @@ class Interpreter:
         if not isinstance(arr, FawkArray):
             return 0  # Not an array, so not associative (but also not regular)
         return 1 if arr.is_associative() else 0
+    
+    def builtin_keys(self, arr):
+        """Return a new array containing all keys from the given array (1-indexed)"""
+        if not isinstance(arr, FawkArray):
+            raise RuntimeError("keys() requires an array as argument")
+        
+        result = FawkArray()
+        # Get keys in sorted order (numeric first, then string)
+        keys_list = arr.keys()
+        # Store keys as values in a 1-indexed array
+        for i, key in enumerate(keys_list, 1):
+            result.set(i, key)
+        return result
     
     def builtin_set_union(self, set1, set2):
         """Return a new set containing all elements from both set1 and set2"""

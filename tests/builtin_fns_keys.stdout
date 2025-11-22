@@ -1,0 +1,15 @@
+Test: keys() function
+--------------------------------------
+  Set:  ["a" => 1, "b" => 1, "c" => 1]
+  Keys:  ["a", "b", "c"]
+
+  Empty array keys:  []
+
+  Regular array:  ["first", "second", "third"]
+  Keys:  [1, 2, 3]
+
+  Mixed array:  [1 => "one", "two" => 2]
+  Keys:  [1, "two"]
+
+  Sorting test for:  [10 => "ten", 2 => "two", "zebra" => "z", "apple" => "a", 1 => "one"]
+  Keys:  [1, 2, 10, "apple", "zebra"]

@@ -73,15 +73,15 @@ BEGIN {
     }
     print ""
     
-    print "=== Set Union ==="
+    print "=== Set Operations ==="
     set1 = ["a" => 1, "b" => 1, "c" => 1]
     set2 = ["b" => 1, "c" => 1, "d" => 1]
     
-    print "Set1: ", set1
-    print "Set2: ", set2
+    print "Set1: ", keys(set1)
+    print "Set2: ", keys(set2)
 
-    print "Union: ", set_union(set1, set2)
-    print "Intersection: ", set_intersection(set1, set2)
-    print "Difference: ", set_diff(set1, set2)
+    print "Union: ", keys(set_union(set1, set2))
+    print "Intersection: ", keys(set_intersection(set1, set2))
+    print "Difference: ", keys(set_diff(set1, set2))
 }
 

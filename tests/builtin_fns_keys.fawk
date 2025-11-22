@@ -1,0 +1,34 @@
+# Test: keys() function
+
+BEGIN {
+    print "Test: keys() function"
+    print "--------------------------------------"
+    
+    # Test with associative array (set)
+    set = ["a" => 1, "b" => 1, "c" => 1]
+    print "  Set: ", set
+    print "  Keys: ", keys(set)
+    print ""
+    
+    # Test with empty array
+    print "  Empty array keys: ", keys([])
+    print ""
+    
+    # Test with regular array
+    arr = ["first", "second", "third"]
+    print "  Regular array: ", arr
+    print "  Keys: ", keys(arr)
+    print ""
+    
+    # Test with mixed numeric and string keys
+    mixed = [1 => "one", "two" => 2]
+    print "  Mixed array: ", mixed
+    print "  Keys: ", keys(mixed)
+    print ""
+    
+    # Test that keys are sorted (numeric first, then string)
+    sorted = [10 => "ten", 2 => "two", "zebra" => "z", "apple" => "a", 1 => "one"]
+    print "  Sorting test for: ", sorted
+    print "  Keys: ", keys(sorted)
+}
+
