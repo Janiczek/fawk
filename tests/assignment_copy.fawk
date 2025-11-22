@@ -13,3 +13,48 @@ BEGIN {
   print("todos[x]:", todos["x"])
 }
 
+BEGIN {
+  todo = [
+    "used" => [0 => [1 => 123]],
+    "avai" => [0 => [2 => 456]],
+    "from_x" => 0,
+    "from_y" => 1,
+    "to_x" => 0,
+    "to_y" => 2,
+  ]
+
+  # old
+  print(todo["used"][todo["from_x"]][todo["from_y"]])
+  print(todo["avai"][todo["to_x"]][todo["to_y"]])
+
+  [used2,avai2] = move(todo)
+
+  # new != old
+  print(todo["used"] != used2)
+  print(todo["avai"] != avai2)
+
+  # new changed
+  print(used2[todo["from_x"]][todo["from_y"]])
+  print(avai2[todo["to_x"]][todo["to_y"]])
+
+  # old didn't change
+  print(todo["used"][todo["from_x"]][todo["from_y"]])
+  print(todo["avai"][todo["to_x"]][todo["to_y"]])
+}
+
+function move(todo) {
+  from_x = todo["from_x"]
+  from_y = todo["from_y"]
+  to_x   = todo["to_x"]
+  to_y   = todo["to_y"]
+
+  used_from = todo["used"][from_x][from_y]
+  avai_to = todo["avai"][to_x][to_y]
+  new_used = todo["used"]
+  new_avai = todo["avai"]
+
+  new_used[from_x][from_y] = 0
+  new_avai[to_x][to_y] = avai_to - used_from
+
+  return [new_used, new_avai]
+}

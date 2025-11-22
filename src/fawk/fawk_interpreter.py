@@ -1822,9 +1822,9 @@ class Interpreter:
         value = self.eval(node.value)
         
         if isinstance(node.target, Identifier):
-            # Use copy-on-write for arrays when assigning to variables
+            # Create a deep copy of arrays when assigning to variables
             if isinstance(value, FawkArray):
-                value = value.cow_copy()
+                value = value.copy()
             
             name = node.target.name
             
@@ -2016,6 +2016,10 @@ class Interpreter:
             if isinstance(pattern_elem, Identifier):
                 # Simple identifier: assign the value
                 name = pattern_elem.name
+                
+                # Create a deep copy of arrays when assigning (same as regular assignment)
+                if isinstance(array_value, FawkArray):
+                    array_value = array_value.copy()
                 
                 # Use same scoping rules as regular assignment
                 if name in self.globals_declared:
