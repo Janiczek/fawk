@@ -1,0 +1,11 @@
+# Test: Calling something that's not a function - failure
+
+BEGIN {
+    # Assign a number to a variable
+    x = 42
+    
+    # This should fail - trying to call a variable that's not a function
+    result = x()
+    print result
+}
+

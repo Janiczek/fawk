@@ -1997,6 +1997,33 @@ class Interpreter:
     
     def eval_FunctionCall(self, node: FunctionCall) -> Any:
         func = self.eval(node.func)
+        
+        # Check if function was not found (returns 0 for undefined identifiers)
+        # Only check this if the function expression was an Identifier
+        # We need to distinguish between:
+        # 1. Identifier doesn't exist (undefined function) -> "Function 'x' is not defined"
+        # 2. Identifier exists but is not callable (e.g., variable with value 0) -> "Not a function: x"
+        if func == 0 and isinstance(node.func, Identifier):
+            name = node.func.name
+            # Check if this identifier exists as a variable
+            variable_exists = False
+            if self.in_function:
+                if name in self.globals_declared:
+                    variable_exists = name in self.global_env.vars
+                elif name in self.current_env.vars:
+                    variable_exists = True
+                elif self.current_closure_env != self.global_env:
+                    variable_exists = self.current_env.has(name)
+            else:
+                variable_exists = (name in self.current_env.vars or name in self.global_env.vars)
+            
+            # Also check if it exists as a function
+            function_exists = name in self.functions
+            
+            # If neither variable nor function exists, it's an undefined function
+            if not variable_exists and not function_exists:
+                self.error(f"Function '{name}' is not defined")
+        
         # Special handling for match() and split() - if first argument is a Regex node,
         # extract the pattern string instead of evaluating it to a boolean
         args = []
@@ -2008,9 +2035,9 @@ class Interpreter:
             else:
                 args.append(self.eval(arg_node))
         
-        return self.call_function(func, args)
+        return self.call_function(func, args, node.func)
     
-    def call_function(self, func, args):
+    def call_function(self, func, args, func_node=None):
         if callable(func) and not isinstance(func, UserFunction):
             # Built-in function
             # Check for common AWK-style function calls that need better error messages
@@ -2085,7 +2112,11 @@ class Interpreter:
             
             return result
         else:
-            self.error(f"Not a function: {func}")
+            # Provide better error message if we know the function name
+            if func_node and isinstance(func_node, Identifier):
+                self.error(f"Not a function: {func_node.name}")
+            else:
+                self.error(f"Not a function: {func}")
     
     def eval_Lambda(self, node: Lambda) -> UserFunction:
         return UserFunction(node.params, node.body, self.current_env)
