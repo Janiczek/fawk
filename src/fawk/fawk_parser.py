@@ -734,7 +734,17 @@ class Parser:
     def parse_additive(self) -> ASTNode:
         left = self.parse_multiplicative()
         
-        while self.current().type in [TokenType.PLUS, TokenType.MINUS]:
+        while True:
+            # Peek ahead past newlines to see if there's a + or - operator
+            saved_pos = self.pos
+            while self.current().type == TokenType.NEWLINE:
+                self.advance()
+            has_operator = self.current().type in [TokenType.PLUS, TokenType.MINUS]
+            if not has_operator:
+                # No operator found, restore position (undo newline skipping)
+                self.pos = saved_pos
+                break
+            # Operator found, keep the newlines skipped
             op = self.advance().value
             right = self.parse_multiplicative()
             left = BinaryOp(op, left, right)
@@ -744,7 +754,17 @@ class Parser:
     def parse_multiplicative(self) -> ASTNode:
         left = self.parse_power()
         
-        while self.current().type in [TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.MODULO]:
+        while True:
+            # Peek ahead past newlines to see if there's a *, /, or % operator
+            saved_pos = self.pos
+            while self.current().type == TokenType.NEWLINE:
+                self.advance()
+            has_operator = self.current().type in [TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.MODULO]
+            if not has_operator:
+                # No operator found, restore position (undo newline skipping)
+                self.pos = saved_pos
+                break
+            # Operator found, keep the newlines skipped
             op = self.advance().value
             right = self.parse_power()
             left = BinaryOp(op, left, right)
@@ -995,9 +1015,11 @@ class Parser:
             first_expr = self.parse_expression()
             
             # Check if it's an associative array
+            self.skip_newlines()  # Allow newlines before =>
             if self.current().type == TokenType.ARROW:
                 is_assoc = True
                 self.advance()
+                self.skip_newlines()  # Allow newlines after =>
                 value_expr = self.parse_expression()
                 pairs.append((first_expr, value_expr))
                 
@@ -1007,7 +1029,9 @@ class Parser:
                     if self.current().type == TokenType.RBRACKET:
                         break  # Trailing comma allowed
                     key_expr = self.parse_expression()
+                    self.skip_newlines()  # Allow newlines before =>
                     self.expect(TokenType.ARROW)
+                    self.skip_newlines()  # Allow newlines after =>
                     value_expr = self.parse_expression()
                     pairs.append((key_expr, value_expr))
             else:

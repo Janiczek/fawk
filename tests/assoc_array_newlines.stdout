@@ -1,0 +1,6 @@
+arr[foo] = 4
+arr2[a] = 10
+arr2[b] = 20
+arr2[c] = 30
+arr3[test] = 100
+arr4[result] = 7

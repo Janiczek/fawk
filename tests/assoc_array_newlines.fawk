@@ -1,0 +1,48 @@
+# Test: Newlines in associative array literals
+
+BEGIN {
+    # Test newlines before and after =>
+    arr = [
+
+            "foo" =>
+
+              1 == 2
+
+                ? 3
+
+                : 4,
+
+    ]
+    print "arr[foo] =", arr["foo"]
+    
+    # Test multiple entries with newlines
+    arr2 = [
+        "a" =>
+            10,
+        "b" =>
+            20,
+        "c" =>
+            30
+    ]
+    print "arr2[a] =", arr2["a"]
+    print "arr2[b] =", arr2["b"]
+    print "arr2[c] =", arr2["c"]
+    
+    # Test newlines in key expression
+    x = "test"
+    arr3 = [
+        x
+            =>
+        100
+    ]
+    print "arr3[test] =", arr3["test"]
+    
+    # Test complex value with newlines
+    arr4 = [
+        "result" =>
+            1 + 2
+                * 3
+    ]
+    print "arr4[result] =", arr4["result"]
+}
+
