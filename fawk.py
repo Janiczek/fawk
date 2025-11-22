@@ -16,8 +16,7 @@ def main():
         description='FAWK - Functional AWK Interpreter',
         usage='%(prog)s [-v var=value] [-f script_file] [script_string] [input_file ...]',
         epilog='Examples:\n'
-               '  %(prog)s script.fawk input.txt        # script from file\n'
-               '  %(prog)s -f script.fawk input.txt     # explicit -f flag\n'
+               '  %(prog)s -f script.fawk input.txt     # script from file\n'
                '  %(prog)s \'{ print $1 }\' input.txt     # inline script\n'
                '  %(prog)s -f script.fawk f1.txt f2.txt # multiple inputs\n'
                '  cat file.txt | %(prog)s \'{ print $1 }\' # piped input\n'
@@ -47,25 +46,9 @@ def main():
         # All remaining args are input files
         input_files = args.args
     elif args.args:
-        # First arg could be either a script file or inline script
-        # Check if it's a file first (backward compatibility)
-        import os
-        if os.path.isfile(args.args[0]):
-            # Treat as script file: fawk script.fawk input.txt
-            try:
-                with open(args.args[0], 'r') as f:
-                    source = f.read()
-            except FileNotFoundError:
-                print(f"Error: Script file '{args.args[0]}' not found", file=sys.stderr)
-                sys.exit(1)
-            except IOError as e:
-                print(f"Error reading script file: {e}", file=sys.stderr)
-                sys.exit(1)
-            input_files = args.args[1:]
-        else:
-            # Treat as inline script: fawk 'BEGIN { print "hello" }' input.txt
-            source = args.args[0]
-            input_files = args.args[1:]
+        # Treat first arg as inline script: fawk 'BEGIN { print "hello" }' input.txt
+        source = args.args[0]
+        input_files = args.args[1:]
     else:
         parser.print_help(file=sys.stderr)
         sys.exit(1)

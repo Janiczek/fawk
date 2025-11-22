@@ -63,9 +63,9 @@ run_test() {
         fi
         
         if [ ${#input_files[@]} -gt 0 ]; then
-            ./fawk "$script" "${input_files[@]}"
+            ./fawk -f "$script" "${input_files[@]}"
         else
-            ./fawk "$script"
+            ./fawk -f "$script"
         fi
     ) > "$actual_stdout" 2> "$actual_stderr" || exit_code=$?
     
