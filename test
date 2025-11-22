@@ -12,17 +12,14 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Determine number of parallel jobs (use CPU count, but cap at 8)
+# Determine number of parallel jobs (use CPU count)
 if command -v nproc &> /dev/null; then
     MAX_JOBS=$(nproc)
 elif [ -f /proc/cpuinfo ]; then
     MAX_JOBS=$(grep -c processor /proc/cpuinfo)
 else
     # macOS fallback
-    MAX_JOBS=$(sysctl -n hw.ncpu 2>/dev/null || echo 4)
-fi
-if [ "$MAX_JOBS" -gt 8 ]; then
-    MAX_JOBS=8
+    MAX_JOBS=$(sysctl -n hw.ncpu 2>/dev/null || echo 8)
 fi
 
 # Results directory for parallel execution
