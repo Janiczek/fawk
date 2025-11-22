@@ -1,9 +1,0 @@
-Test: Optional braces in if/else
---------------------------------------
-  x is greater than 3 (no braces)
-  y is not greater than 3 (no braces)
-  z is between 5 and 15 (nested, no braces)
-  After if (r < min) min = r, min = 0.5
-  a is odd (no braces)
-  b is positive
-  (braces required for multiple statements)

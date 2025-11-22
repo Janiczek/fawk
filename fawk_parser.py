@@ -268,7 +268,16 @@ class Parser:
                 self.advance()
                 iterable = self.parse_expression()
                 self.expect(TokenType.RPAREN)
-                body = self.parse_block()
+                # Check if braces are present - if not, parse single statement
+                if self.current().type == TokenType.LBRACE:
+                    body = self.parse_block()
+                else:
+                    # Parse single statement and wrap in Block
+                    stmt = self.parse_statement()
+                    if stmt is None:
+                        self.error("Expected statement after for-in loop")
+                    from fawk_ast import Block
+                    body = Block([stmt])
                 return ForInStmt(var_name, iterable, body)
             else:
                 # Not for-in, restore position and parse as C-style for
@@ -293,7 +302,16 @@ class Parser:
             update = self.parse_expression()
         self.expect(TokenType.RPAREN)
         
-        body = self.parse_block()
+        # Check if braces are present - if not, parse single statement
+        if self.current().type == TokenType.LBRACE:
+            body = self.parse_block()
+        else:
+            # Parse single statement and wrap in Block
+            stmt = self.parse_statement()
+            if stmt is None:
+                self.error("Expected statement after for loop")
+            from fawk_ast import Block
+            body = Block([stmt])
         return ForStmt(init, condition, update, body)
     
     def parse_while_stmt(self) -> WhileStmt:
@@ -301,13 +319,31 @@ class Parser:
         self.expect(TokenType.LPAREN)
         condition = self.parse_expression()
         self.expect(TokenType.RPAREN)
-        body = self.parse_block()
+        # Check if braces are present - if not, parse single statement
+        if self.current().type == TokenType.LBRACE:
+            body = self.parse_block()
+        else:
+            # Parse single statement and wrap in Block
+            stmt = self.parse_statement()
+            if stmt is None:
+                self.error("Expected statement after while condition")
+            from fawk_ast import Block
+            body = Block([stmt])
         
         return WhileStmt(condition, body)
     
     def parse_do_while_stmt(self) -> DoWhileStmt:
         self.expect(TokenType.DO)
-        body = self.parse_block()
+        # Check if braces are present - if not, parse single statement
+        if self.current().type == TokenType.LBRACE:
+            body = self.parse_block()
+        else:
+            # Parse single statement and wrap in Block
+            stmt = self.parse_statement()
+            if stmt is None:
+                self.error("Expected statement after do")
+            from fawk_ast import Block
+            body = Block([stmt])
         self.expect(TokenType.WHILE)
         self.expect(TokenType.LPAREN)
         condition = self.parse_expression()

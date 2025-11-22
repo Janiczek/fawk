@@ -1,0 +1,103 @@
+# Test: Optional braces in control flow statements (if, for, while, do-while)
+
+BEGIN {
+    print "Test: Optional braces in control flow"
+    print "--------------------------------------"
+    
+    # ===== IF/ELSE STATEMENTS =====
+    print "If/else without braces:"
+    
+    # If without braces
+    x = 5
+    if (x > 3) print "  x is greater than 3 (no braces)"
+    
+    # If-else without braces
+    y = 2
+    if (y > 3) print "  y is greater than 3"
+    else print "  y is not greater than 3 (no braces)"
+    
+    # Nested if without braces
+    z = 10
+    if (z > 5)
+        if (z < 15) print "  z is between 5 and 15 (nested, no braces)"
+    
+    # If with assignment
+    min = 1.0
+    r = 0.5
+    if (r < min) min = r
+    print "  After if (r < min) min = r, min =", min
+    
+    # If-else with different statement types
+    a = 7
+    if (a % 2 == 0) print "  a is even"
+    else print "  a is odd (no braces)"
+    
+    # Multiple statements still require braces
+    b = 4
+    if (b > 0) {
+        print "  b is positive"
+        print "  (braces required for multiple statements)"
+    }
+    print ""
+    
+    # ===== FOR LOOPS =====
+    print "For loops without braces:"
+    
+    # For-in loop without braces
+    arr[1] = "a"
+    arr[2] = "b"
+    arr[3] = "c"
+    for (i in arr) print "  arr[" i "] =", arr[i]
+    print ""
+    
+    # C-style for loop without braces
+    for (j = 0; j < 3; j = j + 1) print "  j =", j
+    print ""
+    
+    # Nested loops without braces
+    print "Nested loops without braces:"
+    for (x = 0; x < 2; x = x + 1)
+        for (y = 0; y < 2; y = y + 1)
+            print "  x =", x, "y =", y
+    print ""
+    
+    # For-in with assignment
+    sum = 0
+    nums[1] = 10
+    nums[2] = 20
+    nums[3] = 30
+    for (n in nums) sum = sum + nums[n]
+    print "  For-in with assignment, sum =", sum
+    print ""
+    
+    # ===== WHILE LOOPS =====
+    print "While loops without braces:"
+    
+    # While loop without braces (single statement)
+    k = 0
+    while (k < 3) ++k
+    print "  k =", k
+    print ""
+    
+    # While with increment (single statement)
+    count = 0
+    while (count < 3) count = count + 1
+    print "  Final count =", count
+    print ""
+    
+    # ===== DO-WHILE LOOPS =====
+    print "Do-while loops without braces:"
+    
+    # Do-while loop without braces (single statement)
+    m = 0
+    do ++m while (m < 3)
+    print "  m =", m
+    print ""
+    
+    # ===== MULTIPLE STATEMENTS REQUIRE BRACES =====
+    print "Multiple statements require braces:"
+    for (i = 0; i < 2; i = i + 1) {
+        print "  i =", i
+        print "  (braces required for multiple statements)"
+    }
+}

@@ -1,0 +1,41 @@
+Test: Optional braces in control flow
+--------------------------------------
+If/else without braces:
+  x is greater than 3 (no braces)
+  y is not greater than 3 (no braces)
+  z is between 5 and 15 (nested, no braces)
+  After if (r < min) min = r, min = 0.5
+  a is odd (no braces)
+  b is positive
+  (braces required for multiple statements)
+
+For loops without braces:
+  arr[1] = a
+  arr[2] = b
+  arr[3] = c
+
+  j = 0
+  j = 1
+  j = 2
+
+Nested loops without braces:
+  x = 0 y = 0
+  x = 0 y = 1
+  x = 1 y = 0
+  x = 1 y = 1
+
+  For-in with assignment, sum = 60
+
+While loops without braces:
+  k = 3
+
+  Final count = 3
+
+Do-while loops without braces:
+  m = 3
+
+Multiple statements require braces:
+  i = 0
+  (braces required for multiple statements)
+  i = 1
+  (braces required for multiple statements)
