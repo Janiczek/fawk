@@ -1,0 +1,15 @@
+END {
+  part2(used, avai)
+}
+
+function part2(used,avai) {
+  go(used,avai)
+}
+
+function go(used,avai) {
+  go_aux(first_todos)
+}
+
+function go_aux(todos) {
+  print("TODO pick a todo or complain and crash")
+}

@@ -223,10 +223,11 @@ class FawkArray:
 
 
 class UserFunction:
-    def __init__(self, params: List[str], body: Block, closure_env: Environment):
+    def __init__(self, params: List[str], body: Block, closure_env: Environment, is_lambda: bool = False):
         self.params = params
         self.body = body
         self.closure_env = closure_env
+        self.is_lambda = is_lambda
 
 
 class Interpreter:
@@ -2098,7 +2099,7 @@ class Interpreter:
             try:
                 result = self.eval(func.body)
                 # For lambdas with single expression, implicitly return the value
-                if isinstance(func.body, Block) and len(func.body.statements) == 1:
+                if func.is_lambda and isinstance(func.body, Block) and len(func.body.statements) == 1:
                     stmt = func.body.statements[0]
                     if isinstance(stmt, ExprStmt):
                         # Implicit return for single-expression lambdas
@@ -2119,7 +2120,7 @@ class Interpreter:
                 self.error(f"Not a function: {func}")
     
     def eval_Lambda(self, node: Lambda) -> UserFunction:
-        return UserFunction(node.params, node.body, self.current_env)
+        return UserFunction(node.params, node.body, self.current_env, is_lambda=True)
     
     def eval_Pipeline(self, node: Pipeline) -> Any:
         left_value = self.eval(node.left)
