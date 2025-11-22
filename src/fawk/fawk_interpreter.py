@@ -187,6 +187,39 @@ class FawkArray:
         
         items = [f"{format_key(k)} => {format_value(v)}" for k, v in self.data.items()]
         return "[" + ", ".join(items) + "]"
+    
+    def __eq__(self, other):
+        """Structural comparison of arrays"""
+        if not isinstance(other, FawkArray):
+            return False
+        
+        # Compare keys
+        if set(self.data.keys()) != set(other.data.keys()):
+            return False
+        
+        # Compare values recursively
+        for key in self.data.keys():
+            self_val = self.data[key]
+            other_val = other.data[key]
+            
+            # Recursive comparison for nested arrays
+            if isinstance(self_val, FawkArray) and isinstance(other_val, FawkArray):
+                if self_val != other_val:
+                    return False
+            else:
+                # For non-array values, use standard comparison
+                # Handle numeric comparison (1 == 1.0 should be True)
+                if isinstance(self_val, (int, float)) and isinstance(other_val, (int, float)):
+                    if self_val != other_val:
+                        return False
+                elif self_val != other_val:
+                    return False
+        
+        return True
+    
+    def __ne__(self, other):
+        """Structural inequality comparison"""
+        return not self.__eq__(other)
 
 
 class UserFunction:

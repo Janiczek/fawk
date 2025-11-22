@@ -1,0 +1,199 @@
+# Test: Array Structural Comparison
+# Tests that arrays can be compared structurally using == and !=
+
+BEGIN {
+    print "=== Array Comparison Tests ==="
+    print ""
+    
+    # 1. Simple regular arrays - equal
+    print "1. Simple regular arrays (equal):"
+    arr1 = [1, 2, 3]
+    arr2 = [1, 2, 3]
+    if (arr1 == arr2) {
+        print "   [1, 2, 3] == [1, 2, 3]: true"
+    } else {
+        print "   [1, 2, 3] == [1, 2, 3]: false"
+    }
+    if (arr1 != arr2) {
+        print "   [1, 2, 3] != [1, 2, 3]: true"
+    } else {
+        print "   [1, 2, 3] != [1, 2, 3]: false"
+    }
+    print ""
+    
+    # 2. Simple regular arrays - different values
+    print "2. Simple regular arrays (different values):"
+    arr3 = [1, 2, 3]
+    arr4 = [1, 2, 4]
+    if (arr3 == arr4) {
+        print "   [1, 2, 3] == [1, 2, 4]: true"
+    } else {
+        print "   [1, 2, 3] == [1, 2, 4]: false"
+    }
+    if (arr3 != arr4) {
+        print "   [1, 2, 3] != [1, 2, 4]: true"
+    } else {
+        print "   [1, 2, 3] != [1, 2, 4]: false"
+    }
+    print ""
+    
+    # 3. Simple regular arrays - different lengths
+    print "3. Simple regular arrays (different lengths):"
+    arr5 = [1, 2, 3]
+    arr6 = [1, 2]
+    if (arr5 == arr6) {
+        print "   [1, 2, 3] == [1, 2]: true"
+    } else {
+        print "   [1, 2, 3] == [1, 2]: false"
+    }
+    if (arr5 != arr6) {
+        print "   [1, 2, 3] != [1, 2]: true"
+    } else {
+        print "   [1, 2, 3] != [1, 2]: false"
+    }
+    print ""
+    
+    # 4. Empty arrays
+    print "4. Empty arrays:"
+    arr7 = []
+    arr8 = []
+    if (arr7 == arr8) {
+        print "   [] == []: true"
+    } else {
+        print "   [] == []: false"
+    }
+    if (arr7 != arr8) {
+        print "   [] != []: true"
+    } else {
+        print "   [] != []: false"
+    }
+    print ""
+    
+    # 5. Associative arrays - equal
+    print "5. Associative arrays (equal):"
+    arr9 = ["a" => 1, "b" => 2, "c" => 3]
+    arr10 = ["a" => 1, "b" => 2, "c" => 3]
+    if (arr9 == arr10) {
+        print "   [\"a\" => 1, \"b\" => 2, \"c\" => 3] == [\"a\" => 1, \"b\" => 2, \"c\" => 3]: true"
+    } else {
+        print "   [\"a\" => 1, \"b\" => 2, \"c\" => 3] == [\"a\" => 1, \"b\" => 2, \"c\" => 3]: false"
+    }
+    print ""
+    
+    # 6. Associative arrays - different values
+    print "6. Associative arrays (different values):"
+    arr11 = ["a" => 1, "b" => 2]
+    arr12 = ["a" => 1, "b" => 3]
+    if (arr11 == arr12) {
+        print "   [\"a\" => 1, \"b\" => 2] == [\"a\" => 1, \"b\" => 3]: true"
+    } else {
+        print "   [\"a\" => 1, \"b\" => 2] == [\"a\" => 1, \"b\" => 3]: false"
+    }
+    print ""
+    
+    # 7. Associative arrays - different keys
+    print "7. Associative arrays (different keys):"
+    arr13 = ["a" => 1, "b" => 2]
+    arr14 = ["a" => 1, "c" => 2]
+    if (arr13 == arr14) {
+        print "   [\"a\" => 1, \"b\" => 2] == [\"a\" => 1, \"c\" => 2]: true"
+    } else {
+        print "   [\"a\" => 1, \"b\" => 2] == [\"a\" => 1, \"c\" => 2]: false"
+    }
+    print ""
+    
+    # 8. Nested arrays - equal
+    print "8. Nested arrays (equal):"
+    arr15 = [[1, 2], [3, 4]]
+    arr16 = [[1, 2], [3, 4]]
+    if (arr15 == arr16) {
+        print "   [[1, 2], [3, 4]] == [[1, 2], [3, 4]]: true"
+    } else {
+        print "   [[1, 2], [3, 4]] == [[1, 2], [3, 4]]: false"
+    }
+    print ""
+    
+    # 9. Nested arrays - different values
+    print "9. Nested arrays (different values):"
+    arr17 = [[1, 2], [3, 4]]
+    arr18 = [[1, 2], [3, 5]]
+    if (arr17 == arr18) {
+        print "   [[1, 2], [3, 4]] == [[1, 2], [3, 5]]: true"
+    } else {
+        print "   [[1, 2], [3, 4]] == [[1, 2], [3, 5]]: false"
+    }
+    print ""
+    
+    # 10. Deeply nested arrays
+    print "10. Deeply nested arrays:"
+    arr19 = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]
+    arr20 = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]
+    arr21 = [[[1, 2], [3, 4]], [[5, 6], [7, 9]]]
+    if (arr19 == arr20) {
+        print "   Deeply nested equal: true"
+    } else {
+        print "   Deeply nested equal: false"
+    }
+    if (arr19 == arr21) {
+        print "   Deeply nested different: true"
+    } else {
+        print "   Deeply nested different: false"
+    }
+    print ""
+    
+    # 11. Mixed types in arrays
+    print "11. Mixed types in arrays:"
+    arr22 = [1, "two", 3.0]
+    arr23 = [1, "two", 3.0]
+    arr24 = [1, "two", 3.1]
+    if (arr22 == arr23) {
+        print "   [1, \"two\", 3.0] == [1, \"two\", 3.0]: true"
+    } else {
+        print "   [1, \"two\", 3.0] == [1, \"two\", 3.0]: false"
+    }
+    if (arr22 == arr24) {
+        print "   [1, \"two\", 3.0] == [1, \"two\", 3.1]: true"
+    } else {
+        print "   [1, \"two\", 3.0] == [1, \"two\", 3.1]: false"
+    }
+    print ""
+    
+    # 12. Arrays with numeric keys (0-based)
+    print "12. Arrays with numeric keys (0-based):"
+    arr25 = [0 => "zero", 1 => "one", 2 => "two"]
+    arr26 = [0 => "zero", 1 => "one", 2 => "two"]
+    arr27 = [0 => "zero", 1 => "one", 2 => "three"]
+    if (arr25 == arr26) {
+        print "   0-based arrays equal: true"
+    } else {
+        print "   0-based arrays equal: false"
+    }
+    if (arr25 == arr27) {
+        print "   0-based arrays different: true"
+    } else {
+        print "   0-based arrays different: false"
+    }
+    print ""
+    
+    # 13. Comparison in conditional statements
+    print "13. Comparison in conditional statements:"
+    arr28 = [10, 20, 30]
+    arr29 = [10, 20, 30]
+    arr30 = [10, 20, 31]
+    
+    if (arr28 == arr29) {
+        print "   (==) comparison in conditional: correct"
+    } else {
+        print "   (==) comparison in conditional: INCORRECT"
+    }
+    
+    if (arr28 != arr30) {
+        print "   (!=) comparison in conditional: correct"
+    } else {
+        print "   (!=) comparison in conditional: INCORRECT"
+    }
+    print ""
+    
+    print "=== All Comparison Tests Complete ==="
+}
+

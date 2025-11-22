@@ -1,0 +1,50 @@
+=== Array Comparison Tests ===
+
+1. Simple regular arrays (equal):
+   [1, 2, 3] == [1, 2, 3]: true
+   [1, 2, 3] != [1, 2, 3]: false
+
+2. Simple regular arrays (different values):
+   [1, 2, 3] == [1, 2, 4]: false
+   [1, 2, 3] != [1, 2, 4]: true
+
+3. Simple regular arrays (different lengths):
+   [1, 2, 3] == [1, 2]: false
+   [1, 2, 3] != [1, 2]: true
+
+4. Empty arrays:
+   [] == []: true
+   [] != []: false
+
+5. Associative arrays (equal):
+   ["a" => 1, "b" => 2, "c" => 3] == ["a" => 1, "b" => 2, "c" => 3]: true
+
+6. Associative arrays (different values):
+   ["a" => 1, "b" => 2] == ["a" => 1, "b" => 3]: false
+
+7. Associative arrays (different keys):
+   ["a" => 1, "b" => 2] == ["a" => 1, "c" => 2]: false
+
+8. Nested arrays (equal):
+   [[1, 2], [3, 4]] == [[1, 2], [3, 4]]: true
+
+9. Nested arrays (different values):
+   [[1, 2], [3, 4]] == [[1, 2], [3, 5]]: false
+
+10. Deeply nested arrays:
+   Deeply nested equal: true
+   Deeply nested different: false
+
+11. Mixed types in arrays:
+   [1, "two", 3.0] == [1, "two", 3.0]: true
+   [1, "two", 3.0] == [1, "two", 3.1]: false
+
+12. Arrays with numeric keys (0-based):
+   0-based arrays equal: true
+   0-based arrays different: false
+
+13. Comparison in conditional statements:
+   (==) comparison in conditional: correct
+   (!=) comparison in conditional: correct
+
+=== All Comparison Tests Complete ===
