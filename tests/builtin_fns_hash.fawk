@@ -1,0 +1,113 @@
+# Test: hash() function
+
+function my_func(x) {
+    return x * 2
+}
+
+BEGIN {
+    print "Test: hash() function"
+    print "--------------------------------------"
+    
+    # Test integers
+    print "  hash(0):", hash(0)
+    print "  hash(42):", hash(42)
+    print "  hash(-100):", hash(-100)
+    print "  hash(123456789):", hash(123456789)
+    
+    # Test that same values produce same hash
+    print "  hash(42) == hash(42):", hash(42) == hash(42)
+    print "  hash(0) == hash(0):", hash(0) == hash(0)
+    
+    # Test floats
+    print "  hash(3.14):", hash(3.14)
+    print "  hash(0.0):", hash(0.0)
+    print "  hash(-2.5):", hash(-2.5)
+    
+    # Test strings
+    print "  hash(\"hello\"):", hash("hello")
+    empty_str = ""
+    print "  hash(\"\"):", hash(empty_str)
+    print "  hash(\"test string\"):", hash("test string")
+    
+    # Test that same strings produce same hash
+    str1 = "hello"
+    str2 = "hello"
+    print "  hash(\"hello\") == hash(\"hello\"):", hash(str1) == hash(str2)
+    
+    # Test booleans
+    print "  hash(1 == 1):", hash(1 == 1)
+    print "  hash(1 == 2):", hash(1 == 2)
+    
+    # Test regular arrays
+    arr1 = [1, 2, 3]
+    arr2 = [1, 2, 3]
+    arr3 = [1, 2, 4]
+    print "  hash([1, 2, 3]):", hash(arr1)
+    print "  hash([1, 2, 3]) == hash([1, 2, 3]):", hash(arr1) == hash(arr2)
+    print "  hash([1, 2, 3]) != hash([1, 2, 4]):", hash(arr1) != hash(arr3)
+    
+    # Test empty array
+    empty_arr = []
+    print "  hash([]):", hash(empty_arr)
+    
+    # Test associative arrays
+    assoc1 = ["a" => 1, "b" => 2]
+    assoc2 = ["a" => 1, "b" => 2]
+    assoc3 = ["a" => 1, "b" => 3]
+    print "  hash([\"a\" => 1, \"b\" => 2]):", hash(assoc1)
+    print "  hash(assoc1) == hash(assoc2):", hash(assoc1) == hash(assoc2)
+    print "  hash(assoc1) != hash(assoc3):", hash(assoc1) != hash(assoc3)
+    
+    # Test nested arrays
+    nested1 = [[1, 2], [3, 4]]
+    nested2 = [[1, 2], [3, 4]]
+    nested3 = [[1, 2], [3, 5]]
+    print "  hash([[1, 2], [3, 4]]):", hash(nested1)
+    print "  hash(nested1) == hash(nested2):", hash(nested1) == hash(nested2)
+    print "  hash(nested1) != hash(nested3):", hash(nested1) != hash(nested3)
+    
+    # Test mixed arrays (numeric and string keys)
+    mixed1 = [1 => "one", "a" => "value", 2 => "two"]
+    mixed2 = [1 => "one", "a" => "value", 2 => "two"]
+    mixed3 = [1 => "one", "a" => "value", 2 => "three"]
+    mixed4 = [1 => "one", "a" => "value", 3 => "two"]
+    print "  hash(mixed1) == hash(mixed2):", hash(mixed1) == hash(mixed2)
+    print "  hash(mixed1) != hash(mixed3):", hash(mixed1) != hash(mixed3)
+    print "  hash(mixed1) != hash(mixed4):", hash(mixed1) != hash(mixed4)
+    
+    # Test lambda functions
+    lambda1 = (x) => { x * 2 }
+    lambda2 = (x) => { x * 2 }
+    lambda3 = (x) => { x * 3 }
+    print "  hash(lambda1):", hash(lambda1)
+    print "  hash(lambda1) == hash(lambda2):", hash(lambda1) == hash(lambda2)
+    print "  hash(lambda1) != hash(lambda3):", hash(lambda1) != hash(lambda3)
+    
+    # Test different lambda functions
+    add = (a, b) => { a + b }
+    mul = (a, b) => { a * b }
+    print "  hash(add) != hash(mul):", hash(add) != hash(mul)
+    
+    # Test user-defined function references
+    print "  hash(my_func):", hash(my_func)
+    print "  hash(my_func) != hash(length):", hash(my_func) != hash(length)
+    
+    # Test that function references are consistent
+    func_ref1 = my_func
+    func_ref2 = my_func
+    print "  hash(func_ref1) == hash(func_ref2):", hash(func_ref1) == hash(func_ref2)
+    
+    # Test arrays containing functions
+    func_arr = [length, map, filter]
+    print "  hash(func_arr):", hash(func_arr)
+    
+    # Test complex nested structure
+    complex = ["numbers" => [1, 2, 3], "strings" => ["a", "b", "c"], "nested" => ["inner" => [10, 20]]]
+    print "  hash(complex):", hash(complex)
+    
+    # Test that different types produce different hashes (generally)
+    print "  hash(42) != hash(\"42\"):", hash(42) != hash("42")
+    print "  hash(0) != hash(\"\"):", hash(0) != hash(empty_str)
+    print "  hash(1) != hash(true):", hash(1) != hash(1 == 1)
+}
+

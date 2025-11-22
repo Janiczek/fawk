@@ -266,6 +266,9 @@ class Interpreter:
             ('sprintf', 'fmt, ...', 'string'),
             ('close', 'filename_or_cmd', 'number'),
         ],
+        'Utility functions': [
+            ('hash', 'value', 'int'),
+        ],
     }
     
     @classmethod
@@ -880,6 +883,77 @@ class Interpreter:
         
         # File/command not open
         return -1
+    
+    def builtin_hash(self, value):
+        """Return a hash integer for any AWK value"""
+        return self._hash_value(value)
+    
+    def _deterministic_hash(self, data):
+        """Create a deterministic hash from bytes or string"""
+        # Use a simple deterministic hash algorithm (FNV-1a variant)
+        if isinstance(data, str):
+            data = data.encode('utf-8')
+        hash_val = 2166136261  # FNV offset basis
+        for byte in data:
+            hash_val ^= byte
+            hash_val = (hash_val * 16777619) & 0xffffffffffffffff  # 64-bit mask
+        # Convert to signed 64-bit integer (Python int, but in range)
+        if hash_val > 0x7fffffffffffffff:
+            hash_val = hash_val - 0x10000000000000000
+        return hash_val
+    
+    def _hash_value(self, value):
+        """Recursively hash an AWK value with deterministic results"""
+        if isinstance(value, FawkArray):
+            # For arrays, create a deterministic hash by sorting keys
+            # and recursively hashing key-value pairs
+            items = []
+            for key in sorted(value.keys(), key=lambda k: (isinstance(k, str), str(k) if isinstance(k, str) else k)):
+                hashed_key = self._hash_value(key)
+                hashed_val = self._hash_value(value.get(key))
+                items.append((hashed_key, hashed_val))
+            # Create deterministic hash from tuple representation
+            items_str = str(items)
+            return self._deterministic_hash(items_str)
+        elif isinstance(value, bool):
+            return 1 if value else 0
+        elif isinstance(value, int):
+            # For integers, return the value itself (deterministic)
+            return value
+        elif isinstance(value, float):
+            # For floats, use deterministic hash of string representation
+            return self._deterministic_hash(str(value))
+        elif isinstance(value, str):
+            return self._deterministic_hash(value)
+        elif value is None:
+            return 0
+        elif isinstance(value, UserFunction):
+            # For user functions, create hash from params and a hash of the body
+            # Use params as string and body representation
+            params_str = ",".join(value.params)
+            body_str = str(value.body)
+            func_str = f"UserFunction({params_str}):{body_str}"
+            return self._deterministic_hash(func_str)
+        elif callable(value):
+            # For built-in functions, try to find the function name
+            func_name = None
+            for name, builtin_func in self.builtin_functions.items():
+                if value is builtin_func:
+                    func_name = name
+                    break
+            if func_name:
+                # Use function name for deterministic hash
+                return self._deterministic_hash(f"builtin:{func_name}")
+            else:
+                # Unknown callable - use id() which is consistent within a run
+                # Convert to signed 64-bit integer
+                obj_id = id(value)
+                if obj_id > 0x7fffffffffffffff:
+                    obj_id = obj_id - 0x10000000000000000
+                return obj_id
+        else:
+            # Fallback for any other type - use deterministic hash of string representation
+            return self._deterministic_hash(str(value))
     
     def error(self, msg: str):
         raise RuntimeError(msg)
