@@ -65,8 +65,58 @@ class Environment:
 
 class FawkArray:
     """Represents a FAWK array (can be regular or associative)"""
-    def __init__(self):
-        self.data = {}
+    def __init__(self, shared_data=None, parent=None):
+        """
+        Initialize a FawkArray.
+        
+        Args:
+            shared_data: If provided, this array shares data with another array (copy-on-write)
+            parent: The parent array this array shares data with (for COW)
+        """
+        if shared_data is not None:
+            # Copy-on-write: share the data dictionary
+            self.data = shared_data
+            self._shared = True
+            self._parent = parent
+        else:
+            self.data = {}
+            self._shared = False
+            self._parent = None
+    
+    def _ensure_unique(self):
+        """Ensure this array has its own copy of data (copy-on-write)"""
+        if self._shared:
+            # Copy the data
+            new_data = {}
+            for key, value in self.data.items():
+                if isinstance(value, FawkArray):
+                    # Recursively ensure nested arrays are unique too
+                    new_data[key] = value._ensure_unique_copy()
+                else:
+                    new_data[key] = value
+            self.data = new_data
+            self._shared = False
+            self._parent = None
+    
+    def _ensure_unique_copy(self):
+        """Create a unique copy of this array (used when copying nested arrays)"""
+        if self._shared:
+            new_arr = FawkArray()
+            for key, value in self.data.items():
+                if isinstance(value, FawkArray):
+                    new_arr.data[key] = value._ensure_unique_copy()
+                else:
+                    new_arr.data[key] = value
+            return new_arr
+        else:
+            # Already unique, create a deep copy
+            new_arr = FawkArray()
+            for key, value in self.data.items():
+                if isinstance(value, FawkArray):
+                    new_arr.data[key] = value._ensure_unique_copy()
+                else:
+                    new_arr.data[key] = value
+            return new_arr
     
     def get(self, key):
         # Convert key to appropriate type
@@ -82,11 +132,33 @@ class FawkArray:
             return ""  # GAWK returns empty string for non-existent/deleted elements
     
     def set(self, key, value):
+        # Copy-on-write: ensure we have our own copy before modifying
+        self._ensure_unique()
+        
         if isinstance(key, (int, float)):
             key = int(key)
         else:
             key = str(key)
         self.data[key] = value
+    
+    def delete(self, key):
+        """Delete an element from the array (with COW)"""
+        # Copy-on-write: ensure we have our own copy before modifying
+        self._ensure_unique()
+        
+        if isinstance(key, (int, float)):
+            key = int(key)
+        else:
+            key = str(key)
+        
+        if key in self.data:
+            del self.data[key]
+    
+    def clear(self):
+        """Clear all elements from the array (with COW)"""
+        # Copy-on-write: ensure we have our own copy before modifying
+        self._ensure_unique()
+        self.data.clear()
     
     def keys(self):
         """Return keys in GAWK-compatible order: numeric keys sorted numerically, string keys lexicographically"""
@@ -127,15 +199,26 @@ class FawkArray:
     def length(self):
         return len(self.data)
     
+    def cow_copy(self):
+        """Create a copy-on-write copy (shared reference) of this array"""
+        # Create a new FawkArray that shares the same data dictionary
+        return FawkArray(shared_data=self.data, parent=self)
+    
     def copy(self):
-        """Create a deep copy of this array"""
-        new_arr = FawkArray()
-        for key, value in self.data.items():
-            if isinstance(value, FawkArray):
-                new_arr.data[key] = value.copy()
-            else:
-                new_arr.data[key] = value
-        return new_arr
+        """Create a deep copy of this array (for when we actually need a full copy)"""
+        # Ensure we're working with unique data
+        if self._shared:
+            # If shared, create a unique copy
+            return self._ensure_unique_copy()
+        else:
+            # Already unique, create a deep copy
+            new_arr = FawkArray()
+            for key, value in self.data.items():
+                if isinstance(value, FawkArray):
+                    new_arr.data[key] = value.copy()
+                else:
+                    new_arr.data[key] = value
+            return new_arr
     
     def is_associative(self) -> bool:
         """Check if array is associative (not a regular array with consecutive indexes starting from 1)"""
@@ -1186,9 +1269,8 @@ class Interpreter:
                 else:
                     index = str(index)
                 
-                # Delete the key if it exists
-                if index in array.data:
-                    del array.data[index]
+                # Delete the key if it exists (using COW-aware method)
+                array.delete(index)
         
         elif isinstance(node.target, FieldAccess):
             # Delete field: delete $3
@@ -1246,8 +1328,8 @@ class Interpreter:
         
         # Check if it's actually an array
         if isinstance(array, FawkArray):
-            # Delete all elements
-            array.data.clear()
+            # Delete all elements (using COW-aware method)
+            array.clear()
         else:
             # Not an array, delete the variable entirely
             if name in self.current_env.vars:
@@ -1740,9 +1822,9 @@ class Interpreter:
         value = self.eval(node.value)
         
         if isinstance(node.target, Identifier):
-            # Copy FawkArray objects when assigning to variables to avoid reference sharing
+            # Use copy-on-write for arrays when assigning to variables
             if isinstance(value, FawkArray):
-                value = value.copy()
+                value = value.cow_copy()
             
             name = node.target.name
             
@@ -2107,9 +2189,9 @@ class Interpreter:
             # Create new environment for function
             func_env = Environment(func.closure_env)
             for param, arg in zip(func.params, args):
-                # Copy arrays when passing as arguments (pass by value)
+                # Use copy-on-write for arrays when passing as arguments (pass by value)
                 if isinstance(arg, FawkArray):
-                    func_env.set_local(param, arg.copy())
+                    func_env.set_local(param, arg.cow_copy())
                 else:
                     func_env.set_local(param, arg)
             
