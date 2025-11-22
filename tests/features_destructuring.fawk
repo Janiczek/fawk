@@ -16,13 +16,16 @@ BEGIN {
     print ""
     
     # Simple destructuring from match() result
-    # Note: match() returns [0]=full_match, [1]=first_group, [2]=second_group, etc.
-    # So [x, y] gets indices 0 and 1. To get groups, we'd use [_, x, y] or access coord[1], coord[2]
-    [matched, x, y] = "file-x42-y99.txt" |> match("-x([0-9]+)-y([0-9]+)")
+    [x, y] = "file-x42-y99.txt" |> match("-x([0-9]+)-y([0-9]+)")
     print "  Destructuring match() groups:"
-    print "    matched =", matched, "(matched string)"
     print "    x =", x, "(first group)"
     print "    y =", y, "(second group)"
+    # Note: match() is special - it returns [0]=full_match, [1]=first_group, [2]=second_group, etc.
+    # Array destructuring starts from 1, so you'll need an explicit [0] to get the full match.
+    # So [matched, x, y] gets indices 0, 1, 2 (full match, first group, second group)
+    result = "file-x42-y99.txt" |> match("-x([0-9]+)-y([0-9]+)")
+    matched = result[0]
+    print "    matched =", matched, "(matched string)"
     print ""
     
     # Nested destructuring

@@ -11,9 +11,9 @@ BEGIN {
     fruits = split(",", csv_line)
     count = length(fruits)
     print "  split() returned", count, "items"
-    print "  Item 0:", fruits[0]
     print "  Item 1:", fruits[1]
     print "  Item 2:", fruits[2]
+    print "  Item 3:", fruits[3]
     print ""
     
     # Test colon-separated

@@ -1,12 +1,12 @@
 Test: split() function
 --------------------------------------
   split() returned 4 items
-  Item 0: apple
-  Item 1: banana
-  Item 2: cherry
+  Item 1: apple
+  Item 2: banana
+  Item 3: cherry
 
   Split by ':': [apple, banana, cherry, date]
   Count: 4
 
   Pipeline: text |> split(",") works!
-  Result[1]: two
+  Result[1]: one

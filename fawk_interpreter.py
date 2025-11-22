@@ -137,15 +137,36 @@ class FawkArray:
                 new_arr.data[key] = value
         return new_arr
     
+    def is_associative(self) -> bool:
+        """Check if array is associative (not a regular array with consecutive indexes starting from 1)"""
+        if not self.data:
+            return False  # Empty array is considered regular
+        
+        # Check if all keys are integers
+        if not all(isinstance(k, int) for k in self.data.keys()):
+            return True  # Has non-integer keys, so associative
+        
+        # Check if it's a dense array starting from 1 (AWK standard for regular arrays)
+        max_idx = max(self.data.keys())
+        min_idx = min(self.data.keys())
+        
+        # Regular array: starts at 1 and has consecutive indexes
+        if min_idx == 1 and all(i in self.data for i in range(1, max_idx + 1)):
+            return False  # Regular array
+        
+        # Everything else (0-based, sparse, etc.) is associative
+        return True
+    
     def __repr__(self):
-        # Display as array-like for regular indices, dict-like for assoc
-        if all(isinstance(k, int) for k in self.data.keys()):
-            # Try to display as regular array
-            if not self.data:
-                return "[]"
+        # Display as array-like for regular indices (1-based consecutive), dict-like for assoc
+        if not self.data:
+            return "[]"
+        
+        # Check if it's a regular array (1-based consecutive indexes)
+        if not self.is_associative():
+            # Regular array: starts at 1 and has consecutive indexes
             max_idx = max(self.data.keys())
-            if all(i in self.data for i in range(max_idx + 1)):
-                return "[" + ", ".join(str(self.data[i]) for i in range(max_idx + 1)) + "]"
+            return "[" + ", ".join(str(self.data[i]) for i in range(1, max_idx + 1)) + "]"
         
         # Display as associative array
         items = [f"{k} => {v}" for k, v in self.data.items()]
@@ -214,6 +235,7 @@ class Interpreter:
             'filter': self.builtin_filter,
             'reduce': self.builtin_reduce,
             'sum_array': self.builtin_sum_array,
+            'is_associative': self.builtin_is_associative,
             'match': self.builtin_match,
             'split': self.builtin_split,
             # Math functions
@@ -388,6 +410,12 @@ class Interpreter:
             total += value if isinstance(value, (int, float)) else 0
         return total
     
+    def builtin_is_associative(self, arr):
+        """Check if an array is associative (not a regular array with consecutive indexes starting from 1)"""
+        if not isinstance(arr, FawkArray):
+            return 0  # Not an array, so not associative (but also not regular)
+        return 1 if arr.is_associative() else 0
+    
     def builtin_match(self, pattern, text):
         """Match a regex pattern and return array with full match and groups"""
         text_str = str(text)
@@ -426,7 +454,8 @@ class Interpreter:
         parts = text_str.split(sep_str)
         
         result = FawkArray()
-        for i, part in enumerate(parts):
+        # AWK uses 1-based indexing for split() results
+        for i, part in enumerate(parts, 1):
             result.set(i, part)
         
         return result
@@ -1637,9 +1666,13 @@ class Interpreter:
         # Convert index to appropriate type for checking
         num_patterns = len(pattern.patterns)
         
+        # AWK uses 1-based indexing for destructuring, even for match() results
+        # (match() results have [0]=full_match, but destructuring starts from [1])
+        start_idx = 1
+        
         # Check if we're trying to destructure more items than available
         # We need to check if the key exists in the array, not just if get() returns 0
-        for i in range(num_patterns):
+        for i in range(start_idx, start_idx + num_patterns):
             # Convert index to the type used in the array
             if isinstance(i, (int, float)):
                 key = int(i)
@@ -1648,12 +1681,15 @@ class Interpreter:
             
             # Check if this index exists in the array
             if key not in array.data:
-                element_word = "element" if i == 1 else "elements"
-                self.error(f"Destructuring pattern has {num_patterns} elements but array has only {i} {element_word}")
+                available = i - start_idx
+                element_word = "element" if available == 1 else "elements"
+                self.error(f"Destructuring pattern has {num_patterns} elements but array has only {available} {element_word}")
         
+        # Destructure using 1-based indexing (AWK standard)
         for i, pattern_elem in enumerate(pattern.patterns):
-            # Get the value from the array at index i
-            array_value = array.get(i)
+            # Get the value from the array at index (1 + i)
+            array_index = start_idx + i
+            array_value = array.get(array_index)
             
             if isinstance(pattern_elem, Identifier):
                 # Simple identifier: assign the value
@@ -1685,7 +1721,8 @@ class Interpreter:
     
     def eval_ArrayLiteral(self, node: ArrayLiteral) -> FawkArray:
         arr = FawkArray()
-        for i, elem in enumerate(node.elements):
+        # AWK uses 1-based indexing for arrays
+        for i, elem in enumerate(node.elements, 1):
             arr.set(i, self.eval(elem))
         return arr
     

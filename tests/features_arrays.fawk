@@ -10,7 +10,7 @@ function array_sum(arr) {
 
 function make_range(start, end) {
     result = []
-    i = 0
+    i = 1
     n = start
     while (n <= end) {
         result[i] = n
@@ -34,7 +34,7 @@ BEGIN {
     matrix = [[1, 2], [3, 4], [5, 6]]
     for (i in matrix) {
         row = matrix[i]
-        print row[0], row[1]
+        print row[1], row[2]
     }
     
     # Associative arrays

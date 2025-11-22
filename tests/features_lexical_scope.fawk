@@ -25,15 +25,15 @@ function check_isolation() {
 
 function modify_array(arr) {
     # Try to modify the array - should not affect caller's array
-    arr[0] = 999
-    arr[1] = 888
-    return arr[0]
+    arr[1] = 999
+    arr[2] = 888
+    return arr[1]
 }
 
 function modify_global_array() {
     # Modify global array - this SHOULD affect the global
-    global_arr[0] = 111
-    global_arr[1] = 222
+    global_arr[1] = 111
+    global_arr[2] = 222
 }
 
 BEGIN {
@@ -68,21 +68,21 @@ BEGIN {
     # Test 4: Arrays passed by value (immutable)
     print "Test 4: Arrays passed by value (immutable)"
     local_arr = [10, 20, 30]
-    print "  Before modify_array(), local_arr[0] =", local_arr[0]
     print "  Before modify_array(), local_arr[1] =", local_arr[1]
+    print "  Before modify_array(), local_arr[2] =", local_arr[2]
     modify_array(local_arr)
-    print "  After modify_array(), local_arr[0] =", local_arr[0]
     print "  After modify_array(), local_arr[1] =", local_arr[1]
+    print "  After modify_array(), local_arr[2] =", local_arr[2]
     print "  (local array unchanged - passed by value)"
     print ""
     
     # Test 5: Global arrays are mutable
     print "Test 5: Global arrays are mutable"
     global_arr = [50, 60, 70]
-    print "  Before modify_global_array(), global_arr[0] =", global_arr[0]
     print "  Before modify_global_array(), global_arr[1] =", global_arr[1]
+    print "  Before modify_global_array(), global_arr[2] =", global_arr[2]
     modify_global_array()
-    print "  After modify_global_array(), global_arr[0] =", global_arr[0]
     print "  After modify_global_array(), global_arr[1] =", global_arr[1]
+    print "  After modify_global_array(), global_arr[2] =", global_arr[2]
     print "  (global array changed - globals are mutable)"
 }

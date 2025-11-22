@@ -5,9 +5,9 @@ Test: Array destructuring
     b = 20 (second element)
 
   Destructuring match() groups:
-    matched = -x42-y99 (matched string)
     x = 42 (first group)
     y = 99 (second group)
+    matched = -x42-y99 (matched string)
 
   Nested destructuring:
     a = 1 b = 2

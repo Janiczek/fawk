@@ -1,0 +1,95 @@
+# Test: Array Representation (__repr__ behavior)
+# Tests how different array types are displayed when printed
+
+BEGIN {
+    print "=== Array Representation Tests ==="
+    print ""
+    
+    # 1. Regular arrays (1-based consecutive) - should display without =>
+    print "1. Regular arrays (1-based consecutive):"
+    arr1 = [1, 2, 3]
+    print "   [1, 2, 3] =", arr1
+    arr2 = [10, 20, 30, 40]
+    print "   [10, 20, 30, 40] =", arr2
+    arr3 = ["a", "b", "c"]
+    print "   [\"a\", \"b\", \"c\"] =", arr3
+    print ""
+    
+    # 2. 0-based arrays - should display with => (associative)
+    print "2. 0-based arrays (associative):"
+    arr4 = [0 => "zero", 1 => "one", 2 => "two"]
+    print "   [0 => \"zero\", 1 => \"one\", 2 => \"two\"] =", arr4
+    # match() returns 0-based arrays
+    text = "The price is $42.50"
+    arr5 = match("\\$([0-9]+)\\.([0-9]+)", text)
+    print "   match() result =", arr5
+    print ""
+    
+    # 3. Fully associative arrays (string keys) - should display with =>
+    print "3. Fully associative arrays (string keys):"
+    arr6 = ["alice" => 95, "bob" => 87, "carol" => 92]
+    print "   [\"alice\" => 95, \"bob\" => 87, \"carol\" => 92] =", arr6
+    arr7 = ["x" => 10, "y" => 20, "z" => 30]
+    print "   [\"x\" => 10, \"y\" => 20, \"z\" => 30] =", arr7
+    print ""
+    
+    # 4. Sparse arrays - should display with => (associative)
+    print "4. Sparse arrays (associative):"
+    arr8 = [1 => 10, 5 => 50, 10 => 100]
+    print "   [1 => 10, 5 => 50, 10 => 100] =", arr8
+    arr9 = [2 => "two", 7 => "seven"]
+    print "   [2 => \"two\", 7 => \"seven\"] =", arr9
+    print ""
+    
+    # 5. Empty arrays - should display as []
+    print "5. Empty arrays:"
+    arr10 = []
+    print "   [] =", arr10
+    print ""
+    
+    # 6. Nested arrays - test how nested structures are displayed
+    print "6. Nested arrays:"
+    # Nested regular arrays
+    nested1 = [[1, 2], [3, 4], [5, 6]]
+    print "   [[1, 2], [3, 4], [5, 6]] =", nested1
+    # Nested with mixed types
+    nested2 = [["a" => 1, "b" => 2], ["c" => 3, "d" => 4]]
+    print "   [[\"a\" => 1, \"b\" => 2], [\"c\" => 3, \"d\" => 4]] =", nested2
+    # Nested with 0-based inner array
+    text1 = "The price is $42.50"
+    text2 = "Contact: alice@example.com"
+    nested3 = [match("\\$([0-9]+)\\.([0-9]+)", text1), match("([a-z]+)@([a-z]+\\.com)", text2)]
+    print "   [match(price), match(email)] =", nested3
+    print ""
+    
+    # 7. Multidimensional arrays (using SUBSEP) - should display with =>
+    print "7. Multidimensional arrays (SUBSEP keys):"
+    arr11 = [(1,2) => "a", (1,3) => "b", (2,1) => "c"]
+    print "   [(1,2) => \"a\", (1,3) => \"b\", (2,1) => \"c\"] =", arr11
+    arr12 = [("x","y") => 10, ("x","z") => 20, ("y","x") => 30]
+    print "   [(\"x\",\"y\") => 10, (\"x\",\"z\") => 20, (\"y\",\"x\") => 30] =", arr12
+    # 3D array
+    arr13 = [(1,2,3) => "xyz", (1,2,4) => "xyz2"]
+    print "   [(1,2,3) => \"xyz\", (1,2,4) => \"xyz2\"] =", arr13
+    print ""
+    
+    # 8. Mixed arrays (some integer keys, some string keys) - should display with =>
+    print "8. Mixed arrays (integer and string keys):"
+    arr14 = [1 => "one", "key" => "value", 2 => "two"]
+    print "   [1 => \"one\", \"key\" => \"value\", 2 => \"two\"] =", arr14
+    print ""
+    
+    # 9. Arrays with non-consecutive but all-integer keys starting from 1
+    print "9. Arrays with gaps (associative even if all integers):"
+    arr15 = [1 => 10, 3 => 30, 5 => 50]
+    print "   [1 => 10, 3 => 30, 5 => 50] =", arr15
+    print ""
+    
+    # 10. Single element arrays
+    print "10. Single element arrays:"
+    arr16 = [42]
+    print "   [42] =", arr16
+    arr17 = ["single" => "value"]
+    print "   [\"single\" => \"value\"] =", arr17
+}
+
