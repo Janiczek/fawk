@@ -821,6 +821,18 @@ class Parser:
                 expr = FunctionCall(expr, args)
             
             elif self.current().type == TokenType.LBRACKET:
+                # Check if this is an array literal (not array access)
+                # In AWK, string literals and number literals can't be indexed
+                # So if expr is a String or Number, this must be concatenation with an array literal
+                # Also, empty array literal [] should be parsed as array literal, not array access
+                is_literal = isinstance(expr, (String, Number))
+                is_empty_array = self.peek(1).type == TokenType.RBRACKET
+                
+                if is_literal or is_empty_array:
+                    # This is concatenation with an array literal, not array access
+                    # Break and let the concatenation parser handle it
+                    break
+                
                 # Array access - support multi-dimensional: arr[i,j,k]
                 self.advance()
                 indices = [self.parse_expression()]
