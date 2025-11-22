@@ -6,9 +6,9 @@ A functional AWK dialect with first-class functions and arrays.
 
 import sys
 import argparse
-from fawk_lexer import Lexer
-from fawk_parser import Parser
-from fawk_interpreter import Interpreter
+from .fawk_lexer import Lexer
+from .fawk_parser import Parser
+from .fawk_interpreter import Interpreter
 
 def main():
     # Get builtin function signatures grouped by category from the interpreter (single source of truth)

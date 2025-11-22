@@ -7,7 +7,7 @@ import re
 import math
 from decimal import Decimal, getcontext
 from typing import Any, List, Callable
-from fawk_ast import *
+from .fawk_ast import *
 
 
 class BreakException(Exception):
@@ -323,7 +323,7 @@ class Interpreter:
         
         # Build eval dispatch dictionary for fast method lookup (optimization)
         # Import AST classes for dispatch table
-        import fawk_ast
+        from . import fawk_ast
         self._eval_dispatch = {
             fawk_ast.Program: self.eval_Program,
             fawk_ast.Block: self.eval_Block,
@@ -1047,7 +1047,7 @@ class Interpreter:
     
     def eval_DeleteStmt(self, node) -> None:
         """Delete an array element, field, or entire array/variable"""
-        from fawk_ast import DeleteStmt, Identifier, ArrayAccess, FieldAccess
+        from .fawk_ast import DeleteStmt, Identifier, ArrayAccess, FieldAccess
         
         if isinstance(node.target, Identifier):
             # Delete entire array or variable
@@ -1116,7 +1116,7 @@ class Interpreter:
     
     def eval_DelarrayStmt(self, node) -> None:
         """Delete all elements from an array"""
-        from fawk_ast import DelarrayStmt, Identifier
+        from .fawk_ast import DelarrayStmt, Identifier
         
         if not isinstance(node.target, Identifier):
             self.error("delarray target must be an array variable name")
@@ -1160,7 +1160,7 @@ class Interpreter:
             print(output, end=self.ORS)
     
     def eval_PrintfStmt(self, node: 'PrintfStmt') -> None:
-        from fawk_ast import PrintfStmt
+        from .fawk_ast import PrintfStmt
         
         # Printf requires at least a format string
         if not node.args:
@@ -1467,7 +1467,7 @@ class Interpreter:
     
     def eval_PrefixIncrement(self, node) -> Any:
         """Prefix increment: ++x - increment and return new value"""
-        from fawk_ast import PrefixIncrement, Identifier, ArrayAccess
+        from .fawk_ast import PrefixIncrement, Identifier, ArrayAccess
         
         # Get current value
         current_value = self.eval(node.operand)
@@ -1507,7 +1507,7 @@ class Interpreter:
     
     def eval_PrefixDecrement(self, node) -> Any:
         """Prefix decrement: --x - decrement and return new value"""
-        from fawk_ast import PrefixDecrement, Identifier, ArrayAccess
+        from .fawk_ast import PrefixDecrement, Identifier, ArrayAccess
         
         # Get current value
         current_value = self.eval(node.operand)
@@ -1547,7 +1547,7 @@ class Interpreter:
     
     def eval_PostfixIncrement(self, node) -> Any:
         """Postfix increment: x++ - return old value, then increment"""
-        from fawk_ast import PostfixIncrement, Identifier, ArrayAccess
+        from .fawk_ast import PostfixIncrement, Identifier, ArrayAccess
         
         # Get current value (this is what we'll return)
         old_value = self.eval(node.operand)
@@ -1587,7 +1587,7 @@ class Interpreter:
     
     def eval_PostfixDecrement(self, node) -> Any:
         """Postfix decrement: x-- - return old value, then decrement"""
-        from fawk_ast import PostfixDecrement, Identifier, ArrayAccess
+        from .fawk_ast import PostfixDecrement, Identifier, ArrayAccess
         
         # Get current value (this is what we'll return)
         old_value = self.eval(node.operand)
@@ -1730,7 +1730,7 @@ class Interpreter:
     def _get_or_create_nested_array(self, node) -> FawkArray:
         """Helper method to get or create a nested array for assignment.
         Handles cases like grid[x][y] = value where grid[x] needs to be a FawkArray."""
-        from fawk_ast import Identifier, ArrayAccess
+        from .fawk_ast import Identifier, ArrayAccess
         
         if isinstance(node, Identifier):
             # Simple variable: get or create the array
@@ -1785,7 +1785,7 @@ class Interpreter:
     
     def _destructure_assign(self, pattern, array: FawkArray) -> None:
         """Helper method to perform destructuring assignment"""
-        from fawk_ast import DestructurePattern, Identifier
+        from .fawk_ast import DestructurePattern, Identifier
         
         # Check if array has enough elements
         # Convert index to appropriate type for checking
@@ -1841,7 +1841,7 @@ class Interpreter:
     
     def eval_DestructurePattern(self, node) -> Any:
         """DestructurePattern should not be evaluated directly, only used in assignments"""
-        from fawk_ast import DestructurePattern
+        from .fawk_ast import DestructurePattern
         self.error("DestructurePattern should only appear as assignment target")
     
     def eval_ArrayLiteral(self, node: ArrayLiteral) -> FawkArray:
@@ -2097,7 +2097,7 @@ class Interpreter:
     
     def eval_InOp(self, node) -> bool:
         """Evaluate 'in' operator for array membership"""
-        from fawk_ast import InOp
+        from .fawk_ast import InOp
         
         array = self.eval(node.array)
         if not isinstance(array, FawkArray):
@@ -2121,7 +2121,7 @@ class Interpreter:
     
     def eval_CommaExpr(self, node) -> str:
         """Evaluate comma expression - concatenates values with SUBSEP"""
-        from fawk_ast import CommaExpr
+        from .fawk_ast import CommaExpr
         
         # Evaluate all expressions and concatenate with SUBSEP
         values = [self.value_to_string_convert(self.eval(expr)) for expr in node.exprs]
@@ -2129,7 +2129,7 @@ class Interpreter:
     
     def eval_PipedGetline(self, node) -> int:
         """Evaluate piped getline: cmd | getline var"""
-        from fawk_ast import PipedGetline
+        from .fawk_ast import PipedGetline
         import subprocess
         
         # Get the command string

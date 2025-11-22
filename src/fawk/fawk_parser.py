@@ -4,8 +4,8 @@ Parses tokens into an Abstract Syntax Tree
 """
 
 from typing import List, Optional
-from fawk_lexer import Token, TokenType
-from fawk_ast import *
+from .fawk_lexer import Token, TokenType
+from .fawk_ast import *
 
 
 class Parser:
@@ -198,7 +198,7 @@ class Parser:
         return GlobalDecl(names)
     
     def parse_delete_stmt(self):
-        from fawk_ast import DeleteStmt
+        from .fawk_ast import DeleteStmt
         self.expect(TokenType.DELETE)
         
         # Parse the target (identifier, array access, or field access)
@@ -208,7 +208,7 @@ class Parser:
         return DeleteStmt(target)
     
     def parse_delarray_stmt(self):
-        from fawk_ast import DelarrayStmt
+        from .fawk_ast import DelarrayStmt
         self.expect(TokenType.DELARRAY)
         
         # Parse the target (must be an identifier - array variable name)
@@ -231,7 +231,7 @@ class Parser:
             stmt = self.parse_statement()
             if stmt is None:
                 self.error("Expected statement after if condition")
-            from fawk_ast import Block
+            from .fawk_ast import Block
             then_block = Block([stmt])
         
         else_block = None
@@ -246,7 +246,7 @@ class Parser:
                 stmt = self.parse_statement()
                 if stmt is None:
                     self.error("Expected statement after else")
-                from fawk_ast import Block
+                from .fawk_ast import Block
                 else_block = Block([stmt])
         
         return IfStmt(condition, then_block, else_block)
@@ -276,7 +276,7 @@ class Parser:
                     stmt = self.parse_statement()
                     if stmt is None:
                         self.error("Expected statement after for-in loop")
-                    from fawk_ast import Block
+                    from .fawk_ast import Block
                     body = Block([stmt])
                 return ForInStmt(var_name, iterable, body)
             else:
@@ -310,7 +310,7 @@ class Parser:
             stmt = self.parse_statement()
             if stmt is None:
                 self.error("Expected statement after for loop")
-            from fawk_ast import Block
+            from .fawk_ast import Block
             body = Block([stmt])
         return ForStmt(init, condition, update, body)
     
@@ -327,7 +327,7 @@ class Parser:
             stmt = self.parse_statement()
             if stmt is None:
                 self.error("Expected statement after while condition")
-            from fawk_ast import Block
+            from .fawk_ast import Block
             body = Block([stmt])
         
         return WhileStmt(condition, body)
@@ -342,7 +342,7 @@ class Parser:
             stmt = self.parse_statement()
             if stmt is None:
                 self.error("Expected statement after do")
-            from fawk_ast import Block
+            from .fawk_ast import Block
             body = Block([stmt])
         self.expect(TokenType.WHILE)
         self.expect(TokenType.LPAREN)
@@ -476,7 +476,7 @@ class Parser:
             self.in_print_context = saved
     
     def parse_printf_stmt(self) -> 'PrintfStmt':
-        from fawk_ast import PrintfStmt
+        from .fawk_ast import PrintfStmt
         self.expect(TokenType.PRINTF)
         args = []
         
@@ -541,7 +541,7 @@ class Parser:
                     
                     # Convert to appropriate statement with redirection
                     if func_name == 'printf':
-                        from fawk_ast import PrintfStmt
+                        from .fawk_ast import PrintfStmt
                         self.skip_statement_terminator()
                         return PrintfStmt(expr.args, redirect_type, redirect_target)
                     else:  # print
@@ -580,7 +580,7 @@ class Parser:
                 if self.current().type == TokenType.IDENTIFIER:
                     target = self.current().value
                     self.advance()
-                from fawk_ast import PipedGetline
+                from .fawk_ast import PipedGetline
                 return PipedGetline(left, target)
             else:
                 self.error("Expected 'getline' after '|'")
@@ -664,7 +664,7 @@ class Parser:
     
     def parse_in(self) -> ASTNode:
         """Parse 'in' operator for array membership checks"""
-        from fawk_ast import InOp, CommaExpr
+        from .fawk_ast import InOp, CommaExpr
         left = self.parse_comparison()
         
         # Check for 'in' operator
@@ -744,13 +744,13 @@ class Parser:
         if self.current().type == TokenType.INCREMENT:
             self.advance()
             operand = self.parse_unary()
-            from fawk_ast import PrefixIncrement
+            from .fawk_ast import PrefixIncrement
             return PrefixIncrement(operand)
         
         if self.current().type == TokenType.DECREMENT:
             self.advance()
             operand = self.parse_unary()
-            from fawk_ast import PrefixDecrement
+            from .fawk_ast import PrefixDecrement
             return PrefixDecrement(operand)
         
         if self.current().type in [TokenType.NOT, TokenType.MINUS]:
@@ -794,13 +794,13 @@ class Parser:
             elif self.current().type == TokenType.INCREMENT:
                 # Postfix increment: x++
                 self.advance()
-                from fawk_ast import PostfixIncrement
+                from .fawk_ast import PostfixIncrement
                 expr = PostfixIncrement(expr)
             
             elif self.current().type == TokenType.DECREMENT:
                 # Postfix decrement: x--
                 self.advance()
-                from fawk_ast import PostfixDecrement
+                from .fawk_ast import PostfixDecrement
                 expr = PostfixDecrement(expr)
             
             else:
@@ -852,7 +852,7 @@ class Parser:
                             exprs.append(self.parse_expression())
                         self.expect(TokenType.RPAREN)
                         # Return a CommaExpr node
-                        from fawk_ast import CommaExpr
+                        from .fawk_ast import CommaExpr
                         return CommaExpr(exprs)
                     else:
                         self.expect(TokenType.RPAREN)
@@ -928,7 +928,7 @@ class Parser:
     
     def parse_destructure_pattern(self) -> ASTNode:
         """Parse a destructuring pattern: [x, y] or [[x, y], [z, w]]"""
-        from fawk_ast import DestructurePattern, Identifier
+        from .fawk_ast import DestructurePattern, Identifier
         
         self.expect(TokenType.LBRACKET)
         patterns = []
