@@ -2029,6 +2029,11 @@ class Interpreter:
         # extract the pattern string instead of evaluating it to a boolean
         args = []
         for i, arg_node in enumerate(node.args):
+            # Check if argument is an undefined identifier
+            if isinstance(arg_node, Identifier):
+                if not self.identifier_exists(arg_node.name):
+                    self.error(f"Undefined variable '{arg_node.name}' used as function argument")
+            
             # Check if this is match() and first arg is a Regex
             if (func == self.builtin_match and i == 0 and isinstance(arg_node, Regex)):
                 # Extract pattern string from Regex node
@@ -2143,6 +2148,50 @@ class Interpreter:
             return self.call_function(func, args)
         else:
             self.error("Pipeline right side must be a function call")
+    
+    def identifier_exists(self, name: str) -> bool:
+        """Check if an identifier exists as a variable or function (without evaluating it)"""
+        # Check for built-in variables
+        if name in self._builtin_vars:
+            return True
+        
+        # Check for variables first (variables can shadow functions)
+        # FAWK scoping: inside functions, only access local vars or explicitly global vars
+        if self.in_function:
+            if name in self.globals_declared:
+                # Explicitly global variable
+                if name in self.global_env.vars:
+                    return True
+            elif name in self.current_env.vars:
+                # Local variable
+                return True
+            else:
+                # Search up the closure chain for captured variables
+                # But if this is a regular function (closure_env is global_env),
+                # only look for explicitly declared globals, not all globals
+                if self.current_closure_env == self.global_env:
+                    # Regular function: only look for explicitly declared globals
+                    # Don't search global_env for non-declared variables (isolation)
+                    pass
+                else:
+                    # Lambda: search full closure chain to capture outer variables
+                    if self.current_env.has(name):
+                        return True
+        else:
+            # Outside function: check if variable exists
+            # First check current_env.vars (for for-in loop variables)
+            # Then check global_env.vars (for regular assignments)
+            if name in self.current_env.vars:
+                return True
+            elif name in self.global_env.vars:
+                return True
+        
+        # Check for functions (only if no variable was found)
+        if name in self.functions:
+            return True
+        
+        # Identifier doesn't exist
+        return False
     
     def eval_Identifier(self, node: Identifier) -> Any:
         name = node.name

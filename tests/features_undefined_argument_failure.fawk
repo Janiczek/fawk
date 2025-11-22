@@ -1,0 +1,8 @@
+# Test: Passing undefined argument to function - failure
+
+BEGIN {
+    # This should fail - trying to pass an undefined variable as an argument
+    result = length(undefined_var)
+    print result
+}
+
