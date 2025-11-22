@@ -1,2 +1,2 @@
-./fawk 'BEGIN { printf("number: %d\n", 42) > "PRINTF_REDIRECT" }'
+./fawk 'BEGIN { printf("number: %d\n", 42) > "/tmp/fawk_test_printf_redirect_overwrite.txt" }' && test -f /tmp/fawk_test_printf_redirect_overwrite.txt && cat /tmp/fawk_test_printf_redirect_overwrite.txt && rm -f /tmp/fawk_test_printf_redirect_overwrite.txt
 

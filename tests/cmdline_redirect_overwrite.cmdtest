@@ -1,2 +1,2 @@
-./fawk 'BEGIN { print "line1" > "REDIRECT"; print "line2" > "REDIRECT" }'
+./fawk 'BEGIN { print "line1" > "/tmp/fawk_test_redirect_overwrite.txt"; print "line2" > "/tmp/fawk_test_redirect_overwrite.txt" }' && test -f /tmp/fawk_test_redirect_overwrite.txt && cat /tmp/fawk_test_redirect_overwrite.txt && rm -f /tmp/fawk_test_redirect_overwrite.txt
 

@@ -1,2 +1,2 @@
-./fawk 'BEGIN { printf("a=%d ", 1) >> "PRINTF_APPEND"; printf("b=%d\n", 2) >> "PRINTF_APPEND" }'
+./fawk 'BEGIN { printf("a=%d ", 1) >> "/tmp/fawk_test_printf_redirect_append.txt"; printf("b=%d\n", 2) >> "/tmp/fawk_test_printf_redirect_append.txt" }' && test -f /tmp/fawk_test_printf_redirect_append.txt && cat /tmp/fawk_test_printf_redirect_append.txt && rm -f /tmp/fawk_test_printf_redirect_append.txt
 

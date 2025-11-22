@@ -206,29 +206,6 @@ run_cmdline_test() {
         fi
     done
     
-    # Check if this is a redirect test (command writes to a file) BEFORE placeholder replacement
-    # Use /tmp/ with unique filenames based on test name so they get cleaned up automatically
-    local is_redirect_test=false
-    local redirect_file=""
-    local tmp_redirect="/tmp/fawk_test_${basename}_redirect.txt"
-    local tmp_append="/tmp/fawk_test_${basename}_append.txt"
-    local tmp_printf_redirect="/tmp/fawk_test_${basename}_printf_redirect.txt"
-    local tmp_printf_append="/tmp/fawk_test_${basename}_printf_append.txt"
-    
-    if [[ "$test_cmd" =~ \"REDIRECT\" ]]; then
-        is_redirect_test=true
-        redirect_file="$tmp_redirect"
-    elif [[ "$test_cmd" =~ \"APPEND\" ]]; then
-        is_redirect_test=true
-        redirect_file="$tmp_append"
-    elif [[ "$test_cmd" =~ \"PRINTF_REDIRECT\" ]]; then
-        is_redirect_test=true
-        redirect_file="$tmp_printf_redirect"
-    elif [[ "$test_cmd" =~ \"PRINTF_APPEND\" ]]; then
-        is_redirect_test=true
-        redirect_file="$tmp_printf_append"
-    fi
-    
     # Replace INPUT placeholder with actual input file paths from tests directory
     local cmd="$test_cmd"
     if [ ${#input_files[@]} -gt 0 ]; then
@@ -240,12 +217,6 @@ run_cmdline_test() {
             cmd="${cmd//INPUT/$input_paths}"
         fi
     fi
-    
-    # Replace redirect placeholders with /tmp/ paths (will be cleaned up by system automatically)
-    cmd="${cmd//PRINTF_REDIRECT/$tmp_printf_redirect}"
-    cmd="${cmd//PRINTF_APPEND/$tmp_printf_append}"
-    cmd="${cmd//REDIRECT/$tmp_redirect}"
-    cmd="${cmd//APPEND/$tmp_append}"
     
     # Determine expected exit code (default 0 if file missing)
     local expected_exit=0
@@ -261,16 +232,8 @@ run_cmdline_test() {
     local actual_stderr=$(mktemp)
     local exit_code=0
     
-    if [ "$is_redirect_test" = "true" ]; then
-        # For redirect tests, run command and read from the output file
-        eval "$cmd" > /dev/null 2> "$actual_stderr" || exit_code=$?
-        if [ -f "$redirect_file" ]; then
-            cat "$redirect_file" > "$actual_stdout"
-        fi
-    else
-        # Normal test - capture stdout and stderr
-        eval "$cmd" > "$actual_stdout" 2> "$actual_stderr" || exit_code=$?
-    fi
+    # Normal test - capture stdout and stderr
+    eval "$cmd" > "$actual_stdout" 2> "$actual_stderr" || exit_code=$?
     
     # Check exit code
     local test_failed=false
@@ -325,10 +288,6 @@ run_cmdline_test() {
     # Clean up temp files
     rm -f "$actual_stdout" "$actual_stderr"
     rm -rf "$test_dir"
-    # Clean up redirect files in /tmp/ if they exist
-    if [ "$is_redirect_test" = "true" ] && [ -n "$redirect_file" ]; then
-        rm -f "$redirect_file"
-    fi
 }
 
 # Export functions and variables for parallel execution
