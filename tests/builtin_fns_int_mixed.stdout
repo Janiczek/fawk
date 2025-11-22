@@ -1,0 +1,11 @@
+Test: int() function with mixed alphanumeric strings
+--------------------------------------
+  int("123abc"): 123
+  int("123.45abc"): 123
+  int("-456xyz"): -456
+  int("-456.78xyz"): -456
+  int("0abc"): 0
+  int("0.5abc"): 0
+  int("123"): 123
+  int("123.45"): 123
+

@@ -1,0 +1,2 @@
+./fawk 'BEGIN { print "line1" > "/tmp/fawk_test_close.txt"; print "line2" >> "/tmp/fawk_test_close.txt"; result = close("/tmp/fawk_test_close.txt"); print "close() returned:", result; print "line3" >> "/tmp/fawk_test_close.txt"; result2 = close("/tmp/fawk_test_close.txt"); print "close() returned:", result2; result3 = close("/tmp/fawk_test_close_nonexistent.txt"); print "close(nonexistent) returned:", result3 }' && test -f /tmp/fawk_test_close.txt && cat /tmp/fawk_test_close.txt && rm -f /tmp/fawk_test_close.txt
+

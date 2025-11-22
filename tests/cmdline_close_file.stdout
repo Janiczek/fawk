@@ -1,0 +1,7 @@
+close() returned: 0
+close() returned: 0
+close(nonexistent) returned: -1
+line1
+line2
+line3
+

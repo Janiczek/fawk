@@ -613,7 +613,11 @@ class Interpreter:
     
     def builtin_int(self, x):
         """Integer part of x"""
-        return int(self.to_number(x))
+        num = self.to_number(x)
+        # If it's a float, convert to int (truncates towards zero)
+        if isinstance(num, float):
+            return int(num)
+        return int(num)
     
     def builtin_rand(self):
         """Random number between 0 and 1"""
@@ -734,6 +738,10 @@ class Interpreter:
                         except (ValueError, TypeError) as e:
                             # If formatting fails, just append the value
                             result.append(str(arg))
+                    else:
+                        # Not enough arguments - append format specifier as-is (matches some AWK behavior)
+                        # But actually, we should probably error like gawk does, but for now just append it
+                        result.append(format_spec)
                     i += 1
                 else:
                     break
@@ -872,7 +880,17 @@ class Interpreter:
                 # Fast path for integers (most common case)
                 if value.isdigit() or (value[0] == '-' and value[1:].isdigit()):
                     return int(value)
-                # Check for float
+                # Try to parse beginning number (e.g., "123abc" -> 123, "123.45abc" -> 123.45)
+                # This matches AWK behavior where int("123abc") = 123
+                import re
+                # Match: optional sign, digits, optional decimal point and digits, optional exponent
+                match = re.match(r'^([+-]?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)', value)
+                if match:
+                    num_str = match.group(1)
+                    if '.' in num_str or 'e' in num_str.lower() or 'E' in num_str:
+                        return float(num_str)
+                    return int(num_str)
+                # If no match, try direct conversion (for pure numeric strings)
                 if '.' in value or 'e' in value.lower():
                     return float(value)
                 return int(value)
