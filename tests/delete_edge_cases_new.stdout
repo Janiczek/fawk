@@ -1,0 +1,24 @@
+Test: FAWK-specific edge cases
+--------------------------------------
+Test 1: Delete $0 (should be ignored)
+  Before: $0 = test line , NF = 2
+  After delete $0: $0 = test line , NF = 2
+
+Test 2: Delete negative field
+  Before: NF = 3
+  After delete $(-1): NF = 3
+
+Test 3: Delete field beyond NF
+  Before: NF = 3
+  After delete $10: NF = 3
+
+Test 4: Delete all fields one by one
+  Initial: NF = 3 , $0 = x y z
+  After delete $1: NF = 2 , $0 = y z
+  After delete $1 again: NF = 1 , $0 = z
+  After delete $1 third time: NF = 0 , $0 = 
+
+Test 5: delarray on non-array variable
+  Before: scalar = 42
+  After delarray scalar: scalar = 0
+

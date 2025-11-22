@@ -11,7 +11,8 @@ BEGIN {
 }
 
 # Match lines with "error" or "warning" (case-insensitive)
-/error|warning/i {
+# GAWK doesn't support /pattern/i syntax, so we use tolower() for compatibility
+tolower($0) ~ /error|warning/ {
     print "Found issue:", $0
 }
 

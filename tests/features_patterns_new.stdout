@@ -1,0 +1,9 @@
+Test: FAWK-specific regex pattern matching
+--------------------------------------
+Found product line: product laptop 1200
+Found product line: product mouse 25
+Found issue: Warning: low stock detected
+Found product line: product keyboard 75
+Found issue: ERROR: connection failed
+Found product line: product monitor 350
+Pattern matching completed

@@ -1,0 +1,23 @@
+# Test: FAWK-specific regex pattern matching features
+# Tests /pattern/i syntax for case-insensitive matching (not supported in GAWK)
+
+BEGIN {
+    print "Test: FAWK-specific regex pattern matching"
+    print "--------------------------------------"
+}
+
+# Match lines starting with "product"
+/^product/ {
+    print "Found product line:", $0
+}
+
+# Match lines with "error" or "warning" (case-insensitive)
+# FAWK supports /pattern/i syntax for case-insensitive matching
+/error|warning/i {
+    print "Found issue:", $0
+}
+
+END {
+    print "Pattern matching completed"
+}
+

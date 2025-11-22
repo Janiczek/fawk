@@ -2064,7 +2064,13 @@ class Interpreter:
                         else:
                             terminator = ""
                         
-                        # Include even empty records (leading/trailing matches)
+                        # Skip trailing empty records (GAWK compatibility)
+                        # Only skip if this is the last record and it's empty
+                        is_last = (i + 1 >= len(parts))
+                        if is_last and not record:
+                            # Trailing empty record - skip it (GAWK behavior)
+                            continue
+                        
                         records.append((record, terminator))
             except re.error:
                 # Invalid regex, treat as literal string
