@@ -1,15 +1,15 @@
 END {
-  part2(used, avai)
+  part2()
 }
 
-function part2(used,avai) {
-  go(used,avai)
+function part2() {
+  go()
 }
 
-function go(used,avai) {
-  go_aux(first_todos)
+function go() {
+  go_aux()
 }
 
-function go_aux(todos) {
+function go_aux() {
   print("TODO pick a todo or complain and crash")
 }

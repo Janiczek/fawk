@@ -2025,6 +2025,22 @@ class Interpreter:
             if not variable_exists and not function_exists:
                 self.error(f"Function '{name}' is not defined")
         
+        # Check for old-style split() and match() calls BEFORE checking for undefined arguments
+        # This ensures the old-style error message takes precedence
+        if callable(func) and not isinstance(func, UserFunction):
+            if func == self.builtin_match:
+                if len(node.args) == 3:
+                    self.error("match() in fawk takes 2 arguments (pattern, text), not 3.\n"
+                              "Old AWK style: match(string, regexp, array)\n"
+                              "fawk style: result = match(pattern, text)\n"
+                              "The result is an array with [0]=full match, [1]=first group, etc.")
+            elif func == self.builtin_split:
+                if len(node.args) == 3:
+                    self.error("split() in fawk takes 2 arguments (separator, text), not 3.\n"
+                              "Old AWK style: split(string, array, separator)\n"
+                              "fawk style: result = split(separator, text)\n"
+                              "The result is an array with the split parts.")
+        
         # Special handling for match() and split() - if first argument is a Regex node,
         # extract the pattern string instead of evaluating it to a boolean
         args = []
