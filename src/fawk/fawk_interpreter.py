@@ -467,6 +467,7 @@ class Interpreter:
             fawk_ast.ExprStmt: self.eval_ExprStmt,
             fawk_ast.BinaryOp: self.eval_BinaryOp,
             fawk_ast.UnaryOp: self.eval_UnaryOp,
+            fawk_ast.TernaryOp: self.eval_TernaryOp,
             fawk_ast.PrefixIncrement: self.eval_PrefixIncrement,
             fawk_ast.PrefixDecrement: self.eval_PrefixDecrement,
             fawk_ast.PostfixIncrement: self.eval_PostfixIncrement,
@@ -1657,6 +1658,14 @@ class Interpreter:
             return not self.is_truthy(operand)
         else:
             self.error(f"Unknown unary operator: {node.op}")
+    
+    def eval_TernaryOp(self, node: TernaryOp) -> Any:
+        """Evaluate ternary operator: condition ? true_expr : false_expr"""
+        condition_value = self.eval(node.condition)
+        if self.is_truthy(condition_value):
+            return self.eval(node.true_expr)
+        else:
+            return self.eval(node.false_expr)
     
     def eval_PrefixIncrement(self, node) -> Any:
         """Prefix increment: ++x - increment and return new value"""

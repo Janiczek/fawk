@@ -615,7 +615,7 @@ class Parser:
                 self.pos = saved_pos
         
         # Normal assignment parsing
-        expr = self.parse_or()
+        expr = self.parse_ternary()
         
         if self.current().type == TokenType.ASSIGN:
             self.advance()
@@ -623,6 +623,36 @@ class Parser:
             return Assignment(expr, value)
         
         return expr
+    
+    def parse_ternary(self) -> ASTNode:
+        """Parse ternary operator: condition ? true_expr : false_expr (right-associative)"""
+        condition = self.parse_or()
+        
+        # Check for ? after condition, allowing newlines
+        # We need to peek ahead past newlines to see if there's a ?
+        saved_pos = self.pos
+        while self.current().type == TokenType.NEWLINE:
+            self.advance()
+        
+        if self.current().type == TokenType.QUESTION:
+            # Found ?, so this is a ternary - keep the newlines skipped
+            self.advance()
+            self.skip_newlines()  # Allow newlines after ?
+            # Parse true_expr - allow assignments, so use parse_assignment
+            true_expr = self.parse_assignment()
+            self.skip_newlines()  # Allow newlines before :
+            self.expect(TokenType.COLON)
+            self.skip_newlines()  # Allow newlines after :
+            # Parse false_expr - allow assignments, so use parse_assignment
+            # For right-associativity, if false_expr starts with another ternary, parse it recursively
+            false_expr = self.parse_assignment()
+            from .fawk_ast import TernaryOp
+            return TernaryOp(condition, true_expr, false_expr)
+        else:
+            # No ?, so restore position (undo newline skipping)
+            self.pos = saved_pos
+        
+        return condition
     
     def parse_or(self) -> ASTNode:
         left = self.parse_and()

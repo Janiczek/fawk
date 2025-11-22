@@ -1,0 +1,34 @@
+Test: Ternary operator
+--------------------------------------
+x = 5 , x > 3 ? 10 : 20 = 10
+y = 2 , y > 3 ? 10 : 20 = 20
+
+name = Alice , greeting = Hello Alice
+name = Bob , greeting = Hello stranger
+
+flag = 1 , status = enabled
+flag = 0 , status = disabled
+
+a = 10 , b = 20 , max = 20
+a = 30 , b = 20 , max = 30
+
+score = 85 , grade = B
+score = 95 , grade = A
+score = 75 , grade = C
+score = 65 , grade = F
+
+x = 5 , y = 10 , z = 15 , result = z is largest
+x = 20 , y = 10 , z = 15 , result = x is largest
+x = 5 , y = 20 , z = 15 , result = y is largest
+
+num = 7 , num % 2 == 0 ? num * 2 : num * 3 = 21
+num = 8 , num % 2 == 0 ? num * 2 : num * 3 = 16
+
+prefix = Mr , name = Smith , full_name = Mr. Smith
+prefix = Mrs , name = Smith , full_name = Mrss. Smith
+
+value = 5 , value > 0 ? sqrt(value) : 0 = 2.23607
+value = -5 , value > 0 ? sqrt(value) : 0 = 0
+
+After: x = 1 , y = 3 , z = 3
+Note: assignment happens, then ternary evaluates to assigned value

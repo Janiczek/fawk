@@ -1,0 +1,19 @@
+Test: Nested ternary operators
+--------------------------------------
+a = 1 , b = 2 , c = 0 , d = 3 , e = 4
+a ? b : c ? d : e = 2 (should be 2 due to right-associativity)
+
+a = 0 , b = 2 , c = 1 , d = 3 , e = 4
+a ? b : c ? d : e = 3 (should be 3 due to right-associativity)
+
+a = 0 , b = 2 , c = 0 , d = 3 , e = 4
+a ? b : c ? d : e = 4 (should be 4 due to right-associativity)
+
+a = 1 , b = 1 , c = 10 , d = 20 , e = 30
+a ? b ? c : d : e = 10 (should be 10 since a and b are truthy)
+
+a = 1 , b = 0 , c = 10 , d = 20 , e = 30
+a ? b ? c : d : e = 20 (should be 20 since a is truthy but b is falsy)
+
+a = 0 , b = 1 , c = 10 , d = 20 , e = 30
+a ? b ? c : d : e = 30 (should be 30 since a is falsy)

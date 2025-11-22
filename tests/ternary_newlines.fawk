@@ -1,0 +1,100 @@
+# Test: Ternary operator with newlines
+
+BEGIN {
+    print "Test: Ternary operator with newlines"
+    print "--------------------------------------"
+    
+    # Basic ternary with newline after ?
+    x = 5
+    result = x > 3 ?
+        10 : 20
+    print "x =", x, ", x > 3 ?\\n    10 : 20 =", result
+    print ""
+    
+    # Ternary with newline before :
+    y = 2
+    result = y > 3 ? 10
+        : 20
+    print "y =", y, ", y > 3 ? 10\\n    : 20 =", result
+    print ""
+    
+    # Ternary with newlines after ? and before :
+    z = 7
+    result = z > 5 ?
+        15
+        : 25
+    print "z =", z, ", z > 5 ?\\n    15\\n    : 25 =", result
+    print ""
+    
+    # Ternary with newlines in all positions
+    a = 10
+    result = a > 8
+        ? 30
+        : 40
+    print "a =", a, ", a > 8\\n    ? 30\\n    : 40 =", result
+    print ""
+    
+    # Nested ternary with newlines
+    score = 85
+    grade = score >= 90 ?
+        "A" : score >= 80 ?
+        "B" : score >= 70 ?
+        "C" : "F"
+    print "score =", score, ", nested ternary with newlines, grade =", grade
+    print ""
+    
+    # More complex nested ternary with newlines
+    score = 95
+    grade = score >= 90
+        ? "A"
+        : score >= 80
+        ? "B"
+        : score >= 70
+        ? "C"
+        : "F"
+    print "score =", score, ", complex nested ternary, grade =", grade
+    print ""
+    
+    # Ternary with newlines and arithmetic
+    num = 7
+    result = num % 2 == 0
+        ? num * 2
+        : num * 3
+    print "num =", num, ", num % 2 == 0 ? num * 2 : num * 3 (with newlines) =", result
+    print ""
+    
+    # Ternary with newlines and function calls
+    value = 5
+    result = value > 0
+        ? sqrt(value)
+        : 0
+    print "value =", value, ", value > 0 ? sqrt(value) : 0 (with newlines) =", result
+    print ""
+    
+    # Ternary with newlines and string concatenation
+    prefix = "Mr"
+    name = "Smith"
+    full_name = prefix == "Mr"
+        ? prefix ". " name
+        : prefix "s. " name
+    print "prefix =", prefix, ", name =", name, ", full_name (with newlines) =", full_name
+    print ""
+    
+    # Multiple newlines (should still work)
+    x = 3
+    result = x > 2
+
+
+        ?
+
+
+            100
+
+
+        :
+
+
+            200
+    print "x =", x, ", ternary with multiple newlines =", result
+}
+

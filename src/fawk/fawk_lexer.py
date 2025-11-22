@@ -79,6 +79,7 @@ class TokenType(Enum):
     COMMA = auto()
     SEMICOLON = auto()
     COLON = auto()
+    QUESTION = auto()  # ? for ternary operator
     DOLLAR = auto()
     
     # Special
@@ -415,6 +416,7 @@ class Lexer:
                 ',': TokenType.COMMA,
                 ';': TokenType.SEMICOLON,
                 ':': TokenType.COLON,
+                '?': TokenType.QUESTION,
                 '$': TokenType.DOLLAR,
             }
             

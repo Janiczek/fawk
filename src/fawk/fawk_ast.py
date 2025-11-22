@@ -154,6 +154,14 @@ class UnaryOp(ASTNode):
 
 
 @dataclass
+class TernaryOp(ASTNode):
+    """Ternary operator: condition ? true_expr : false_expr"""
+    condition: ASTNode
+    true_expr: ASTNode
+    false_expr: ASTNode
+
+
+@dataclass
 class PrefixIncrement(ASTNode):
     """Prefix increment: ++x"""
     operand: ASTNode
