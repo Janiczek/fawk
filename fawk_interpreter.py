@@ -1671,16 +1671,9 @@ class Interpreter:
                 self.global_env.set(name, value)
         
         elif isinstance(node.target, ArrayAccess):
-            array = self.eval(node.target.array)
-            if not isinstance(array, FawkArray):
-                # Auto-vivify array
-                array = FawkArray()
-                if isinstance(node.target.array, Identifier):
-                    name = node.target.array.name
-                    if name in self.globals_declared:
-                        self.global_env.set(name, array)
-                    else:
-                        self.current_env.set_local(name, array)
+            # Handle nested array access: grid[x][y] = value
+            # We need to ensure that grid[x] is a FawkArray before we can set grid[x][y]
+            array = self._get_or_create_nested_array(node.target.array)
             
             # Handle multi-dimensional array access
             if len(node.target.indices) == 1:
@@ -1733,6 +1726,62 @@ class Interpreter:
             self.error("Invalid assignment target")
         
         return value
+    
+    def _get_or_create_nested_array(self, node) -> FawkArray:
+        """Helper method to get or create a nested array for assignment.
+        Handles cases like grid[x][y] = value where grid[x] needs to be a FawkArray."""
+        from fawk_ast import Identifier, ArrayAccess
+        
+        if isinstance(node, Identifier):
+            # Simple variable: get or create the array
+            name = node.name
+            array = self.eval(node)
+            if not isinstance(array, FawkArray):
+                array = FawkArray()
+                # Store it back
+                if name in self.globals_declared:
+                    self.global_env.set(name, array)
+                elif self.in_function:
+                    self.current_env.set_local(name, array)
+                elif name in self.current_env.vars:
+                    self.current_env.set_local(name, array)
+                else:
+                    self.global_env.set(name, array)
+            return array
+        
+        elif isinstance(node, ArrayAccess):
+            # Nested access: get or create parent, then get or create nested array
+            parent_array = self._get_or_create_nested_array(node.array)
+            
+            # Get the index for accessing the nested array
+            if len(node.indices) == 1:
+                index = self.eval(node.indices[0])
+            else:
+                index_values = [self.value_to_string_convert(self.eval(idx)) for idx in node.indices]
+                index = self.SUBSEP.join(index_values)
+            
+            # Convert index to the right type
+            if isinstance(index, (int, float)):
+                index = int(index)
+            else:
+                index = str(index)
+            
+            # Get the nested array, or create it if it doesn't exist or isn't an array
+            nested_value = parent_array.get(index)
+            if not isinstance(nested_value, FawkArray):
+                # Create a new nested array and store it
+                nested_array = FawkArray()
+                parent_array.set(index, nested_array)
+                return nested_array
+            else:
+                return nested_value
+        
+        else:
+            # For other node types, just evaluate and check
+            result = self.eval(node)
+            if not isinstance(result, FawkArray):
+                self.error(f"Expected array, got {type(result).__name__}")
+            return result
     
     def _destructure_assign(self, pattern, array: FawkArray) -> None:
         """Helper method to perform destructuring assignment"""

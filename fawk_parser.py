@@ -387,17 +387,29 @@ class Parser:
         self.expect(TokenType.PRINT)
         args = []
         
+        # Consume opening parenthesis if present (print supports both print "x" and print("x"))
+        has_paren = False
+        if self.current().type == TokenType.LPAREN:
+            self.advance()
+            has_paren = True
+        
         # Parse print arguments (stop before comparison operators to allow redirection)
         if self.current().type not in [TokenType.NEWLINE, TokenType.SEMICOLON, TokenType.RBRACE, 
-                                        TokenType.GT, TokenType.REDIRECT_APPEND]:
+                                        TokenType.GT, TokenType.REDIRECT_APPEND, TokenType.RPAREN]:
             # Parse arguments at concatenation level (before comparisons)
             args.append(self.parse_print_arg())
             while self.current().type == TokenType.COMMA:
                 self.advance()
-                # Check if we hit a redirection operator
-                if self.current().type in [TokenType.GT, TokenType.REDIRECT_APPEND]:
+                # Check if we hit a redirection operator or closing paren
+                if self.current().type in [TokenType.GT, TokenType.REDIRECT_APPEND, TokenType.RPAREN]:
                     break
                 args.append(self.parse_print_arg())
+        
+        # Consume closing parenthesis if we consumed opening one
+        if has_paren:
+            if self.current().type == TokenType.RPAREN:
+                self.advance()
+            # If no closing paren, that's okay - print can work without it
         
         # Check for redirection
         redirect_type = None

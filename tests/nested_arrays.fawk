@@ -1,0 +1,12 @@
+BEGIN {
+    pts = [[1,2],[3,4],[5,6],[7,8]]
+    j = 0
+    
+    for (i in pts) {
+        [x,y] = pts[i]
+        grid[x][y] = j++
+    }
+    
+    print(grid[1])
+    print(grid[3])
+}
