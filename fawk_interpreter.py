@@ -197,6 +197,67 @@ class UserFunction:
 
 
 class Interpreter:
+    # Built-in function signatures - single source of truth
+    # Format: category -> [(name, args_string, return_hint), ...]
+    BUILTIN_FUNCTION_SIGNATURES = {
+        'Array functions': [
+            ('length', '[value]', 'number'),
+            ('map', 'func, arr', 'array'),
+            ('filter', 'pred, arr', 'array'),
+            ('reduce', 'func, initial, arr', 'value'),
+            ('sum_array', 'arr', 'number'),
+            ('is_associative', 'arr', 'number'),
+        ],
+        'String functions': [
+            ('match', 'pattern, text', 'array'),
+            ('split', 'separator, text', 'array'),
+            ('substr', 'string, start, [length]', 'string'),
+            ('tolower', 'string', 'string'),
+            ('toupper', 'string', 'string'),
+            ('gsub', 'pattern, replacement, [target]', 'number'),
+            ('sub', 'pattern, replacement, [target]', 'number'),
+        ],
+        'Math functions': [
+            ('atan2', 'y, x', 'number'),
+            ('cos', 'x', 'number'),
+            ('sin', 'x', 'number'),
+            ('exp', 'x', 'number'),
+            ('log', 'x', 'number'),
+            ('sqrt', 'x', 'number'),
+            ('int', 'x', 'number'),
+            ('rand', '', 'number'),
+            ('srand', '[seed]', 'number'),
+        ],
+        'I/O functions': [
+            ('printf', 'fmt, ...', 'number'),
+            ('sprintf', 'fmt, ...', 'string'),
+            ('close', 'filename_or_cmd', 'number'),
+        ],
+    }
+    
+    @classmethod
+    def get_builtin_function_names(cls):
+        """Return list of built-in function names"""
+        names = []
+        for category_functions in cls.BUILTIN_FUNCTION_SIGNATURES.values():
+            for name, _, _ in category_functions:
+                names.append(name)
+        return names
+    
+    @classmethod
+    def get_builtin_function_signatures(cls):
+        """Return dictionary mapping function names to (args, return_hint) tuples"""
+        result = {}
+        for category_functions in cls.BUILTIN_FUNCTION_SIGNATURES.values():
+            for name, args, return_hint in category_functions:
+                result[name] = (args, return_hint)
+        return result
+    
+    @classmethod
+    def get_builtin_function_signatures_by_category(cls):
+        """Return dictionary mapping categories to lists of (name, args, return_hint) tuples"""
+        return cls.BUILTIN_FUNCTION_SIGNATURES
+    
     def __init__(self, argc=0, argv=None):
         self.global_env = Environment()
         self.current_env = self.global_env
@@ -245,35 +306,13 @@ class Interpreter:
         self.open_pipes = {}  # command string -> subprocess.Popen object
         
         # Built-in functions - single source of truth
-        self.builtin_functions = {
-            'length': self.builtin_length,
-            'map': self.builtin_map,
-            'filter': self.builtin_filter,
-            'reduce': self.builtin_reduce,
-            'sum_array': self.builtin_sum_array,
-            'is_associative': self.builtin_is_associative,
-            'match': self.builtin_match,
-            'split': self.builtin_split,
-            # Math functions
-            'atan2': self.builtin_atan2,
-            'cos': self.builtin_cos,
-            'sin': self.builtin_sin,
-            'exp': self.builtin_exp,
-            'log': self.builtin_log,
-            'sqrt': self.builtin_sqrt,
-            'int': self.builtin_int,
-            'rand': self.builtin_rand,
-            'srand': self.builtin_srand,
-            # String functions
-            'printf': self.builtin_printf,
-            'sprintf': self.builtin_sprintf,
-            'substr': self.builtin_substr,
-            'tolower': self.builtin_tolower,
-            'toupper': self.builtin_toupper,
-            'gsub': self.builtin_gsub,
-            'sub': self.builtin_sub,
-            'close': self.builtin_close,
-        }
+        # Build dictionary from BUILTIN_FUNCTION_SIGNATURES
+        self.builtin_functions = {}
+        for category_functions in self.BUILTIN_FUNCTION_SIGNATURES.values():
+            for name, _, _ in category_functions:
+                method_name = f'builtin_{name}'
+                if hasattr(self, method_name):
+                    self.builtin_functions[name] = getattr(self, method_name)
         
         # Random number generator seed
         import random

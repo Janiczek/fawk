@@ -11,6 +11,18 @@ from fawk_parser import Parser
 from fawk_interpreter import Interpreter
 
 def main():
+    # Get builtin function signatures grouped by category from the interpreter (single source of truth)
+    builtin_signatures_by_category = Interpreter.get_builtin_function_signatures_by_category()
+    
+    # Format builtin functions for help output, grouped by category
+    builtin_functions_lines = []
+    for category in sorted(builtin_signatures_by_category.keys()):
+        builtin_functions_lines.append(f'\n{category}:')
+        functions = builtin_signatures_by_category[category]
+        for name, args, return_hint in sorted(functions, key=lambda x: x[0]):
+            builtin_functions_lines.append(f'  - {name}({args}) -> {return_hint}')
+    builtin_functions_str = '\n'.join(builtin_functions_lines)
+    
     # Parse command line arguments AWK-style
     parser = argparse.ArgumentParser(
         description='FAWK - Functional AWK Interpreter',
@@ -20,7 +32,10 @@ def main():
                '  %(prog)s \'{ print $1 }\' input.txt     # inline script\n'
                '  %(prog)s -f script.fawk f1.txt f2.txt # multiple inputs\n'
                '  cat file.txt | %(prog)s \'{ print $1 }\' # piped input\n'
-               '  %(prog)s -v PREC=100 \'BEGIN {printf("%%.50f\\n", 4*atan2(1,1))}\' # arbitrary precision',
+               '  %(prog)s -v PREC=100 \'BEGIN {printf("%%.50f\\n", 4*atan2(1,1))}\' # arbitrary precision\n'
+               '\n'
+               'Built-in functions:\n'
+               f'{builtin_functions_str}',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument('-F', '--field-separator', dest='field_separator', metavar='fs',
