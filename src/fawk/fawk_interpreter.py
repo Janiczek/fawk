@@ -1271,13 +1271,75 @@ class Interpreter:
         return 0
     
     def eval(self, node: ASTNode) -> Any:
-        # Use dispatch dictionary instead of getattr for better performance
+        # Optimized dispatch: fast-path for most common node types using if/elif
+        # This avoids dictionary lookup overhead for hot paths
+        # Based on profiling: Identifier (4.3M), BinaryOp (1M), ExprStmt (702K), etc.
         node_type = type(node)
-        method = self._eval_dispatch.get(node_type)
-        if method:
-            return method(node)
+        
+        # Fast path: check most common types first (ordered by frequency)
+        if node_type is Identifier:
+            return self.eval_Identifier(node)
+        elif node_type is BinaryOp:
+            return self.eval_BinaryOp(node)
+        elif node_type is ExprStmt:
+            return self.eval_ExprStmt(node)
+        elif node_type is Assignment:
+            return self.eval_Assignment(node)
+        elif node_type is ArrayAccess:
+            return self.eval_ArrayAccess(node)
+        elif node_type is ArrayLiteral:
+            return self.eval_ArrayLiteral(node)
+        elif node_type is Block:
+            return self.eval_Block(node)
+        elif node_type is IfStmt:
+            return self.eval_IfStmt(node)
+        elif node_type is Number:
+            return self.eval_Number(node)
+        elif node_type is FunctionCall:
+            return self.eval_FunctionCall(node)
+        elif node_type is ReturnStmt:
+            return self.eval_ReturnStmt(node)
+        elif node_type is ForInStmt:
+            return self.eval_ForInStmt(node)
+        elif node_type is String:
+            return self.eval_String(node)
+        elif node_type is UnaryOp:
+            return self.eval_UnaryOp(node)
+        elif node_type is FieldAccess:
+            return self.eval_FieldAccess(node)
+        elif node_type is Pipeline:
+            return self.eval_Pipeline(node)
+        elif node_type is PrefixIncrement:
+            return self.eval_PrefixIncrement(node)
+        elif node_type is PrefixDecrement:
+            return self.eval_PrefixDecrement(node)
+        elif node_type is PostfixIncrement:
+            return self.eval_PostfixIncrement(node)
+        elif node_type is PostfixDecrement:
+            return self.eval_PostfixDecrement(node)
+        elif node_type is TernaryOp:
+            return self.eval_TernaryOp(node)
+        elif node_type is AssocArray:
+            return self.eval_AssocArray(node)
+        elif node_type is Lambda:
+            return self.eval_Lambda(node)
+        elif node_type is Regex:
+            return self.eval_Regex(node)
+        elif node_type is InOp:
+            return self.eval_InOp(node)
+        elif node_type is CommaExpr:
+            return self.eval_CommaExpr(node)
+        elif node_type is PipedGetline:
+            return self.eval_PipedGetline(node)
+        elif node_type is DestructurePattern:
+            return self.eval_DestructurePattern(node)
         else:
-            self.error(f"No eval method for {node_type.__name__}")
+            # Fallback to dictionary for less common types
+            method = self._eval_dispatch.get(node_type)
+            if method:
+                return method(node)
+            else:
+                self.error(f"No eval method for {node_type.__name__}")
     
     def eval_Program(self, node: Program) -> None:
         # Program evaluation is handled by run() method
