@@ -95,7 +95,8 @@ class FawkArray:
             # Copy the data
             new_data = {}
             for key, value in self.data.items():
-                if isinstance(value, FawkArray):
+                # Optimized: use type() for exact match (faster than isinstance)
+                if type(value) is FawkArray:
                     # Recursively ensure nested arrays are unique too
                     new_data[key] = value._ensure_unique_copy()
                 else:
@@ -109,7 +110,8 @@ class FawkArray:
         if self._shared:
             new_arr = FawkArray()
             for key, value in self.data.items():
-                if isinstance(value, FawkArray):
+                # Optimized: use type() for exact match (faster than isinstance)
+                if type(value) is FawkArray:
                     new_arr.data[key] = value._ensure_unique_copy()
                 else:
                     new_arr.data[key] = value
@@ -118,18 +120,26 @@ class FawkArray:
             # Already unique, create a deep copy
             new_arr = FawkArray()
             for key, value in self.data.items():
-                if isinstance(value, FawkArray):
+                # Optimized: use type() for exact match (faster than isinstance)
+                if type(value) is FawkArray:
                     new_arr.data[key] = value._ensure_unique_copy()
                 else:
                     new_arr.data[key] = value
             return new_arr
     
     def get(self, key):
-        # Convert key to appropriate type
-        if isinstance(key, (int, float)):
+        # Convert key to appropriate type (optimized: use type() for faster checks)
+        # Fast path: already int
+        if type(key) is int:
+            pass  # no conversion needed
+        elif type(key) is float:
             key = int(key)
         else:
-            key = str(key)
+            # Try to convert to int, fallback to string
+            try:
+                key = int(key)
+            except (ValueError, TypeError):
+                key = str(key)
         # GAWK behavior: deleted array elements return empty string, not 0
         # Check if key exists in data (not just if it has a value)
         if key in self.data:
@@ -141,10 +151,17 @@ class FawkArray:
         # Copy-on-write: ensure we have our own copy before modifying
         self._ensure_unique()
         
-        if isinstance(key, (int, float)):
+        # Optimized: use type() for faster checks
+        if type(key) is int:
+            pass  # no conversion needed
+        elif type(key) is float:
             key = int(key)
         else:
-            key = str(key)
+            # Try to convert to int, fallback to string
+            try:
+                key = int(key)
+            except (ValueError, TypeError):
+                key = str(key)
         self.data[key] = value
     
     def delete(self, key):
@@ -152,10 +169,17 @@ class FawkArray:
         # Copy-on-write: ensure we have our own copy before modifying
         self._ensure_unique()
         
-        if isinstance(key, (int, float)):
+        # Optimized: use type() for faster checks
+        if type(key) is int:
+            pass  # no conversion needed
+        elif type(key) is float:
             key = int(key)
         else:
-            key = str(key)
+            # Try to convert to int, fallback to string
+            try:
+                key = int(key)
+            except (ValueError, TypeError):
+                key = str(key)
         
         if key in self.data:
             del self.data[key]
@@ -408,6 +432,7 @@ class Interpreter:
         
         self.CONVFMT = "%.6g"
         self.PREC = 53  # Default precision (like gawk, similar to IEEE 754 double)
+        self._use_high_precision = False  # Cached result of use_high_precision()
         
         # ENVIRON - environment variables
         import os
@@ -537,6 +562,7 @@ class Interpreter:
         """Set a variable in the global environment (used for -v flags)"""
         if name == 'PREC':
             self.PREC = int(self.to_number(value))
+            self._use_high_precision = self.PREC > 53  # Update cache
         else:
             self.global_env.set(name, value)
     
@@ -716,8 +742,8 @@ class Interpreter:
         return result
     
     def use_high_precision(self):
-        """Check if we should use high precision arithmetic"""
-        return self.PREC > 53
+        """Check if we should use high precision arithmetic (cached for performance)"""
+        return self._use_high_precision
     
     def to_decimal(self, value):
         """Convert value to Decimal for high precision arithmetic"""
@@ -1280,7 +1306,8 @@ class Interpreter:
     def eval_ForInStmt(self, node: ForInStmt) -> None:
         iterable = self.eval(node.iterable)
         
-        if not isinstance(iterable, FawkArray):
+        # Optimized: use type() for exact match (faster than isinstance)
+        if type(iterable) is not FawkArray:
             self.error("for-in requires an array")
         
         for key in iterable.keys():
@@ -1714,8 +1741,9 @@ class Interpreter:
             right_num = self.to_number(right)
             
             # Check if both operands are integers (or integer-valued floats)
-            left_is_int = isinstance(left_num, int) or (isinstance(left_num, float) and left_num == int(left_num))
-            right_is_int = isinstance(right_num, int) or (isinstance(right_num, float) and right_num == int(right_num))
+            # Optimized: use type() for faster checks
+            left_is_int = type(left_num) is int or (type(left_num) is float and left_num == int(left_num))
+            right_is_int = type(right_num) is int or (type(right_num) is float and right_num == int(right_num))
             
             if left_is_int and right_is_int and right_num >= 0:
                 # Use Python's arbitrary precision integer arithmetic
@@ -1995,7 +2023,8 @@ class Interpreter:
         
         if isinstance(node.target, Identifier):
             # Create a deep copy of arrays when assigning to variables
-            if isinstance(value, FawkArray):
+            # Optimized: use type() for exact match (faster than isinstance)
+            if type(value) is FawkArray:
                 value = value.copy()
             
             name = node.target.name
@@ -2019,6 +2048,7 @@ class Interpreter:
                 self.FILENAME = str(value)
             elif name == 'PREC':
                 self.PREC = int(self.to_number(value))
+                self._use_high_precision = self.PREC > 53  # Update cache
             # FAWK scoping rules:
             # - Variables declared with 'global' keyword are always global
             # - Variables assigned in functions (not declared global) are local
@@ -2265,7 +2295,8 @@ class Interpreter:
     
     def eval_ArrayAccess(self, node: ArrayAccess) -> Any:
         array = self.eval(node.array)
-        if not isinstance(array, FawkArray):
+        # Optimized: use type() for exact match (faster than isinstance)
+        if type(array) is not FawkArray:
             return ""  # AWK behavior: return empty string for non-array
         
         # Handle multi-dimensional array access
@@ -2277,11 +2308,17 @@ class Interpreter:
             index = self.SUBSEP.join(index_values)
         
         # GAWK behavior: accessing an array element auto-creates it if it doesn't exist
-        # Convert index to the right type
-        if isinstance(index, (int, float)):
+        # Convert index to the right type (optimized: use type() for faster checks)
+        if type(index) is int:
+            pass  # no conversion needed
+        elif type(index) is float:
             index = int(index)
         else:
-            index = str(index)
+            # Try to convert to int, fallback to string
+            try:
+                index = int(index)
+            except (ValueError, TypeError):
+                index = str(index)
         
         # If key doesn't exist, auto-create it with empty string (GAWK behavior)
         if index not in array.data:
