@@ -192,6 +192,10 @@ class FawkArray:
     
     def keys(self):
         """Return keys in GAWK-compatible order: numeric keys sorted numerically, string keys lexicographically"""
+        # Fast path: if data is empty, return empty list
+        if not self.data:
+            return []
+        
         keys_list = list(self.data.keys())
         
         # Separate numeric and non-numeric keys
@@ -199,10 +203,11 @@ class FawkArray:
         string_keys = []
         
         for key in keys_list:
-            # Try to interpret as number
-            if isinstance(key, int):
+            # Optimized: use type() for faster checks
+            key_type = type(key)
+            if key_type is int:
                 numeric_keys.append((key, key))
-            elif isinstance(key, str):
+            elif key_type is str:
                 # Try to parse as number
                 try:
                     # Check if string looks like a number
@@ -242,9 +247,10 @@ class FawkArray:
             return self._ensure_unique_copy()
         else:
             # Already unique, create a deep copy
+            # Optimized: use type() for faster checks
             new_arr = FawkArray()
             for key, value in self.data.items():
-                if isinstance(value, FawkArray):
+                if type(value) is FawkArray:
                     new_arr.data[key] = value.copy()
                 else:
                     new_arr.data[key] = value
@@ -303,7 +309,8 @@ class FawkArray:
     
     def __eq__(self, other):
         """Structural comparison of arrays"""
-        if not isinstance(other, FawkArray):
+        # Optimized: use type() for faster checks
+        if type(other) is not FawkArray:
             return False
         
         # Compare keys
@@ -316,7 +323,10 @@ class FawkArray:
             other_val = other.data[key]
             
             # Recursive comparison for nested arrays
-            if isinstance(self_val, FawkArray) and isinstance(other_val, FawkArray):
+            # Optimized: use type() for faster checks
+            self_val_type = type(self_val)
+            other_val_type = type(other_val)
+            if self_val_type is FawkArray and other_val_type is FawkArray:
                 if self_val != other_val:
                     return False
             else:
@@ -1169,26 +1179,51 @@ class Interpreter:
     
     def _hash_value(self, value):
         """Recursively hash an AWK value with deterministic results"""
-        if isinstance(value, FawkArray):
+        # Optimized: use type() for faster checks
+        value_type = type(value)
+        if value_type is FawkArray:
             # For arrays, create a deterministic hash by sorting keys
             # and recursively hashing key-value pairs
-            items = []
-            for key in sorted(value.keys(), key=lambda k: (isinstance(k, str), str(k) if isinstance(k, str) else k)):
+            # Optimized: iterate over data.items() directly instead of calling keys()
+            sorted_items = []
+            # Get all items and sort them
+            for key, val in value.data.items():
+                # Sort key: strings come after numbers, both sorted within their group
+                if type(key) is int:
+                    sort_key = (0, key)  # 0 = numeric
+                elif type(key) is str:
+                    # Try to parse as number for sorting
+                    try:
+                        num_val = float(key)
+                        sort_key = (0, num_val)  # 0 = numeric
+                    except (ValueError, TypeError):
+                        sort_key = (1, key)  # 1 = string
+                else:
+                    sort_key = (1, str(key))  # 1 = string
+                sorted_items.append((sort_key, key, val))
+            
+            # Sort by sort_key
+            sorted_items.sort(key=lambda x: x[0])
+            
+            # Hash the sorted items
+            hashed_items = []
+            for _, key, val in sorted_items:
                 hashed_key = self._hash_value(key)
-                hashed_val = self._hash_value(value.get(key))
-                items.append((hashed_key, hashed_val))
+                hashed_val = self._hash_value(val)
+                hashed_items.append((hashed_key, hashed_val))
+            
             # Create deterministic hash from tuple representation
-            items_str = str(items)
+            items_str = str(hashed_items)
             return self._deterministic_hash(items_str)
-        elif isinstance(value, bool):
+        elif value_type is bool:
             return 1 if value else 0
-        elif isinstance(value, int):
+        elif value_type is int:
             # For integers, return the value itself (deterministic)
             return value
-        elif isinstance(value, float):
+        elif value_type is float:
             # For floats, use deterministic hash of string representation
             return self._deterministic_hash(str(value))
-        elif isinstance(value, str):
+        elif value_type is str:
             return self._deterministic_hash(value)
         elif value is None:
             return 0
@@ -1224,13 +1259,15 @@ class Interpreter:
         raise RuntimeError(msg)
     
     def is_truthy(self, value) -> bool:
-        if isinstance(value, bool):
+        # Optimized: use type() for faster checks
+        value_type = type(value)
+        if value_type is bool:
             return value
-        elif isinstance(value, (int, float)):
+        elif value_type is int or value_type is float:
             return value != 0
-        elif isinstance(value, str):
+        elif value_type is str:
             return value != ""
-        elif isinstance(value, FawkArray):
+        elif value_type is FawkArray:
             return value.length() > 0
         elif value is None:
             return False
@@ -1238,12 +1275,13 @@ class Interpreter:
     
     def to_number(self, value):
         """Convert value to number (like AWK does)"""
-        # Fast path for common types
-        if isinstance(value, int):
+        # Fast path for common types - optimized: use type() for faster checks
+        value_type = type(value)
+        if value_type is int:
             return value
-        if isinstance(value, float):
+        if value_type is float:
             return value
-        if isinstance(value, str):
+        if value_type is str:
             # Try to parse as number
             # Optimize: check if string looks numeric before parsing
             if not value:
@@ -1372,7 +1410,10 @@ class Interpreter:
         if type(iterable) is not FawkArray:
             self.error("for-in requires an array")
         
-        for key in iterable.keys():
+        # Optimized: cache keys() result if array is not being modified
+        # For read-only iteration, we can use keys() once
+        keys_list = iterable.keys()
+        for key in keys_list:
             # Use set() instead of set_local() to ensure it updates the variable
             # even if it already exists in the environment
             self.current_env.set(node.var, key)
@@ -1844,7 +1885,8 @@ class Interpreter:
             # String ~ pattern: check if string contains/matches pattern
             text = self.value_to_string(left)
             # If right is a Regex node, get its pattern
-            if isinstance(node.right, Regex):
+            # Optimized: use type() for faster checks
+            if type(node.right) is Regex:
                 pattern = node.right.pattern
                 flags = 0
                 if 'i' in node.right.flags:
@@ -2371,9 +2413,10 @@ class Interpreter:
         
         # GAWK behavior: accessing an array element auto-creates it if it doesn't exist
         # Convert index to the right type (optimized: use type() for faster checks)
-        if type(index) is int:
+        index_type = type(index)
+        if index_type is int:
             pass  # no conversion needed
-        elif type(index) is float:
+        elif index_type is float:
             index = int(index)
         else:
             # Try to convert to int, fallback to string
@@ -2382,11 +2425,15 @@ class Interpreter:
             except (ValueError, TypeError):
                 index = str(index)
         
+        # Optimized: direct access to data dict, avoiding COW overhead for reads
         # If key doesn't exist, auto-create it with empty string (GAWK behavior)
         if index not in array.data:
+            # Need to ensure unique before modifying
+            array._ensure_unique()
             array.data[index] = ""
         
-        return array.get(index)
+        # Direct dict access is faster than get() method
+        return array.data.get(index, "")
     
     def eval_FunctionCall(self, node: FunctionCall) -> Any:
         func = self.eval(node.func)
