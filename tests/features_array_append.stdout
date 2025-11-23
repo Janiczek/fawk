@@ -1,0 +1,62 @@
+Test: Array append syntax arr[] = value
+========================================
+
+Test 1: Empty array
+  Before: length = 0 , arr = []
+  Keys before: []
+  After arr1[] = 10: length = 1 , arr1 = [10]
+  Keys after first append: [1]
+  After arr1[] = 20: length = 2 , arr1 = [10, 20]
+  Keys after second append: [1, 2]
+
+Test 2: Regular array [1, 2, 3]
+  Before: length = 3 , arr2 = [1, 2, 3]
+  Keys before: [1, 2, 3]
+  After arr2[] = 4: length = 4 , arr2 = [1, 2, 3, 4]
+  Keys after first append: [1, 2, 3, 4]
+  After arr2[] = 5: length = 5 , arr2 = [1, 2, 3, 4, 5]
+  Keys after second append: [1, 2, 3, 4, 5]
+
+Test 3: Array with gaps [1 => "a", 5 => "e", 10 => "j"]
+  Before: length = 3 , arr3 = [1 => "a", 5 => "e", 10 => "j"]
+  Keys before: [1, 5, 10]
+  After arr3[] = "next": length = 4 , arr3 = [1 => "a", 5 => "e", 10 => "j", 4 => "next"]
+  Keys after: [1, 4, 5, 10]
+
+Test 4: Associative array ["x" => 1, "y" => 2]
+  Before: length = 2 , arr4 = ["x" => 1, "y" => 2]
+  Keys before: ["x", "y"]
+  After arr4[] = 3: length = 3 , arr4 = ["x" => 1, "y" => 2, 3 => 3]
+  Keys after: [3, "x", "y"]
+
+Test 5: Mixed array [1 => "one", "two" => 2]
+  Before: length = 2 , arr5 = [1 => "one", "two" => 2]
+  Keys before: [1, "two"]
+  After arr5[] = "three": length = 3 , arr5 = [1 => "one", "two" => 2, 3 => "three"]
+  Keys after: [1, 3, "two"]
+
+Test 6: Array starting from index 5 [5 => "five", 6 => "six"]
+  Before: length = 2 , arr6 = [5 => "five", 6 => "six"]
+  Keys before: [5, 6]
+  After arr6[] = "seven": length = 3 , arr6 = [5 => "five", 6 => "six", 3 => "seven"]
+  Keys after: [3, 5, 6]
+
+Test 7: Array with large gaps [1 => "a", 100 => "z"]
+  Before: length = 2 , arr7 = [1 => "a", 100 => "z"]
+  Keys before: [1, 100]
+  After arr7[] = "next": length = 3 , arr7 = [1 => "a", 100 => "z", 3 => "next"]
+  Keys after: [1, 3, 100]
+
+Test 8: Multiple appends to empty array
+  After 5 appends: length = 5 , arr8 = [10, 20, 30, 40, 50]
+  Keys: [1, 2, 3, 4, 5]
+
+Test 9: Collision detection ["a" => 1, 4 => 2, 5 => 3]
+  Before: length = 3 , arr9 = ["a" => 1, 4 => 2, 5 => 3]
+  Keys before: [4, 5, "a"]
+  After arr9[] = 4: length = 4 , arr9 = ["a" => 1, 4 => 2, 5 => 3, 6 => 4]
+  Keys after first append: [4, 5, 6, "a"]
+  Expected: index 6 since 4 and 5 are taken, length+1=4 is taken, so next is 6
+  After arr9[] = 5: length = 5 , arr9 = ["a" => 1, 4 => 2, 5 => 3, 6 => 4, 7 => 5]
+  Keys after second append: [4, 5, 6, 7, "a"]
+  Expected: index 7 since 4, 5, and 6 are taken, length+1=5 is taken, so next is 7

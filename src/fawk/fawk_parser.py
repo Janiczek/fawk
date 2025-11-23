@@ -824,9 +824,34 @@ class Parser:
                 # Check if this is an array literal (not array access)
                 # In AWK, string literals and number literals can't be indexed
                 # So if expr is a String or Number, this must be concatenation with an array literal
-                # Also, empty array literal [] should be parsed as array literal, not array access
                 is_literal = isinstance(expr, (String, Number))
                 is_empty_array = self.peek(1).type == TokenType.RBRACKET
+                
+                # Special case: arr[] = value (array append syntax)
+                # Check if this is empty brackets followed by = (assignment)
+                # arr[] is ONLY allowed on the LHS of an assignment, not in RHS contexts
+                if is_empty_array and not is_literal:
+                    # Peek ahead to see if this is followed by = (assignment)
+                    # Skip past the ] to check what comes next
+                    saved_pos = self.pos
+                    self.advance()  # consume [
+                    self.advance()  # consume ]
+                    # Skip newlines before checking for =
+                    while self.current().type == TokenType.NEWLINE:
+                        self.advance()
+                    is_assignment = self.current().type == TokenType.ASSIGN
+                    self.pos = saved_pos  # restore position
+                    
+                    if is_assignment:
+                        # This is arr[] = value syntax (array append) - allowed on LHS
+                        self.advance()  # consume [
+                        self.expect(TokenType.RBRACKET)  # consume ]
+                        # Create ArrayAccess with empty indices list to signal append
+                        expr = ArrayAccess(expr, [])
+                        continue
+                    else:
+                        # arr[] is not allowed in RHS contexts - it's a syntax error
+                        self.error("arr[] syntax is only allowed on the left-hand side of an assignment")
                 
                 if is_literal or is_empty_array:
                     # This is concatenation with an array literal, not array access

@@ -1,0 +1,107 @@
+# Test: Array append syntax arr[] = value
+
+BEGIN {
+    print "Test: Array append syntax arr[] = value"
+    print "========================================"
+    print ""
+    
+    # Test 1: Empty array
+    print "Test 1: Empty array"
+    arr1 = []
+    print "  Before: length =", length(arr1), ", arr =", arr1
+    print "  Keys before:", keys(arr1)
+    arr1[] = 10
+    print "  After arr1[] = 10: length =", length(arr1), ", arr1 =", arr1
+    print "  Keys after first append:", keys(arr1)
+    arr1[] = 20
+    print "  After arr1[] = 20: length =", length(arr1), ", arr1 =", arr1
+    print "  Keys after second append:", keys(arr1)
+    print ""
+    
+    # Test 2: Regular array (sequential numeric indices starting from 1)
+    print "Test 2: Regular array [1, 2, 3]"
+    arr2 = [1, 2, 3]
+    print "  Before: length =", length(arr2), ", arr2 =", arr2
+    print "  Keys before:", keys(arr2)
+    arr2[] = 4
+    print "  After arr2[] = 4: length =", length(arr2), ", arr2 =", arr2
+    print "  Keys after first append:", keys(arr2)
+    arr2[] = 5
+    print "  After arr2[] = 5: length =", length(arr2), ", arr2 =", arr2
+    print "  Keys after second append:", keys(arr2)
+    print ""
+    
+    # Test 3: Array with gaps (non-sequential indices)
+    print "Test 3: Array with gaps [1 => \"a\", 5 => \"e\", 10 => \"j\"]"
+    arr3 = [1 => "a", 5 => "e", 10 => "j"]
+    print "  Before: length =", length(arr3), ", arr3 =", arr3
+    print "  Keys before:", keys(arr3)
+    arr3[] = "next"
+    print "  After arr3[] = \"next\": length =", length(arr3), ", arr3 =", arr3
+    print "  Keys after:", keys(arr3)
+    print ""
+    
+    # Test 4: Associative array (string keys only)
+    print "Test 4: Associative array [\"x\" => 1, \"y\" => 2]"
+    arr4 = ["x" => 1, "y" => 2]
+    print "  Before: length =", length(arr4), ", arr4 =", arr4
+    print "  Keys before:", keys(arr4)
+    arr4[] = 3
+    print "  After arr4[] = 3: length =", length(arr4), ", arr4 =", arr4
+    print "  Keys after:", keys(arr4)
+    print ""
+    
+    # Test 5: Mixed array (numeric and string keys)
+    print "Test 5: Mixed array [1 => \"one\", \"two\" => 2]"
+    arr5 = [1 => "one", "two" => 2]
+    print "  Before: length =", length(arr5), ", arr5 =", arr5
+    print "  Keys before:", keys(arr5)
+    arr5[] = "three"
+    print "  After arr5[] = \"three\": length =", length(arr5), ", arr5 =", arr5
+    print "  Keys after:", keys(arr5)
+    print ""
+    
+    # Test 6: Array starting from non-1 index
+    print "Test 6: Array starting from index 5 [5 => \"five\", 6 => \"six\"]"
+    arr6 = [5 => "five", 6 => "six"]
+    print "  Before: length =", length(arr6), ", arr6 =", arr6
+    print "  Keys before:", keys(arr6)
+    arr6[] = "seven"
+    print "  After arr6[] = \"seven\": length =", length(arr6), ", arr6 =", arr6
+    print "  Keys after:", keys(arr6)
+    print ""
+    
+    # Test 7: Array with large gaps
+    print "Test 7: Array with large gaps [1 => \"a\", 100 => \"z\"]"
+    arr7 = [1 => "a", 100 => "z"]
+    print "  Before: length =", length(arr7), ", arr7 =", arr7
+    print "  Keys before:", keys(arr7)
+    arr7[] = "next"
+    print "  After arr7[] = \"next\": length =", length(arr7), ", arr7 =", arr7
+    print "  Keys after:", keys(arr7)
+    print ""
+    
+    # Test 8: Multiple appends to verify sequential behavior
+    print "Test 8: Multiple appends to empty array"
+    arr8 = []
+    for (i = 1; i <= 5; i++) {
+        arr8[] = i * 10
+    }
+    print "  After 5 appends: length =", length(arr8), ", arr8 =", arr8
+    print "  Keys:", keys(arr8)
+    print ""
+    
+    # Test 9: Collision detection - finding next unused index
+    print "Test 9: Collision detection [\"a\" => 1, 4 => 2, 5 => 3]"
+    arr9 = ["a" => 1, 4 => 2, 5 => 3]
+    print "  Before: length =", length(arr9), ", arr9 =", arr9
+    print "  Keys before:", keys(arr9)
+    arr9[] = 4
+    print "  After arr9[] = 4: length =", length(arr9), ", arr9 =", arr9
+    print "  Keys after first append:", keys(arr9)
+    print "  Expected: index 6 since 4 and 5 are taken, length+1=4 is taken, so next is 6"
+    arr9[] = 5
+    print "  After arr9[] = 5: length =", length(arr9), ", arr9 =", arr9
+    print "  Keys after second append:", keys(arr9)
+    print "  Expected: index 7 since 4, 5, and 6 are taken, length+1=5 is taken, so next is 7"
+}

@@ -1,0 +1,11 @@
+# Test: arr[] on RHS - failure
+# This should fail - arr[] syntax is only allowed on the LHS of an assignment
+
+BEGIN {
+    arr = [1, 2, 3]
+    
+    # This should fail - arr[] is not allowed on the RHS of an assignment
+    x = arr[]
+    print x
+}
+

@@ -1942,8 +1942,39 @@ class Interpreter:
             # We need to ensure that grid[x] is a FawkArray before we can set grid[x][y]
             array = self._get_or_create_nested_array(node.target.array)
             
-            # Handle multi-dimensional array access
-            if len(node.target.indices) == 1:
+            # Special case: arr[] = value (array append syntax)
+            if len(node.target.indices) == 0:
+                # Find the next unused numeric index
+                # Start from length(arr) + 1
+                start_index = array.length() + 1
+                
+                # Get all keys from the array
+                keys_list = array.keys()
+                
+                # Find the next unused numeric index
+                # Check if start_index is already used, if so, find the next gap
+                index = start_index
+                while True:
+                    # Check if this index is already in use
+                    # Convert index to the type used in the array (int or str)
+                    if isinstance(index, (int, float)):
+                        key = int(index)
+                    else:
+                        key = str(index)
+                    
+                    if key not in array.data:
+                        # Found an unused index
+                        break
+                    
+                    # This index is used, try the next one
+                    index += 1
+                
+                # Convert to the appropriate type for storage
+                if isinstance(index, (int, float)):
+                    index = int(index)
+                else:
+                    index = str(index)
+            elif len(node.target.indices) == 1:
                 index = self.eval(node.target.indices[0])
             else:
                 # Multiple indices: concatenate with SUBSEP
