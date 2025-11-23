@@ -1163,19 +1163,124 @@ class Interpreter:
         """Return a hash integer for any AWK value"""
         return self._hash_value(value)
     
-    def _deterministic_hash(self, data):
-        """Create a deterministic hash from bytes or string"""
-        # Use a simple deterministic hash algorithm (FNV-1a variant)
+    def _murmur3_multiply_32(self, a, b):
+        """32-bit multiplication (handles overflow correctly)"""
+        # Split into low and high 16-bit parts
+        a_low = a & 0xFFFF
+        a_high = (a >> 16) & 0xFFFF
+        b_low = b & 0xFFFF
+        b_high = (b >> 16) & 0xFFFF
+        
+        # Multiply and combine
+        result = (a_low * b) + ((a_high * b_low) << 16)
+        return result & 0xFFFFFFFF
+    
+    def _murmur3_rotl32(self, value, amount):
+        """Rotate left 32-bit value"""
+        value = value & 0xFFFFFFFF
+        return ((value << amount) | (value >> (32 - amount))) & 0xFFFFFFFF
+    
+    def _murmur3_mix(self, h1, k1):
+        """Murmur3 mix function"""
+        # Constants
+        c1 = 0xCC9E2D51
+        c2 = 0x1B873593
+        
+        k1 = self._murmur3_multiply_32(k1, c1)
+        k1 = self._murmur3_rotl32(k1, 15)
+        k1 = self._murmur3_multiply_32(k1, c2)
+        h1 = (h1 ^ k1) & 0xFFFFFFFF
+        h1 = self._murmur3_rotl32(h1, 13)
+        h1 = self._murmur3_multiply_32(h1, 5)
+        h1 = (h1 + 0xE6546B64) & 0xFFFFFFFF
+        return h1
+    
+    def _murmur3_finalize(self, hash_val, length):
+        """Murmur3 finalization"""
+        hash_val = hash_val & 0xFFFFFFFF
+        
+        # Final mixing
+        hash_val = (hash_val ^ length) & 0xFFFFFFFF
+        hash_val = (hash_val ^ (hash_val >> 16)) & 0xFFFFFFFF
+        hash_val = self._murmur3_multiply_32(hash_val, 0x85EBCA6B)
+        hash_val = (hash_val ^ (hash_val >> 13)) & 0xFFFFFFFF
+        hash_val = self._murmur3_multiply_32(hash_val, 0xC2B2AE35)
+        hash_val = (hash_val ^ (hash_val >> 16)) & 0xFFFFFFFF
+        
+        # Convert to signed 32-bit integer
+        if hash_val > 0x7FFFFFFF:
+            hash_val = hash_val - 0x100000000
+        return hash_val
+    
+    def _murmur3_hash_bytes(self, data, seed=0):
+        """Murmur3 hash for bytes data"""
         if isinstance(data, str):
             data = data.encode('utf-8')
-        hash_val = 2166136261  # FNV offset basis
+        
+        length = len(data)
+        h1 = seed & 0xFFFFFFFF
+        shift = 0
+        hash_part = 0
+        
+        # Process data in 4-byte chunks
         for byte in data:
-            hash_val ^= byte
-            hash_val = (hash_val * 16777619) & 0xffffffffffffffff  # 64-bit mask
-        # Convert to signed 64-bit integer (Python int, but in range)
-        if hash_val > 0x7fffffffffffffff:
-            hash_val = hash_val - 0x10000000000000000
-        return hash_val
+            hash_part = (hash_part | ((byte & 0xFF) << shift)) & 0xFFFFFFFF
+            shift += 8
+            
+            if shift == 32:  # 4 bytes accumulated
+                h1 = self._murmur3_mix(h1, hash_part)
+                hash_part = 0
+                shift = 0
+        
+        # Handle remaining bytes
+        if hash_part != 0:
+            hash_part = self._murmur3_multiply_32(hash_part, 0xCC9E2D51)
+            hash_part = self._murmur3_rotl32(hash_part, 15)
+            hash_part = self._murmur3_multiply_32(hash_part, 0x1B873593)
+            h1 = (h1 ^ hash_part) & 0xFFFFFFFF
+        
+        return self._murmur3_finalize(h1, length)
+    
+    def _extend_to_64bit(self, hash_val):
+        """Extend 32-bit Murmur3 hash to 64-bit signed integer"""
+        hash_val_extended = hash_val & 0xFFFFFFFF
+        hash_val_extended = ((hash_val_extended << 32) | hash_val_extended) & 0xFFFFFFFFFFFFFFFF
+        if hash_val_extended > 0x7FFFFFFFFFFFFFFF:
+            hash_val_extended = hash_val_extended - 0x10000000000000000
+        return hash_val_extended
+    
+    def _deterministic_hash(self, data):
+        """Create a deterministic hash from bytes or string using Murmur3"""
+        hash_val = self._murmur3_hash_bytes(data, seed=0)
+        return self._extend_to_64bit(hash_val)
+    
+    def _hash_tuple(self, items):
+        """Deterministically hash a tuple of integers using Murmur3"""
+        # Convert each integer to bytes and hash them together
+        seed = 0x9E3779B9
+        h1 = seed & 0xFFFFFFFF
+        
+        for item in items:
+            # Convert integer to bytes (8 bytes, little-endian)
+            if item < 0:
+                uval = (item & 0xffffffffffffffff) | (1 << 63)
+            else:
+                uval = item & 0xffffffffffffffff
+            item_bytes = uval.to_bytes(8, byteorder='little', signed=False)
+            
+            # Process in 4-byte chunks
+            for i in range(0, len(item_bytes), 4):
+                chunk = item_bytes[i:i+4]
+                # Pad to 4 bytes if needed
+                while len(chunk) < 4:
+                    chunk += b'\x00'
+                k1 = int.from_bytes(chunk, byteorder='little', signed=False)
+                h1 = self._murmur3_mix(h1, k1)
+        
+        # Finalize with total length
+        total_length = len(items) * 8
+        hash_val = self._murmur3_finalize(h1, total_length)
+        return self._extend_to_64bit(hash_val)
     
     def _hash_value(self, value):
         """Recursively hash an AWK value with deterministic results"""
@@ -1212,28 +1317,44 @@ class Interpreter:
                 hashed_val = self._hash_value(val)
                 hashed_items.append((hashed_key, hashed_val))
             
-            # Create deterministic hash from tuple representation
-            items_str = str(hashed_items)
-            return self._deterministic_hash(items_str)
+            # Create deterministic hash from tuple of hashed items, then mix
+            # Flatten the tuple pairs into a single sequence
+            flat_items = []
+            for key_hash, val_hash in hashed_items:
+                flat_items.append(key_hash)
+                flat_items.append(val_hash)
+            hash_val = self._hash_tuple(flat_items)
+            return hash_val
         elif value_type is bool:
-            return 1 if value else 0
+            # FAWK has no notion of booleans - hash them the same as 1 or 0
+            int_value = 1 if value else 0
+            hash_val = self._murmur3_hash_bytes(b"int:" + str(int_value).encode('utf-8'), seed=0x9E3779B9)
+            return self._extend_to_64bit(hash_val)
         elif value_type is int:
-            # For integers, return the value itself (deterministic)
-            return value
+            # For integers, use fast mixing so they don't hash to themselves
+            # Use type prefix to differentiate from strings
+            hash_val = self._murmur3_hash_bytes(b"int:" + str(value).encode('utf-8'), seed=0x9E3779B9)
+            return self._extend_to_64bit(hash_val)
         elif value_type is float:
             # For floats, use deterministic hash of string representation
-            return self._deterministic_hash(str(value))
+            hash_val = self._murmur3_hash_bytes(b"float:" + str(value).encode('utf-8'), seed=0x9E3779B9)
+            return self._extend_to_64bit(hash_val)
         elif value_type is str:
-            return self._deterministic_hash(value)
+            # For strings, use deterministic hash with type prefix
+            hash_val = self._murmur3_hash_bytes(b"str:" + value.encode('utf-8'), seed=0x9E3779B9)
+            return self._extend_to_64bit(hash_val)
         elif value is None:
-            return 0
+            # Hash None with type prefix
+            hash_val = self._murmur3_hash_bytes(b"none:", seed=0x9E3779B9)
+            return self._extend_to_64bit(hash_val)
         elif isinstance(value, UserFunction):
             # For user functions, create hash from params and a hash of the body
             # Use params as string and body representation
             params_str = ",".join(value.params)
             body_str = str(value.body)
             func_str = f"UserFunction({params_str}):{body_str}"
-            return self._deterministic_hash(func_str)
+            hash_val = self._murmur3_hash_bytes(b"userfunc:" + func_str.encode('utf-8'), seed=0x9E3779B9)
+            return self._extend_to_64bit(hash_val)
         elif callable(value):
             # For built-in functions, try to find the function name
             func_name = None
@@ -1243,17 +1364,16 @@ class Interpreter:
                     break
             if func_name:
                 # Use function name for deterministic hash
-                return self._deterministic_hash(f"builtin:{func_name}")
+                hash_val = self._murmur3_hash_bytes(f"builtin:{func_name}".encode('utf-8'), seed=0x9E3779B9)
+                return self._extend_to_64bit(hash_val)
             else:
-                # Unknown callable - use id() which is consistent within a run
-                # Convert to signed 64-bit integer
-                obj_id = id(value)
-                if obj_id > 0x7fffffffffffffff:
-                    obj_id = obj_id - 0x10000000000000000
-                return obj_id
+                # Unknown callable - use deterministic hash of string representation
+                hash_val = self._murmur3_hash_bytes(b"callable:" + str(value).encode('utf-8'), seed=0x9E3779B9)
+                return self._extend_to_64bit(hash_val)
         else:
             # Fallback for any other type - use deterministic hash of string representation
-            return self._deterministic_hash(str(value))
+            hash_val = self._murmur3_hash_bytes(b"other:" + str(value).encode('utf-8'), seed=0x9E3779B9)
+            return self._extend_to_64bit(hash_val)
     
     def error(self, msg: str):
         raise RuntimeError(msg)

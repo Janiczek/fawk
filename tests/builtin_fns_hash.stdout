@@ -1,42 +1,42 @@
 Test: hash() function
 --------------------------------------
-  hash(0): 0
-  hash(42): 42
-  hash(-100): -100
-  hash(123456789): 123456789
+  hash(0): -8541563173357599348
+  hash(42): 5272098573547880888
+  hash(-100): 1536863079824099540
+  hash(123456789): 5334247647983635961
   hash(42) == hash(42): 1
   hash(0) == hash(0): 1
-  hash(3.14): -764019074339389375
-  hash(0.0): -2498802840344940519
-  hash(-2.5): 3034759552554506847
-  hash("hello"): 1460560186469985451
-  hash(""): 2166136261
-  hash("test string"): 1173139176627644490
+  hash(3.14): -2910821481751859384
+  hash(0.0): 7186234415418876448
+  hash(-2.5): 5391079557200672331
+  hash("hello"): -5841573398468194319
+  hash(""): 6463738031784578942
+  hash("test string"): 1146946165983069558
   hash("hello") == hash("hello"): 1
-  hash(1 == 1): 1
-  hash(1 == 2): 0
-  hash([1, 2, 3]): -7546052690511045160
+  hash(1 == 1): 436216695662428358
+  hash(1 == 2): -8541563173357599348
+  hash([1, 2, 3]): -3663808121695401492
   hash([1, 2, 3]) == hash([1, 2, 3]): 1
   hash([1, 2, 3]) != hash([1, 2, 4]): 1
-  hash([]): 3755817600854407333
-  hash(["a" => 1, "b" => 2]): 5805165210547354140
+  hash([]): -7869425659237748978
+  hash(["a" => 1, "b" => 2]): -805540856222047013
   hash(assoc1) == hash(assoc2): 1
   hash(assoc1) != hash(assoc3): 1
-  hash([[1, 2], [3, 4]]): 6597898915142667927
+  hash([[1, 2], [3, 4]]): 1077628748178948515
   hash(nested1) == hash(nested2): 1
   hash(nested1) != hash(nested3): 1
   hash(mixed1) == hash(mixed2): 1
   hash(mixed1) != hash(mixed3): 1
   hash(mixed1) != hash(mixed4): 1
-  hash(lambda1): 2939838082141863460
+  hash(lambda1): 6604586918739457231
   hash(lambda1) == hash(lambda2): 1
   hash(lambda1) != hash(lambda3): 1
   hash(add) != hash(mul): 1
-  hash(my_func): -5841524445505354819
+  hash(my_func): -432418711916266120
   hash(my_func) != hash(length): 1
   hash(func_ref1) == hash(func_ref2): 1
-  hash(func_arr): -4663557927471416944
-  hash(complex): -3695605244423727287
+  hash(func_arr): -928156099467639055
+  hash(complex): -4837568966809517913
   hash(42) != hash("42"): 1
   hash(0) != hash(""): 1
   hash(1) != hash(true): 0
