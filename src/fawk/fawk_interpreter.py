@@ -23,6 +23,12 @@ class ReturnException(Exception):
         self.value = value
 
 
+class TailCallException(Exception):
+    """Exception raised when a tail call is detected"""
+    def __init__(self, func_call_node):
+        self.func_call_node = func_call_node
+
+
 class ExitException(Exception):
     def __init__(self, code):
         self.code = code
@@ -389,6 +395,8 @@ class Interpreter:
         self.globals_declared = set()
         self.in_function = False  # Track if we're inside a user function
         self.current_closure_env = None  # Track the closure environment of the current function
+        self.current_function = None  # Track the current UserFunction being executed (for tail recursion)
+        self.current_function_name = None  # Track the name of the current function (for tail recursion)
         
         # AWK built-in variables
         self.ARGC = argc
@@ -1280,6 +1288,15 @@ class Interpreter:
                 return  # Break out of switch
     
     def eval_ReturnStmt(self, node: ReturnStmt) -> None:
+        # Check for tail recursion: if returning a function call to the same function
+        if (node.value and 
+            isinstance(node.value, FunctionCall) and 
+            isinstance(node.value.func, Identifier) and
+            self.current_function_name and
+            node.value.func.name == self.current_function_name):
+            # This is a tail call - raise special exception
+            raise TailCallException(node.value)
+        
         value = self.eval(node.value) if node.value else None
         raise ReturnException(value)
     
@@ -2296,7 +2313,19 @@ class Interpreter:
                 else:
                     self.error(f"Function expects {len(func.params)} arguments, got {len(args)}")
             
-            # Create new environment for function
+            # Get function name for tail recursion detection
+            func_name = None
+            if func_node and isinstance(func_node, Identifier):
+                func_name = func_node.name
+            
+            # Save current state
+            saved_env = self.current_env
+            saved_in_function = self.in_function
+            saved_closure_env = self.current_closure_env
+            saved_current_function = self.current_function
+            saved_current_function_name = self.current_function_name
+            
+            # Create initial environment for function
             func_env = Environment(func.closure_env)
             for param, arg in zip(func.params, args):
                 # Use copy-on-write for arrays when passing as arguments (pass by value)
@@ -2305,28 +2334,66 @@ class Interpreter:
                 else:
                     func_env.set_local(param, arg)
             
-            # Execute function body
-            saved_env = self.current_env
-            saved_in_function = self.in_function
-            saved_closure_env = self.current_closure_env
+            # Set up function execution context
             self.current_env = func_env
             self.in_function = True
             self.current_closure_env = func.closure_env
+            self.current_function = func
+            self.current_function_name = func_name
             
+            # Execute function body with tail recursion support
+            # Use a loop to handle tail calls without growing the stack
+            result = None
             try:
-                result = self.eval(func.body)
-                # For lambdas with single expression, implicitly return the value
-                if func.is_lambda and isinstance(func.body, Block) and len(func.body.statements) == 1:
-                    stmt = func.body.statements[0]
-                    if isinstance(stmt, ExprStmt):
-                        # Implicit return for single-expression lambdas
-                        result = self.eval(stmt.expr)
-            except ReturnException as e:
-                result = e.value
+                while True:
+                    try:
+                        result = self.eval(func.body)
+                        # For lambdas with single expression, implicitly return the value
+                        if func.is_lambda and isinstance(func.body, Block) and len(func.body.statements) == 1:
+                            stmt = func.body.statements[0]
+                            if isinstance(stmt, ExprStmt):
+                                # Implicit return for single-expression lambdas
+                                result = self.eval(stmt.expr)
+                        break  # Normal return, exit loop
+                    except ReturnException as e:
+                        result = e.value
+                        break  # Return statement, exit loop
+                    except TailCallException as e:
+                        # Tail call detected - update parameters and continue loop
+                        tail_call_node = e.func_call_node
+                        # Evaluate new arguments
+                        new_args = []
+                        for arg_node in tail_call_node.args:
+                            # Check if argument is an undefined identifier
+                            if isinstance(arg_node, Identifier):
+                                if not self.identifier_exists(arg_node.name):
+                                    self.error(f"Undefined variable '{arg_node.name}' used as function argument")
+                            new_args.append(self.eval(arg_node))
+                        
+                        # Validate argument count
+                        if len(new_args) != len(func.params):
+                            if func_name:
+                                self.error(f"Function '{func_name}' expects {len(func.params)} arguments, got {len(new_args)}")
+                            else:
+                                self.error(f"Function expects {len(func.params)} arguments, got {len(new_args)}")
+                        
+                        # Update function environment with new arguments
+                        for param, arg in zip(func.params, new_args):
+                            # Use copy-on-write for arrays when passing as arguments (pass by value)
+                            if isinstance(arg, FawkArray):
+                                func_env.set_local(param, arg.cow_copy())
+                            else:
+                                func_env.set_local(param, arg)
+                        
+                        # Continue loop to execute function body again with new parameters
+                        continue
             finally:
+                # Restore previous state
                 self.current_env = saved_env
                 self.in_function = saved_in_function
                 self.current_closure_env = saved_closure_env
+                self.current_function = saved_current_function
+                self.current_function_name = saved_current_function_name
             
             return result
         else:

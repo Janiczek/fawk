@@ -1,0 +1,2 @@
+countdown(1000) = 0
+factorial_tail(10) = 3628800

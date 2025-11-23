@@ -1,0 +1,28 @@
+# Test: Tail Recursion
+# Functions with tail calls should be able to loop indefinitely without stack overflow
+
+function countdown(n) {
+  if (n <= 0) {
+    return 0
+  }
+  return countdown(n - 1)
+}
+
+function factorial_tail(n, acc) {
+  if (n <= 1) {
+    return acc
+  }
+  return factorial_tail(n - 1, n * acc)
+}
+
+BEGIN {
+  # Test that tail recursion works for a simple case
+  # This should complete without stack overflow
+  result = countdown(1000)
+  print "countdown(1000) =", result
+  
+  # Test factorial with tail recursion
+  fact = factorial_tail(10, 1)
+  print "factorial_tail(10) =", fact
+}
+
