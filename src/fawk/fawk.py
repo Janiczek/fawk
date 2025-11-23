@@ -26,10 +26,11 @@ def main():
     # Parse command line arguments AWK-style
     parser = argparse.ArgumentParser(
         description='FAWK - Functional AWK Interpreter',
-        usage='%(prog)s [-F fs] [-v var=value] [-f script_file] [script_string] [input_file ...]',
+        usage='%(prog)s [-F fs] [-v var=value] [-f script_file] [-e program] [script_string] [input_file ...]',
         epilog='Examples:\n'
                '  %(prog)s -f script.fawk input.txt     # script from file\n'
                '  %(prog)s \'{ print $1 }\' input.txt     # inline script\n'
+               '  %(prog)s -e \'{ print $1 }\' input.txt  # program from -e flag\n'
                '  %(prog)s -f script.fawk f1.txt f2.txt # multiple inputs\n'
                '  cat file.txt | %(prog)s \'{ print $1 }\' # piped input\n'
                '  %(prog)s -v PREC=100 \'BEGIN {printf("%%.50f\\n", 4*atan2(1,1))}\' # arbitrary precision\n'
@@ -42,6 +43,8 @@ def main():
                         help='set field separator (FS variable)')
     parser.add_argument('-f', '--file', dest='script_file', metavar='script_file',
                         help='read script from file')
+    parser.add_argument('-e', dest='programs', action='append', metavar='program',
+                        help='program text (can be used multiple times, programs are concatenated)')
     parser.add_argument('-v', dest='variables', action='append', metavar='var=value',
                         help='set variable before execution (can be used multiple times)')
     parser.add_argument('args', nargs='*', help='script string or input files')
@@ -49,7 +52,14 @@ def main():
     args = parser.parse_args()
     
     # Determine source of script and input files
-    if args.script_file:
+    # Priority: -e flag > -f flag > positional arg
+    if args.programs:
+        # Script from -e flag(s): fawk -e 'BEGIN { print "hello" }' input.txt
+        # Multiple -e flags are concatenated
+        source = '\n'.join(args.programs)
+        # All remaining args are input files
+        input_files = args.args
+    elif args.script_file:
         # Script from file: fawk -f script.fawk input.txt
         try:
             with open(args.script_file, 'r') as f:
