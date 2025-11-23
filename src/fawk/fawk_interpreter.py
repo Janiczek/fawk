@@ -359,6 +359,7 @@ class Interpreter:
             ('printf', 'fmt, ...', 'int'),
             ('sprintf', 'fmt, ...', 'string'),
             ('close', 'filename_or_cmd', 'number'),
+            ('fflush', '[filename]', 'number'),
         ],
         'Utility functions': [
             ('hash', 'value', 'int'),
@@ -1036,6 +1037,90 @@ class Interpreter:
             return 0
         
         # File/command not open
+        return -1
+    
+    def builtin_fflush(self, filename=None):
+        """
+        Flush any buffered output associated with filename.
+        If no argument or empty string, flush all open output files and pipes.
+        Returns 0 on success, -1 on failure.
+        """
+        import sys
+        
+        # Handle no argument or empty string - flush all open output files and pipes
+        if filename is None:
+            filename_str = ""
+        else:
+            filename_str = self.value_to_string(filename)
+        
+        if filename_str == "":
+            # Flush all open output files and pipes
+            all_success = True
+            failed_files = []
+            
+            # Flush all redirect files
+            for fname, file_handle in list(self.redirect_files.items()):
+                try:
+                    file_handle.flush()
+                except (IOError, OSError) as e:
+                    all_success = False
+                    failed_files.append(fname)
+            
+            # Flush stdout and stderr
+            try:
+                sys.stdout.flush()
+            except (IOError, OSError):
+                all_success = False
+                failed_files.append("/dev/stdout")
+            
+            try:
+                sys.stderr.flush()
+            except (IOError, OSError):
+                all_success = False
+                failed_files.append("/dev/stderr")
+            
+            # Issue warnings for failed files
+            if failed_files:
+                for fname in failed_files:
+                    print(f"fawk: warning: fflush: failed to flush '{fname}'", file=sys.stderr)
+                return -1
+            
+            return 0 if all_success else -1
+        
+        # Handle specific filename
+        # Special handling for /dev/stdout and /dev/stderr
+        if filename_str == "/dev/stdout":
+            try:
+                sys.stdout.flush()
+                return 0
+            except (IOError, OSError):
+                print(f"fawk: warning: fflush: failed to flush '/dev/stdout'", file=sys.stderr)
+                return -1
+        
+        if filename_str == "/dev/stderr":
+            try:
+                sys.stderr.flush()
+                return 0
+            except (IOError, OSError):
+                print(f"fawk: warning: fflush: failed to flush '/dev/stderr'", file=sys.stderr)
+                return -1
+        
+        # Check if it's a redirect file (output file)
+        if filename_str in self.redirect_files:
+            try:
+                self.redirect_files[filename_str].flush()
+                return 0
+            except (IOError, OSError) as e:
+                print(f"fawk: warning: fflush: failed to flush '{filename_str}': {e}", file=sys.stderr)
+                return -1
+        
+        # Check if it's an input pipe (read-only) - issue warning
+        if filename_str in self.open_pipes:
+            print(f"fawk: warning: fflush: cannot flush file or pipe '{filename_str}' opened for reading", file=sys.stderr)
+            return -1
+        
+        # File/pipe not open - issue warning
+        print(f"fawk: warning: fflush: '{filename_str}' is not an open file, pipe, or coprocess", file=sys.stderr)
         return -1
     
     def builtin_hash(self, value):

@@ -1,0 +1,35 @@
+BEGIN {
+    # Test fflush with no argument
+    print "test1" > "/tmp/fawk_fflush_test1.txt"
+    result1 = fflush()
+    print "fflush() returned:", result1
+    
+    # Test fflush with empty string
+    print "test2" > "/tmp/fawk_fflush_test2.txt"
+    result2 = fflush("")
+    print "fflush(\"\") returned:", result2
+    
+    # Test fflush with specific file
+    print "test3" > "/tmp/fawk_fflush_test3.txt"
+    result3 = fflush("/tmp/fawk_fflush_test3.txt")
+    print "fflush(file) returned:", result3
+    
+    # Test fflush with /dev/stdout
+    result4 = fflush("/dev/stdout")
+    print "fflush(/dev/stdout) returned:", result4
+    
+    # Test fflush with /dev/stderr
+    result5 = fflush("/dev/stderr")
+    print "fflush(/dev/stderr) returned:", result5
+    
+    # Test fflush with non-existent file (should warn and return -1)
+    result6 = fflush("/tmp/nonexistent_file.txt")
+    print "fflush(nonexistent) returned:", result6
+    
+    # Test fflush with input pipe (should warn and return -1)
+    "echo test" | getline line
+    result7 = fflush("echo test")
+    print "fflush(input_pipe) returned:", result7
+    close("echo test")
+}
+

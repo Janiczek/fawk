@@ -1,0 +1,2 @@
+fawk: warning: fflush: '/tmp/nonexistent_file.txt' is not an open file, pipe, or coprocess
+fawk: warning: fflush: cannot flush file or pipe 'echo test' opened for reading

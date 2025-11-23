@@ -1,0 +1,7 @@
+fflush(file) returned: 0
+fflush() returned: 0
+fflush(/dev/stdout) returned: 0
+fflush(nonexistent) returned: -1
+fflush("") returned: 0
+line1
+line2

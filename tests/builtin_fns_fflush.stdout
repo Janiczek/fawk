@@ -1,0 +1,7 @@
+fflush() returned: 0
+fflush("") returned: 0
+fflush(file) returned: 0
+fflush(/dev/stdout) returned: 0
+fflush(/dev/stderr) returned: 0
+fflush(nonexistent) returned: -1
+fflush(input_pipe) returned: -1
