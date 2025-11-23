@@ -9,8 +9,8 @@ SCRIPT_DIR="$(cd "$(dirname "${LINK_SOURCE}")" && pwd)"
 # Run the Python interpreter using uv
 source "${SCRIPT_DIR}/.venv/bin/activate"
 
-if [[ "${FAWK_USE_PYPY}" = "1" ]]; then
-    PYTHONPATH="${SCRIPT_DIR}/src:${PYTHONPATH}" pypy3.10 -m fawk.fawk "$@"
-else
+if [[ "${FAWK_USE_PYPY}" = "0" ]]; then
     PYTHONPATH="${SCRIPT_DIR}/src:${PYTHONPATH}" python3 -m fawk.fawk "$@"
+else
+    PYTHONPATH="${SCRIPT_DIR}/src:${PYTHONPATH}" pypy3.10 -m fawk.fawk "$@"
 fi

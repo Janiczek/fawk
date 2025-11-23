@@ -95,10 +95,13 @@ class FawkArray:
             self.data = shared_data
             self._shared = True
             self._parent = parent
+            # Precompute length for shared data
+            self._length = len(shared_data)
         else:
             self.data = {}
             self._shared = False
             self._parent = None
+            self._length = 0
     
     def _ensure_unique(self):
         """Ensure this array has its own copy of data (copy-on-write)"""
@@ -115,6 +118,8 @@ class FawkArray:
             self.data = new_data
             self._shared = False
             self._parent = None
+            # Update cached length
+            self._length = len(new_data)
     
     def _ensure_unique_copy(self):
         """Create a unique copy of this array (used when copying nested arrays)"""
@@ -126,6 +131,8 @@ class FawkArray:
                     new_arr.data[key] = value._ensure_unique_copy()
                 else:
                     new_arr.data[key] = value
+            # Update cached length
+            new_arr._length = len(new_arr.data)
             return new_arr
         else:
             # Already unique, create a deep copy
@@ -136,6 +143,8 @@ class FawkArray:
                     new_arr.data[key] = value._ensure_unique_copy()
                 else:
                     new_arr.data[key] = value
+            # Update cached length
+            new_arr._length = len(new_arr.data)
             return new_arr
     
     def get(self, key):
@@ -173,7 +182,11 @@ class FawkArray:
                 key = int(key)
             except (ValueError, TypeError):
                 key = str(key)
+        # Update cached length: increment only if key doesn't already exist
+        key_exists = key in self.data
         self.data[key] = value
+        if not key_exists:
+            self._length += 1
     
     def delete(self, key):
         """Delete an element from the array (with COW)"""
@@ -194,12 +207,16 @@ class FawkArray:
         
         if key in self.data:
             del self.data[key]
+            # Update cached length
+            self._length -= 1
     
     def clear(self):
         """Clear all elements from the array (with COW)"""
         # Copy-on-write: ensure we have our own copy before modifying
         self._ensure_unique()
         self.data.clear()
+        # Update cached length
+        self._length = 0
     
     def keys(self):
         """Return keys in GAWK-compatible order: numeric keys sorted numerically, string keys lexicographically"""
@@ -243,7 +260,8 @@ class FawkArray:
         return list(self.data.values())
     
     def length(self):
-        return len(self.data)
+        # Return precomputed length
+        return self._length
     
     def cow_copy(self):
         """Create a copy-on-write copy (shared reference) of this array"""
@@ -265,6 +283,8 @@ class FawkArray:
                     new_arr.data[key] = value.copy()
                 else:
                     new_arr.data[key] = value
+            # Update cached length
+            new_arr._length = len(new_arr.data)
             return new_arr
     
     def is_associative(self) -> bool:
@@ -2540,6 +2560,8 @@ class Interpreter:
             # Need to ensure unique before modifying
             array._ensure_unique()
             array.data[index] = ""
+            # Update cached length when auto-creating element
+            array._length += 1
         
         # Direct dict access is faster than get() method
         return array.data.get(index, "")
