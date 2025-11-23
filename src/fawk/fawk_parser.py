@@ -657,7 +657,17 @@ class Parser:
     def parse_or(self) -> ASTNode:
         left = self.parse_and()
         
-        while self.current().type == TokenType.OR:
+        while True:
+            # Peek ahead past newlines to see if there's a || operator
+            saved_pos = self.pos
+            while self.current().type == TokenType.NEWLINE:
+                self.advance()
+            has_operator = self.current().type == TokenType.OR
+            if not has_operator:
+                # No operator found, restore position (undo newline skipping)
+                self.pos = saved_pos
+                break
+            # Operator found, keep the newlines skipped
             op = self.advance().value
             right = self.parse_and()
             left = BinaryOp(op, left, right)
@@ -667,7 +677,17 @@ class Parser:
     def parse_and(self) -> ASTNode:
         left = self.parse_equality()
         
-        while self.current().type == TokenType.AND:
+        while True:
+            # Peek ahead past newlines to see if there's a && operator
+            saved_pos = self.pos
+            while self.current().type == TokenType.NEWLINE:
+                self.advance()
+            has_operator = self.current().type == TokenType.AND
+            if not has_operator:
+                # No operator found, restore position (undo newline skipping)
+                self.pos = saved_pos
+                break
+            # Operator found, keep the newlines skipped
             op = self.advance().value
             right = self.parse_equality()
             left = BinaryOp(op, left, right)

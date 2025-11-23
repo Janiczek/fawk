@@ -1,0 +1,12 @@
+Test: Logical operators with newlines
+--------------------------------------
+1 == 2 && 3 == 4 && 5 == 6 (with newlines) = 0
+
+1 == 1 || 2 == 3 || 4 == 4 (with newlines) = 1
+
+1 == 1 && 2 == 2 || 3 == 4 && 5 == 5 (with newlines) = 1
+
+x = 5 , y = 10 , z = 15
+x < y && y < z && z > 0 (with newlines) = 1
+
+(x * 2 == y) && (y + 5 == z) && (z > 10) (with newlines) = 1

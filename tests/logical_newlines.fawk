@@ -1,0 +1,58 @@
+# Test: Logical operators with newlines
+
+# Test && with newlines
+function test_and() {
+    return 1 == 2
+        && 3 == 4
+        && 5 == 6
+}
+
+# Test || with newlines
+function test_or() {
+    return 1 == 1
+        || 2 == 3
+        || 4 == 4
+}
+
+# Test mixed && and || with newlines
+function test_mixed() {
+    return 1 == 1
+        && 2 == 2
+        || 3 == 4
+        && 5 == 5
+}
+
+BEGIN {
+    print "Test: Logical operators with newlines"
+    print "--------------------------------------"
+    
+    result = test_and()
+    print "1 == 2 && 3 == 4 && 5 == 6 (with newlines) =", result
+    print ""
+    
+    result = test_or()
+    print "1 == 1 || 2 == 3 || 4 == 4 (with newlines) =", result
+    print ""
+    
+    result = test_mixed()
+    print "1 == 1 && 2 == 2 || 3 == 4 && 5 == 5 (with newlines) =", result
+    print ""
+    
+    # Test complex expression with newlines
+    x = 5
+    y = 10
+    z = 15
+    result = x < y
+        && y < z
+        && z > 0
+    print "x =", x, ", y =", y, ", z =", z
+    print "x < y && y < z && z > 0 (with newlines) =", result
+    print ""
+    
+    # Test with parentheses and newlines
+    result = (x * 2 == y)
+        && (y + 5 == z)
+        && (z > 10)
+    print "(x * 2 == y) && (y + 5 == z) && (z > 10) (with newlines) =", result
+}
+
