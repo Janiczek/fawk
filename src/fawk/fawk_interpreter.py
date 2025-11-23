@@ -5,9 +5,20 @@ Executes the Abstract Syntax Tree
 
 import re
 import math
+import sys
 from decimal import Decimal, getcontext
 from typing import Any, List, Callable
 from .fawk_ast import *
+
+
+def _with_int_str_limit(func):
+    """Context manager for temporarily disabling int-to-str conversion limits."""
+    old_limit = sys.get_int_max_str_digits()
+    try:
+        sys.set_int_max_str_digits(0)  # 0 means no limit
+        return func()
+    finally:
+        sys.set_int_max_str_digits(old_limit)
 
 
 class BreakException(Exception):
@@ -587,13 +598,7 @@ class Interpreter:
         else:
             # Convert to string and get length
             # Handle large integers by temporarily increasing limit
-            import sys
-            old_limit = sys.get_int_max_str_digits()
-            try:
-                sys.set_int_max_str_digits(0)  # 0 means no limit
-                return len(str(value))
-            finally:
-                sys.set_int_max_str_digits(old_limit)
+            return _with_int_str_limit(lambda: len(str(value)))
     
     def builtin_map(self, func, arr):
         if not isinstance(arr, FawkArray):
@@ -981,10 +986,7 @@ class Interpreter:
     def builtin_substr(self, string, start, length=None):
         """Extract substring"""
         # Handle large integers by temporarily increasing limit
-        import sys
-        old_limit = sys.get_int_max_str_digits()
-        try:
-            sys.set_int_max_str_digits(0)  # 0 means no limit
+        def _do_substr():
             s = self.value_to_string(string)
             start_idx = int(self.to_number(start)) - 1  # AWK uses 1-based indexing
             if start_idx < 0:
@@ -995,8 +997,7 @@ class Interpreter:
             else:
                 length_val = int(self.to_number(length))
                 return s[start_idx:start_idx + length_val]
-        finally:
-            sys.set_int_max_str_digits(old_limit)
+        return _with_int_str_limit(_do_substr)
     
     def builtin_tolower(self, string):
         """Convert string to lowercase"""
@@ -1857,14 +1858,8 @@ class Interpreter:
         elif isinstance(value, int):
             # For arbitrary precision integers, convert directly to string
             # without using OFMT (which would try to format as float)
-            import sys
             # Temporarily increase the limit for large integers
-            old_limit = sys.get_int_max_str_digits()
-            try:
-                sys.set_int_max_str_digits(0)  # 0 means no limit
-                return str(value)
-            finally:
-                sys.set_int_max_str_digits(old_limit)
+            return _with_int_str_limit(lambda: str(value))
         elif isinstance(value, float):
             # Format floats using OFMT
             try:
@@ -1893,13 +1888,7 @@ class Interpreter:
         elif isinstance(value, int):
             # For arbitrary precision integers, convert directly to string
             # without using CONVFMT (which would try to format as float)
-            import sys
-            old_limit = sys.get_int_max_str_digits()
-            try:
-                sys.set_int_max_str_digits(0)  # 0 means no limit
-                return str(value)
-            finally:
-                sys.set_int_max_str_digits(old_limit)
+            return _with_int_str_limit(lambda: str(value))
         elif isinstance(value, float):
             # Format floats using CONVFMT
             try:
