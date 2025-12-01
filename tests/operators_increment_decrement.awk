@@ -84,3 +84,5 @@ BEGIN {
     print "  i =", i
 }
 
+BEGIN { x = 5; x++; print(x) }
+BEGIN { x = 5; x++; print(x); }

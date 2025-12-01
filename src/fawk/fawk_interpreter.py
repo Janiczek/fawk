@@ -417,6 +417,9 @@ class Interpreter:
             ('log', 'x', 'number'),
             ('sqrt', 'x', 'number'),
             ('int', 'x', 'int'),
+            ('floor', 'x', 'number'),
+            ('ceiling', 'x', 'number'),
+            ('round', 'x', 'number'),
             ('rand', '', '0.0...1.0'),
             ('srand', '[seed]', 'seed'),
         ],
@@ -870,6 +873,39 @@ class Interpreter:
         if isinstance(num, float):
             return int(num)
         return int(num)
+    
+    def builtin_floor(self, x):
+        """Floor function - largest integer <= x"""
+        if self.use_high_precision():
+            import mpmath
+            mpmath.mp.dps = self.PREC
+            result = mpmath.floor(mpmath.mpf(str(x)))
+            return Decimal(str(result))
+        else:
+            return math.floor(self.to_number(x))
+    
+    def builtin_ceiling(self, x):
+        """Ceiling function - smallest integer >= x"""
+        if self.use_high_precision():
+            import mpmath
+            mpmath.mp.dps = self.PREC
+            result = mpmath.ceil(mpmath.mpf(str(x)))
+            return Decimal(str(result))
+        else:
+            return math.ceil(self.to_number(x))
+    
+    def builtin_round(self, x):
+        """Round to nearest integer"""
+        if self.use_high_precision():
+            import mpmath
+            mpmath.mp.dps = self.PREC
+            result = mpmath.nint(mpmath.mpf(str(x)))  # nearest integer
+            return Decimal(str(result))
+        else:
+            num = self.to_number(x)
+            # Python's round uses "round half to even" (banker's rounding)
+            # For AWK compatibility, we'll use round() which should work similarly
+            return round(num)
     
     def builtin_rand(self):
         """Random number between 0 and 1"""
