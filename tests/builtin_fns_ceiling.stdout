@@ -1,0 +1,9 @@
+ceiling(3.7) = 4
+ceiling(-3.7) = -3
+ceiling(3.0) = 3
+ceiling(-3.0) = -3
+ceiling(0.0) = 0
+ceiling(0.5) = 1
+ceiling(-0.5) = 0
+ceiling(10.9) = 11
+ceiling(-10.9) = -10

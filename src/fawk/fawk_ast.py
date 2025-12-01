@@ -189,6 +189,7 @@ class PostfixDecrement(ASTNode):
 class Assignment(ASTNode):
     target: ASTNode
     value: ASTNode
+    op: str = "="  # "=", "+=", "-=", "*=", "/="
 
 
 @dataclass

@@ -68,6 +68,10 @@ class TokenType(Enum):
     REDIRECT_APPEND = auto()  # >> (for print redirection)
     INCREMENT = auto()    # ++
     DECREMENT = auto()    # --
+    PLUS_ASSIGN = auto()  # +=
+    MINUS_ASSIGN = auto()  # -=
+    MULTIPLY_ASSIGN = auto()  # *=
+    DIVIDE_ASSIGN = auto()  # /=
     
     # Delimiters
     LPAREN = auto()
@@ -390,6 +394,31 @@ class Lexer:
                 self.advance()
                 self.advance()
                 self.tokens.append(Token(TokenType.DECREMENT, '--', start_line, start_col))
+                continue
+            
+            # Compound assignment operators (must be checked before single-character operators)
+            if self.peek() == '+' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                self.tokens.append(Token(TokenType.PLUS_ASSIGN, '+=', start_line, start_col))
+                continue
+            
+            if self.peek() == '-' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                self.tokens.append(Token(TokenType.MINUS_ASSIGN, '-=', start_line, start_col))
+                continue
+            
+            if self.peek() == '*' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                self.tokens.append(Token(TokenType.MULTIPLY_ASSIGN, '*=', start_line, start_col))
+                continue
+            
+            if self.peek() == '/' and self.peek(1) == '=':
+                self.advance()
+                self.advance()
+                self.tokens.append(Token(TokenType.DIVIDE_ASSIGN, '/=', start_line, start_col))
                 continue
             
             # Single-character tokens

@@ -1,0 +1,14 @@
+# Test: ceiling() function
+
+BEGIN {
+    print "ceiling(3.7) =", ceiling(3.7)
+    print "ceiling(-3.7) =", ceiling(-3.7)
+    print "ceiling(3.0) =", ceiling(3.0)
+    print "ceiling(-3.0) =", ceiling(-3.0)
+    print "ceiling(0.0) =", ceiling(0.0)
+    print "ceiling(0.5) =", ceiling(0.5)
+    print "ceiling(-0.5) =", ceiling(-0.5)
+    print "ceiling(10.9) =", ceiling(10.9)
+    print "ceiling(-10.9) =", ceiling(-10.9)
+}
+

@@ -1,0 +1,17 @@
+# Test: round() function
+
+BEGIN {
+    print "round(3.7) =", round(3.7)
+    print "round(-3.7) =", round(-3.7)
+    print "round(3.0) =", round(3.0)
+    print "round(-3.0) =", round(-3.0)
+    print "round(0.0) =", round(0.0)
+    print "round(0.5) =", round(0.5)
+    print "round(-0.5) =", round(-0.5)
+    print "round(10.9) =", round(10.9)
+    print "round(-10.9) =", round(-10.9)
+    print "round(3.4) =", round(3.4)
+    print "round(3.5) =", round(3.5)
+    print "round(3.6) =", round(3.6)
+}
+

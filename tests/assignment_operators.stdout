@@ -1,0 +1,15 @@
+x += 3 (starting from 5) = 8
+y -= 4 (starting from 10) = 6
+z *= 4 (starting from 3) = 12
+w /= 5 (starting from 20) = 4
+a += 5 (undefined variable) = 5
+arr[1] += 5 (starting from 10) = 15
+arr[2] -= 8 (starting from 20) = 12
+arr[3] *= 7 (starting from 3) = 21
+arr[4] /= 6 (starting from 30) = 5
+$1 += 5 (starting from 10) = 15
+$2 -= 8 (starting from 20) = 12
+$3 *= 2 (starting from 30) = 60
+b = 2; b += 3; b *= 2 = 10
+c += 10 (starting from -5) = 5
+d -= 15 (starting from 10) = -5

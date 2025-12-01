@@ -2288,7 +2288,100 @@ class Interpreter:
         return old_value
     
     def eval_Assignment(self, node: Assignment) -> Any:
-        value = self.eval(node.value)
+        # For compound assignment operators, get the current value first
+        if node.op != "=":
+            # Get current value of the target
+            if isinstance(node.target, Identifier):
+                name = node.target.name
+                # Check if it's a built-in variable
+                if name == 'FS':
+                    current_value = self.FS
+                elif name == 'OFS':
+                    current_value = self.OFS
+                elif name == 'ORS':
+                    current_value = self.ORS
+                elif name == 'RS':
+                    current_value = self.RS
+                elif name == 'OFMT':
+                    current_value = self.OFMT
+                elif name == 'CONVFMT':
+                    current_value = self.CONVFMT
+                elif name == 'SUBSEP':
+                    current_value = self.SUBSEP
+                elif name == 'FILENAME':
+                    current_value = self.FILENAME
+                elif name == 'PREC':
+                    current_value = self.PREC
+                elif name in self.globals_declared:
+                    current_value = self.global_env.get(name)
+                elif self.in_function:
+                    current_value = self.current_env.get(name)
+                elif name in self.current_env.vars:
+                    current_value = self.current_env.get(name)
+                else:
+                    current_value = self.global_env.get(name)
+            elif isinstance(node.target, ArrayAccess):
+                array = self._get_or_create_nested_array(node.target.array)
+                if len(node.target.indices) == 0:
+                    # arr[] case - can't use compound assignment with append
+                    self.error("Compound assignment operators cannot be used with arr[] syntax")
+                elif len(node.target.indices) == 1:
+                    index = self.eval(node.target.indices[0])
+                else:
+                    index_values = [self.value_to_string_convert(self.eval(idx)) for idx in node.target.indices]
+                    index = self.SUBSEP.join(index_values)
+                current_value = array.get(index)
+            elif isinstance(node.target, FieldAccess):
+                index = self.eval(node.target.index)
+                index = int(index)
+                if index == 0:
+                    current_value = self.current_line
+                elif 1 <= index <= len(self.fields):
+                    current_value = self.fields[index - 1]
+                else:
+                    current_value = ""
+            else:
+                self.error(f"Invalid target for compound assignment: {type(node.target)}")
+            
+            # Evaluate the right-hand side
+            right_value = self.eval(node.value)
+            
+            # Apply the operation
+            if node.op == "+=":
+                if self.use_high_precision():
+                    getcontext().prec = self.PREC
+                    value = self.to_decimal(current_value) + self.to_decimal(right_value)
+                else:
+                    value = self.to_number(current_value) + self.to_number(right_value)
+            elif node.op == "-=":
+                if self.use_high_precision():
+                    getcontext().prec = self.PREC
+                    value = self.to_decimal(current_value) - self.to_decimal(right_value)
+                else:
+                    value = self.to_number(current_value) - self.to_number(right_value)
+            elif node.op == "*=":
+                if self.use_high_precision():
+                    getcontext().prec = self.PREC
+                    value = self.to_decimal(current_value) * self.to_decimal(right_value)
+                else:
+                    value = self.to_number(current_value) * self.to_number(right_value)
+            elif node.op == "/=":
+                if self.use_high_precision():
+                    getcontext().prec = self.PREC
+                    right_dec = self.to_decimal(right_value)
+                    if right_dec == 0:
+                        self.error("Division by zero")
+                    value = self.to_decimal(current_value) / right_dec
+                else:
+                    right_num = self.to_number(right_value)
+                    if right_num == 0:
+                        self.error("Division by zero")
+                    value = self.to_number(current_value) / right_num
+            else:
+                self.error(f"Unknown assignment operator: {node.op}")
+        else:
+            # Simple assignment
+            value = self.eval(node.value)
         
         if isinstance(node.target, Identifier):
             # Create a deep copy of arrays when assigning to variables

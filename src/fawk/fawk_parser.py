@@ -617,7 +617,24 @@ class Parser:
         # Normal assignment parsing
         expr = self.parse_ternary()
         
-        if self.current().type == TokenType.ASSIGN:
+        # Check for compound assignment operators first
+        if self.current().type == TokenType.PLUS_ASSIGN:
+            self.advance()
+            value = self.parse_expression()
+            return Assignment(expr, value, "+=")
+        elif self.current().type == TokenType.MINUS_ASSIGN:
+            self.advance()
+            value = self.parse_expression()
+            return Assignment(expr, value, "-=")
+        elif self.current().type == TokenType.MULTIPLY_ASSIGN:
+            self.advance()
+            value = self.parse_expression()
+            return Assignment(expr, value, "*=")
+        elif self.current().type == TokenType.DIVIDE_ASSIGN:
+            self.advance()
+            value = self.parse_expression()
+            return Assignment(expr, value, "/=")
+        elif self.current().type == TokenType.ASSIGN:
             self.advance()
             value = self.parse_expression()
             return Assignment(expr, value)
