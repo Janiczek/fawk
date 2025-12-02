@@ -1,0 +1,16 @@
+Test: str() function
+--------------------------------------
+  str(0): 0
+  str(42): 42
+  str(-123): -123
+  str(999999): 999999
+  str(3.14): 3.14
+  str(-2.5): -2.5
+  str("hello"): hello
+  str(""): 
+  str([1,2,3]): [1, 2, 3]
+
+  Comparison with empty string concatenation:
+  "" myinteger: 42
+  str(myinteger): 42
+  (should be equal): 1

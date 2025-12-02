@@ -1,0 +1,33 @@
+# Test: str() function
+
+BEGIN {
+    print "Test: str() function"
+    print "--------------------------------------"
+    
+    # Test str() on integers
+    print "  str(0):", str(0)
+    print "  str(42):", str(42)
+    print "  str(-123):", str(-123)
+    print "  str(999999):", str(999999)
+    
+    # Test str() on floats
+    print "  str(3.14):", str(3.14)
+    print "  str(-2.5):", str(-2.5)
+    
+    # Test str() on strings
+    print "  str(\"hello\"):", str("hello")
+    print "  str(\"\"):", str("")
+    
+    # Test str() on arrays
+    arr = [1, 2, 3]
+    print "  str([1,2,3]):", str(arr)
+    
+    # Compare with empty string concatenation
+    myinteger = 42
+    print ""
+    print "  Comparison with empty string concatenation:"
+    print "  \"\" myinteger:", "" myinteger
+    print "  str(myinteger):", str(myinteger)
+    print "  (should be equal):", ("" myinteger == str(myinteger))
+}
+

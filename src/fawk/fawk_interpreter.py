@@ -408,6 +408,7 @@ class Interpreter:
             ('toupper', 'string', 'string'),
             ('gsub', 'pattern, replacement, [target]', 'number'),
             ('sub', 'pattern, replacement, [target]', 'number'),
+            ('str', 'value', 'string'),
         ],
         'Math functions': [
             ('atan2', 'y, x', 'number'),
@@ -618,8 +619,14 @@ class Interpreter:
         
         if isinstance(value, FawkArray):
             return value.length()
+        elif isinstance(value, int):
+            # For integers, return the length of base 10 string representation
+            return _with_int_str_limit(lambda: len(str(value)))
+        elif isinstance(value, float):
+            # Floats are not supported for length()
+            raise RuntimeError("length() does not support float values")
         else:
-            # Convert to string and get length
+            # Convert to string and get length (for strings and other types)
             # Handle large integers by temporarily increasing limit
             return _with_int_str_limit(lambda: len(str(value)))
     
@@ -1062,6 +1069,10 @@ class Interpreter:
     def builtin_toupper(self, string):
         """Convert string to uppercase"""
         return self.value_to_string(string).upper()
+    
+    def builtin_str(self, value):
+        """Convert value to string (same as empty string concatenation)"""
+        return self.value_to_string_convert(value)
     
     def builtin_gsub(self, pattern, replacement, target=None):
         """Global substitution (replace all occurrences) - returns new string, does not mutate"""

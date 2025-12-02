@@ -4,3 +4,9 @@ Test: length() function
   length([1,2,3,4,5]): 5
   length(""): 0
   length([]): 0
+
+  length(0): 1
+  length(42): 2
+  length(123): 3
+  length(-42): 3
+  length(999999): 6

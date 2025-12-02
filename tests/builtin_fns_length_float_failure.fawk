@@ -1,0 +1,8 @@
+# Test: length() function on float - failure
+
+BEGIN {
+    # This should fail - length() does not support float values
+    result = length(3.14)
+    print result
+}
+
