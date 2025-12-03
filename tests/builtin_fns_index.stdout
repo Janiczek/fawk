@@ -1,0 +1,35 @@
+Test: index() function
+--------------------------------------
+  String tests:
+  index("World", "Hello World"): 7
+  index("Hello", "Hello World"): 1
+  index("lo", "Hello World"): 4
+  index("o", "Hello World"): 5
+  index("xyz", "Hello World"): 0
+  index("", "Hello World"): 1
+
+  String edge cases:
+  index("abc", ""): 0
+  index("", ""): 1
+  index("abc", "abc"): 1
+  index("abc", "abcabc"): 1
+
+  Array tests:
+  Array: ["apple", "banana", "cherry", "date"]
+  index("banana", arr): 2
+  index("apple", arr): 1
+  index("date", arr): 4
+  index("grape", arr): 0
+
+  Array with numbers:
+  Array: [10, 20, 30, 40, 50]
+  index(20, nums): 2
+  index(50, nums): 5
+  index(99, nums): 0
+
+  Array edge cases:
+  index("item", []): 0
+  index("only", ["only"]): 1
+  index("missing", ["only"]): 0
+  index("a", ["a", "b", "a", "c", "a"]): 1
+  index("c", ["a", "b", "a", "c", "a"]): 4

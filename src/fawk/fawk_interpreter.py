@@ -409,6 +409,7 @@ class Interpreter:
             ('gsub', 'pattern, replacement, [target]', 'number'),
             ('sub', 'pattern, replacement, [target]', 'number'),
             ('str', 'value', 'string'),
+            ('index', 'needle, haystack', 'int'),
         ],
         'Math functions': [
             ('atan2', 'y, x', 'number'),
@@ -1073,6 +1074,34 @@ class Interpreter:
     def builtin_str(self, value):
         """Convert value to string (same as empty string concatenation)"""
         return self.value_to_string_convert(value)
+    
+    def builtin_index(self, needle, haystack):
+        """Find index of needle in haystack (string or array) (1-based, returns 0 if not found)"""
+        if isinstance(haystack, FawkArray):
+            # Array case: find the first key where value matches
+            item = needle
+            keys = haystack.keys()
+            # Iterate through keys in order
+            for idx, key in enumerate(keys, start=1):
+                value = haystack.get(key)
+                # Compare values (handles different types)
+                if value == item:
+                    return idx
+            # Not found
+            return 0
+        else:
+            # String case: find substring position
+            string = self.value_to_string(haystack)
+            substring = self.value_to_string(needle)
+            # Special case: empty substring is always found at position 1 (AWK behavior)
+            if substring == "":
+                return 1
+            # Python's find() returns 0-based index, or -1 if not found
+            pos = string.find(substring)
+            if pos == -1:
+                return 0
+            # Convert to 1-based index (AWK convention)
+            return pos + 1
     
     def builtin_gsub(self, pattern, replacement, target=None):
         """Global substitution (replace all occurrences) - returns new string, does not mutate"""

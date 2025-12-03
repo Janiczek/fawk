@@ -1,0 +1,63 @@
+# Test: index() function
+
+BEGIN {
+    print "Test: index() function"
+    print "--------------------------------------"
+    
+    # String tests
+    str = "Hello World"
+    print "  String tests:"
+    print "  index(\"World\", \"Hello World\"):", index("World", str)
+    print "  index(\"Hello\", \"Hello World\"):", index("Hello", str)
+    print "  index(\"lo\", \"Hello World\"):", index("lo", str)
+    print "  index(\"o\", \"Hello World\"):", index("o", str)
+    print "  index(\"xyz\", \"Hello World\"):", index("xyz", str)
+    print "  index(\"\", \"Hello World\"):", index("", str)
+    
+    print ""
+    
+    # Edge cases for strings
+    print "  String edge cases:"
+    print "  index(\"abc\", \"\"):", index("abc", "")
+    print "  index(\"\", \"\"):", index("", "")
+    print "  index(\"abc\", \"abc\"):", index("abc", "abc")
+    print "  index(\"abc\", \"abcabc\"):", index("abc", "abcabc")
+    
+    print ""
+    
+    # Array tests
+    arr = ["apple", "banana", "cherry", "date"]
+    print "  Array tests:"
+    print "  Array:", arr
+    print "  index(\"banana\", arr):", index("banana", arr)
+    print "  index(\"apple\", arr):", index("apple", arr)
+    print "  index(\"date\", arr):", index("date", arr)
+    print "  index(\"grape\", arr):", index("grape", arr)
+    
+    print ""
+    
+    # Array with numbers
+    nums = [10, 20, 30, 40, 50]
+    print "  Array with numbers:"
+    print "  Array:", nums
+    print "  index(20, nums):", index(20, nums)
+    print "  index(50, nums):", index(50, nums)
+    print "  index(99, nums):", index(99, nums)
+    
+    print ""
+    
+    # Edge cases for arrays
+    print "  Array edge cases:"
+    empty_arr = []
+    print "  index(\"item\", []):", index("item", empty_arr)
+    
+    single = ["only"]
+    print "  index(\"only\", [\"only\"]):", index("only", single)
+    print "  index(\"missing\", [\"only\"]):", index("missing", single)
+    
+    # Array with duplicate values (should return first occurrence)
+    dupes = ["a", "b", "a", "c", "a"]
+    print "  index(\"a\", [\"a\", \"b\", \"a\", \"c\", \"a\"]):", index("a", dupes)
+    print "  index(\"c\", [\"a\", \"b\", \"a\", \"c\", \"a\"]):", index("c", dupes)
+}
+
