@@ -561,7 +561,7 @@ class Interpreter:
             fawk_ast.Assignment: self.eval_Assignment,
             fawk_ast.ArrayLiteral: self.eval_ArrayLiteral,
             fawk_ast.AssocArray: self.eval_AssocArray,
-            fawk_ast.ArrayAccess: self.eval_ArrayAccess,
+            fawk_ast.Access: self.eval_Access,
             fawk_ast.FunctionCall: self.eval_FunctionCall,
             fawk_ast.Lambda: self.eval_Lambda,
             fawk_ast.Pipeline: self.eval_Pipeline,
@@ -1628,8 +1628,8 @@ class Interpreter:
             return self.eval_ExprStmt(node)
         elif node_type is Assignment:
             return self.eval_Assignment(node)
-        elif node_type is ArrayAccess:
-            return self.eval_ArrayAccess(node)
+        elif node_type is Access:
+            return self.eval_Access(node)
         elif node_type is ArrayLiteral:
             return self.eval_ArrayLiteral(node)
         elif node_type is Block:
@@ -1840,7 +1840,7 @@ class Interpreter:
     
     def eval_DeleteStmt(self, node) -> None:
         """Delete an array element, field, or entire array/variable"""
-        from .fawk_ast import DeleteStmt, Identifier, ArrayAccess, FieldAccess
+        from .fawk_ast import DeleteStmt, Identifier, Access, FieldAccess
         
         if isinstance(node.target, Identifier):
             # Delete entire array or variable
@@ -1850,7 +1850,7 @@ class Interpreter:
             elif name in self.global_env.vars:
                 del self.global_env.vars[name]
         
-        elif isinstance(node.target, ArrayAccess):
+        elif isinstance(node.target, Access):
             # Delete array element
             array = self.eval(node.target.array)
             if isinstance(array, FawkArray):
@@ -2257,7 +2257,7 @@ class Interpreter:
     
     def eval_PrefixIncrement(self, node) -> Any:
         """Prefix increment: ++x - increment and return new value"""
-        from .fawk_ast import PrefixIncrement, Identifier, ArrayAccess
+        from .fawk_ast import PrefixIncrement, Identifier, Access
         
         # Get current value
         current_value = self.eval(node.operand)
@@ -2272,7 +2272,7 @@ class Interpreter:
                 self.current_env.set_local(name, new_value)
             else:
                 self.global_env.set(name, new_value)
-        elif isinstance(node.operand, ArrayAccess):
+        elif isinstance(node.operand, Access):
             array = self.eval(node.operand.array)
             if not isinstance(array, FawkArray):
                 array = FawkArray()
@@ -2297,7 +2297,7 @@ class Interpreter:
     
     def eval_PrefixDecrement(self, node) -> Any:
         """Prefix decrement: --x - decrement and return new value"""
-        from .fawk_ast import PrefixDecrement, Identifier, ArrayAccess
+        from .fawk_ast import PrefixDecrement, Identifier, Access
         
         # Get current value
         current_value = self.eval(node.operand)
@@ -2312,7 +2312,7 @@ class Interpreter:
                 self.current_env.set_local(name, new_value)
             else:
                 self.global_env.set(name, new_value)
-        elif isinstance(node.operand, ArrayAccess):
+        elif isinstance(node.operand, Access):
             array = self.eval(node.operand.array)
             if not isinstance(array, FawkArray):
                 array = FawkArray()
@@ -2337,7 +2337,7 @@ class Interpreter:
     
     def eval_PostfixIncrement(self, node) -> Any:
         """Postfix increment: x++ - return old value, then increment"""
-        from .fawk_ast import PostfixIncrement, Identifier, ArrayAccess
+        from .fawk_ast import PostfixIncrement, Identifier, Access
         
         # Get current value (this is what we'll return)
         old_value = self.eval(node.operand)
@@ -2352,7 +2352,7 @@ class Interpreter:
                 self.current_env.set_local(name, new_value)
             else:
                 self.global_env.set(name, new_value)
-        elif isinstance(node.operand, ArrayAccess):
+        elif isinstance(node.operand, Access):
             array = self.eval(node.operand.array)
             if not isinstance(array, FawkArray):
                 array = FawkArray()
@@ -2377,7 +2377,7 @@ class Interpreter:
     
     def eval_PostfixDecrement(self, node) -> Any:
         """Postfix decrement: x-- - return old value, then decrement"""
-        from .fawk_ast import PostfixDecrement, Identifier, ArrayAccess
+        from .fawk_ast import PostfixDecrement, Identifier, Access
         
         # Get current value (this is what we'll return)
         old_value = self.eval(node.operand)
@@ -2392,7 +2392,7 @@ class Interpreter:
                 self.current_env.set_local(name, new_value)
             else:
                 self.global_env.set(name, new_value)
-        elif isinstance(node.operand, ArrayAccess):
+        elif isinstance(node.operand, Access):
             array = self.eval(node.operand.array)
             if not isinstance(array, FawkArray):
                 array = FawkArray()
@@ -2448,7 +2448,7 @@ class Interpreter:
                     current_value = self.current_env.get(name)
                 else:
                     current_value = self.global_env.get(name)
-            elif isinstance(node.target, ArrayAccess):
+            elif isinstance(node.target, Access):
                 array = self._get_or_create_nested_array(node.target.array)
                 if len(node.target.indices) == 0:
                     # arr[] case - can't use compound assignment with append
@@ -2559,7 +2559,7 @@ class Interpreter:
                 # Outside function: global by default
                 self.global_env.set(name, value)
         
-        elif isinstance(node.target, ArrayAccess):
+        elif isinstance(node.target, Access):
             # Handle nested array access: grid[x][y] = value
             # We need to ensure that grid[x] is a FawkArray before we can set grid[x][y]
             array = self._get_or_create_nested_array(node.target.array)
@@ -2650,7 +2650,7 @@ class Interpreter:
     def _get_or_create_nested_array(self, node) -> FawkArray:
         """Helper method to get or create a nested array for assignment.
         Handles cases like grid[x][y] = value where grid[x] needs to be a FawkArray."""
-        from .fawk_ast import Identifier, ArrayAccess
+        from .fawk_ast import Identifier, Access
         
         if isinstance(node, Identifier):
             # Simple variable: get or create the array
@@ -2669,7 +2669,7 @@ class Interpreter:
                     self.global_env.set(name, array)
             return array
         
-        elif isinstance(node, ArrayAccess):
+        elif isinstance(node, Access):
             # Nested access: get or create parent, then get or create nested array
             parent_array = self._get_or_create_nested_array(node.array)
             
@@ -2783,10 +2783,35 @@ class Interpreter:
             arr.set(key, value)
         return arr
     
-    def eval_ArrayAccess(self, node: ArrayAccess) -> Any:
+    def eval_Access(self, node: Access) -> Any:
         array = self.eval(node.array)
+        array_type = type(array)
+        
+        # Handle string indexing: "abc"[1] returns "a" (1-based indexing)
+        if array_type is str:
+            # String indexing only supports single index
+            if len(node.indices) != 1:
+                # Multiple indices on string - return empty string (invalid operation)
+                return ""
+            
+            index = self.eval(node.indices[0])
+            # Convert index to int (1-based)
+            try:
+                index = int(float(index))  # Convert via float to handle "1.0" -> 1
+            except (ValueError, TypeError):
+                # Invalid index - return empty string
+                return ""
+            
+            # 1-based indexing: index 1 is first character
+            if index < 1 or index > len(array):
+                return ""  # Out of bounds - return empty string
+            
+            # Return the character at index (convert to 0-based for Python)
+            return array[index - 1]
+        
+        # Handle array access
         # Optimized: use type() for exact match (faster than isinstance)
-        if type(array) is not FawkArray:
+        if array_type is not FawkArray:
             return ""  # AWK behavior: return empty string for non-array
         
         # Handle multi-dimensional array access

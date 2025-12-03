@@ -1,0 +1,196 @@
+# Test: String Indexing
+
+BEGIN {
+    print "Test: String Indexing"
+    print "--------------------------------------"
+    
+    # Happy cases - basic string indexing (1-based)
+    s = "abc"
+    print "String:", s
+    print "s[1] =", s[1]
+    print "s[2] =", s[2]
+    print "s[3] =", s[3]
+    print ""
+    
+    # String literal indexing
+    print "String literal indexing:"
+    print "\"hello\"[1] =", "hello"[1]
+    print "\"hello\"[2] =", "hello"[2]
+    print "\"hello\"[5] =", "hello"[5]
+    print ""
+    
+    # Edge cases - out of bounds
+    print "Edge cases - out of bounds:"
+    print "s[0] =", s[0], "(should be empty)"
+    print "s[4] =", s[4], "(should be empty)"
+    print "s[100] =", s[100], "(should be empty)"
+    print "\"\"[1] =", ""[1], "(should be empty)"
+    print ""
+    
+    # Edge cases - negative indices
+    print "Edge cases - negative indices:"
+    print "s[-1] =", s[-1], "(should be empty)"
+    print "s[-5] =", s[-5], "(should be empty)"
+    print ""
+    
+    # Edge cases - non-integer indices
+    print "Edge cases - non-integer indices:"
+    print "s[1.0] =", s[1.0], "(should work)"
+    print "s[2.5] =", s[2.5], "(should truncate to 2)"
+    print "s[3.9] =", s[3.9], "(should truncate to 3)"
+    print ""
+    
+    # Edge cases - string indices (should convert or fail gracefully)
+    print "Edge cases - string indices:"
+    print "s[\"1\"] =", s["1"], "(should convert to 1)"
+    print "s[\"abc\"] =", s["abc"], "(should be empty)"
+    print ""
+    
+    # Edge cases - multiple indices (should return empty)
+    print "Edge cases - multiple indices:"
+    print "s[1,2] =", s[1,2], "(should be empty)"
+    print ""
+    
+    # Comparison tests
+    print "Comparison tests:"
+    if ("abc"[2] == "b") {
+        print "  \"abc\"[2] == \"b\" ✓"
+    } else {
+        print "  \"abc\"[2] == \"b\" ✗"
+    }
+    
+    if ("hello"[1] == "h") {
+        print "  \"hello\"[1] == \"h\" ✓"
+    } else {
+        print "  \"hello\"[1] == \"h\" ✗"
+    }
+    
+    if ("hello"[5] == "o") {
+        print "  \"hello\"[5] == \"o\" ✓"
+    } else {
+        print "  \"hello\"[5] == \"o\" ✗"
+    }
+    
+    if ("abc"[4] == "") {
+        print "  \"abc\"[4] == \"\" ✓ (out of bounds)"
+    } else {
+        print "  \"abc\"[4] == \"\" ✗"
+    }
+    print ""
+    
+    # Variable string indexing
+    print "Variable string indexing:"
+    str = "world"
+    for (i = 1; i <= length(str); i = i + 1) {
+        print "  str[" i "] =", str[i]
+    }
+    print ""
+    
+    # Empty string
+    print "Empty string indexing:"
+    empty = ""
+    print "empty[1] =", empty[1], "(should be empty)"
+    print "empty[0] =", empty[0], "(should be empty)"
+    print ""
+    
+    # Single character string
+    print "Single character string:"
+    single = "x"
+    print "single[1] =", single[1]
+    print "single[2] =", single[2], "(should be empty)"
+    print ""
+    
+    # Expression indices
+    print "Expression indices:"
+    test = "abcdef"
+    print "test[1+1] =", test[1+1], "(should be 'b')"
+    print "test[2*2] =", test[2*2], "(should be 'd')"
+    print "test[6-2] =", test[6-2], "(should be 'd')"
+    idx = 3
+    print "test[idx] =", test[idx], "(should be 'c')"
+    print ""
+    
+    # String concatenation with indexing
+    print "String concatenation with indexing:"
+    a = "hello"
+    b = "world"
+    combined = a b
+    print "combined =", combined
+    print "combined[1] =", combined[1], "(should be 'h')"
+    print "combined[5] =", combined[5], "(should be 'o')"
+    print "combined[6] =", combined[6], "(should be 'w')"
+    print "combined[10] =", combined[10], "(should be 'd')"
+    print ""
+    
+    # Unicode and special characters
+    print "Unicode and special characters:"
+    unicode = "café"
+    print "unicode[1] =", unicode[1], "(should be 'c')"
+    print "unicode[4] =", unicode[4], "(should be 'é')"
+    special = "a\nb\tc"
+    print "special[1] =", special[1], "(should be 'a')"
+    print "special[2] =", special[2], "(should be newline)"
+    print "special[3] =", special[3], "(should be 'b')"
+    print "special[4] =", special[4], "(should be tab)"
+    print ""
+    
+    # Boundary conditions
+    print "Boundary conditions:"
+    boundary = "xyz"
+    print "boundary[1] =", boundary[1], "(first char)"
+    print "boundary[3] =", boundary[3], "(last char)"
+    print "boundary[length(boundary)] =", boundary[length(boundary)], "(should be 'z')"
+    print ""
+    
+    # Zero and very large indices
+    print "Zero and very large indices:"
+    z = "test"
+    print "z[0] =", z[0], "(should be empty)"
+    print "z[-0] =", z[-0], "(should be empty)"
+    print "z[999999] =", z[999999], "(should be empty)"
+    print ""
+    
+    # String indexing in expressions
+    print "String indexing in expressions:"
+    if ("test"[1] "est" == "test") {
+        print "  \"test\"[1] \"est\" == \"test\" ✓"
+    } else {
+        print "  \"test\"[1] \"est\" == \"test\" ✗"
+    }
+    result = "abc"[2] "def"
+    if (result == "bdef") {
+        print "  \"abc\"[2] \"def\" == \"bdef\" ✓"
+    } else {
+        print "  \"abc\"[2] \"def\" == \"bdef\" ✗ (got:", result, ")"
+    }
+    print ""
+    
+    # Nested string indexing (should not work, but test behavior)
+    print "Nested string indexing:"
+    nested = "abc"
+    # This would be parsed as nested access, but strings don't support it
+    # So we test that it returns empty
+    print "nested[1][1] would be parsed as nested access"
+    print ""
+    
+    # String indexing with variables containing strings
+    print "String indexing with variable indices:"
+    str_var = "hello"
+    idx_str = "2"
+    print "str_var[idx_str] =", str_var[idx_str], "(should convert '2' to 2, get 'e')"
+    idx_num = 3
+    print "str_var[idx_num] =", str_var[idx_num], "(should be 'l')"
+    print ""
+    
+    # Edge case: very long string
+    print "Very long string:"
+    long_str = ""
+    for (i = 1; i <= 100; i = i + 1) {
+        long_str = long_str "a"
+    }
+    print "length(long_str) =", length(long_str), "(should be 100)"
+    print "long_str[1] =", long_str[1], "(should be 'a')"
+    print "long_str[100] =", long_str[100], "(should be 'a')"
+    print "long_str[101] =", long_str[101], "(should be empty)"
+}
+

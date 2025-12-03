@@ -1,0 +1,103 @@
+Test: String Indexing
+--------------------------------------
+String: abc
+s[1] = a
+s[2] = b
+s[3] = c
+
+String literal indexing:
+"hello"[1] = h
+"hello"[2] = e
+"hello"[5] = o
+
+Edge cases - out of bounds:
+s[0] =  (should be empty)
+s[4] =  (should be empty)
+s[100] =  (should be empty)
+""[1] =  (should be empty)
+
+Edge cases - negative indices:
+s[-1] =  (should be empty)
+s[-5] =  (should be empty)
+
+Edge cases - non-integer indices:
+s[1.0] = a (should work)
+s[2.5] = b (should truncate to 2)
+s[3.9] = c (should truncate to 3)
+
+Edge cases - string indices:
+s["1"] = a (should convert to 1)
+s["abc"] =  (should be empty)
+
+Edge cases - multiple indices:
+s[1,2] =  (should be empty)
+
+Comparison tests:
+  "abc"[2] == "b" ✓
+  "hello"[1] == "h" ✓
+  "hello"[5] == "o" ✓
+  "abc"[4] == "" ✓ (out of bounds)
+
+Variable string indexing:
+  str[1] = w
+  str[2] = o
+  str[3] = r
+  str[4] = l
+  str[5] = d
+
+Empty string indexing:
+empty[1] =  (should be empty)
+empty[0] =  (should be empty)
+
+Single character string:
+single[1] = x
+single[2] =  (should be empty)
+
+Expression indices:
+test[1+1] = b (should be 'b')
+test[2*2] = d (should be 'd')
+test[6-2] = d (should be 'd')
+test[idx] = c (should be 'c')
+
+String concatenation with indexing:
+combined = helloworld
+combined[1] = h (should be 'h')
+combined[5] = o (should be 'o')
+combined[6] = w (should be 'w')
+combined[10] = d (should be 'd')
+
+Unicode and special characters:
+unicode[1] = c (should be 'c')
+unicode[4] = é (should be 'é')
+special[1] = a (should be 'a')
+special[2] = 
+ (should be newline)
+special[3] = b (should be 'b')
+special[4] = 	 (should be tab)
+
+Boundary conditions:
+boundary[1] = x (first char)
+boundary[3] = z (last char)
+boundary[length(boundary)] = z (should be 'z')
+
+Zero and very large indices:
+z[0] =  (should be empty)
+z[-0] =  (should be empty)
+z[999999] =  (should be empty)
+
+String indexing in expressions:
+  "test"[1] "est" == "test" ✓
+  "abc"[2] "def" == "bdef" ✓
+
+Nested string indexing:
+nested[1][1] would be parsed as nested access
+
+String indexing with variable indices:
+str_var[idx_str] = e (should convert '2' to 2, get 'e')
+str_var[idx_num] = l (should be 'l')
+
+Very long string:
+length(long_str) = 100 (should be 100)
+long_str[1] = a (should be 'a')
+long_str[100] = a (should be 'a')
+long_str[101] =  (should be empty)

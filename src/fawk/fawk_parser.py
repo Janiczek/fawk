@@ -859,15 +859,16 @@ class Parser:
             
             elif self.current().type == TokenType.LBRACKET:
                 # Check if this is an array literal (not array access)
-                # In AWK, string literals and number literals can't be indexed
-                # So if expr is a String or Number, this must be concatenation with an array literal
-                is_literal = isinstance(expr, (String, Number))
+                # String literals can be indexed, but number literals cannot
+                # So if expr is a Number, this must be concatenation with an array literal
+                is_number_literal = isinstance(expr, Number)
+                is_string_literal = isinstance(expr, String)
                 is_empty_array = self.peek(1).type == TokenType.RBRACKET
                 
                 # Special case: arr[] = value (array append syntax)
                 # Check if this is empty brackets followed by = (assignment)
                 # arr[] is ONLY allowed on the LHS of an assignment, not in RHS contexts
-                if is_empty_array and not is_literal:
+                if is_empty_array and not is_number_literal and not is_string_literal:
                     # Peek ahead to see if this is followed by = (assignment)
                     # Skip past the ] to check what comes next
                     saved_pos = self.pos
@@ -883,19 +884,22 @@ class Parser:
                         # This is arr[] = value syntax (array append) - allowed on LHS
                         self.advance()  # consume [
                         self.expect(TokenType.RBRACKET)  # consume ]
-                        # Create ArrayAccess with empty indices list to signal append
-                        expr = ArrayAccess(expr, [])
+                        # Create Access with empty indices list to signal append
+                        expr = Access(expr, [])
                         continue
                     else:
                         # arr[] is not allowed in RHS contexts - it's a syntax error
                         self.error("arr[] syntax is only allowed on the left-hand side of an assignment")
                 
-                if is_literal or is_empty_array:
+                # String literals can be indexed: "abc"[1]
+                # Number literals cannot be indexed - this must be concatenation with an array literal
+                if is_number_literal or (is_string_literal and is_empty_array):
                     # This is concatenation with an array literal, not array access
                     # Break and let the concatenation parser handle it
                     break
                 
-                # Array access - support multi-dimensional: arr[i,j,k]
+                # Array access (including string indexing) - support multi-dimensional: arr[i,j,k]
+                # For strings, only single index is meaningful, but we allow the syntax
                 self.advance()
                 indices = [self.parse_expression()]
                 
@@ -905,7 +909,7 @@ class Parser:
                     indices.append(self.parse_expression())
                 
                 self.expect(TokenType.RBRACKET)
-                expr = ArrayAccess(expr, indices)
+                expr = Access(expr, indices)
             
             elif self.current().type == TokenType.INCREMENT:
                 # Postfix increment: x++

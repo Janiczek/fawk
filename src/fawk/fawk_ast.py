@@ -203,7 +203,7 @@ class AssocArray(ASTNode):
 
 
 @dataclass
-class ArrayAccess(ASTNode):
+class Access(ASTNode):
     array: ASTNode
     indices: List[ASTNode]  # Support multiple indices for multi-dimensional arrays
 
@@ -254,7 +254,7 @@ class FieldAccess(ASTNode):
 
 @dataclass
 class DeleteStmt(ASTNode):
-    target: ASTNode  # Variable, ArrayAccess, or FieldAccess to delete
+    target: ASTNode  # Variable, Access, or FieldAccess to delete
 
 
 @dataclass
