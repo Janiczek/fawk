@@ -1,0 +1,134 @@
+# Test: sorti() function - nice examples
+
+BEGIN {
+    print "=== sorti() Function Tests ==="
+    print ""
+    
+    # 1. Simple associative array with string keys
+    print "1. Associative array (string keys):"
+    arr1 = ["zebra" => "z", "apple" => "a", "banana" => "b"]
+    print "   Original: ", arr1
+    indices1 = sorti(arr1)
+    print "   Original unchanged: ", arr1
+    print "   Sorted indices: ", indices1
+    print ""
+    
+    # 2. Associative array with numeric keys
+    print "2. Associative array (numeric keys):"
+    arr2 = [10 => "ten", 2 => "two", 5 => "five", 1 => "one"]
+    print "   Original: ", arr2
+    indices2 = sorti(arr2)
+    print "   Original unchanged: ", arr2
+    print "   Sorted indices: ", indices2
+    print ""
+    
+    # 3. Mixed numeric and string keys
+    print "3. Mixed keys (numeric and string):"
+    arr3 = ["zebra" => "z", 10 => "ten", "apple" => "a", 2 => "two"]
+    print "   Original: ", arr3
+    indices3 = sorti(arr3)
+    print "   Original unchanged: ", arr3
+    print "   Sorted indices: ", indices3
+    print ""
+    
+    # 4. Source array unchanged
+    print "4. Source array unchanged:"
+    source = ["zebra" => "z", "apple" => "a", "banana" => "b"]
+    print "   Source before: ", source
+    indices4 = sorti(source)
+    print "   Source after: ", source
+    print "   Sorted indices: ", indices4
+    print ""
+    
+    # 5. Access original array via sorted indices
+    print "5. Access original array via sorted indices:"
+    data = ["zebra" => 100, "apple" => 50, "banana" => 75]
+    indices5 = sorti(data)
+    print "   Original data: ", data
+    print "   Sorted indices: ", indices5
+    print "   Accessing via sorted indices:"
+    n = length(indices5)
+    for (i = 1; i <= n; i++) {
+        key = indices5[i]
+        value = data[key]
+        print "     ", key, " => ", value
+    }
+    print ""
+    
+    # 6. Empty array
+    print "6. Empty array:"
+    empty = []
+    indices6 = sorti(empty)
+    print "   Original: ", empty
+    print "   Sorted indices: ", indices6
+    print ""
+    
+    # 7. Single element
+    print "7. Single element:"
+    single = ["one" => 1]
+    indices7 = sorti(single)
+    print "   Original: ", single
+    print "   Sorted indices: ", indices7
+    print ""
+    
+    # 8. Regular array (1-indexed)
+    print "8. Regular array (1-indexed):"
+    regular = ["first", "second", "third"]
+    print "   Original: ", regular
+    indices8 = sorti(regular)
+    print "   Original unchanged: ", regular
+    print "   Sorted indices: ", indices8
+    print ""
+    
+    # 9. Multidimensional array - numeric indices
+    print "9. Multidimensional array (numeric indices):"
+    multidim1 = [(1,2) => 30, (4,5) => 10, (2,3) => 20]
+    print "   Original: ", multidim1
+    indices9 = sorti(multidim1)
+    print "   Original unchanged: ", multidim1
+    print "   Sorted indices: ", indices9
+    print "   Accessing via sorted indices:"
+    n = length(indices9)
+    for (i = 1; i <= n; i++) {
+        key = indices9[i]
+        value = multidim1[key]
+        print "     ", key, " => ", value
+    }
+    print ""
+    
+    # 10. Multidimensional array - string indices
+    print "10. Multidimensional array (string indices):"
+    multidim2 = [("row1","col1") => 100, ("row2","col1") => 50, ("row1","col2") => 75]
+    print "   Original: ", multidim2
+    indices10 = sorti(multidim2)
+    print "   Original unchanged: ", multidim2
+    print "   Sorted indices: ", indices10
+    print "   Accessing via sorted indices:"
+    n = length(indices10)
+    for (i = 1; i <= n; i++) {
+        key = indices10[i]
+        value = multidim2[key]
+        print "     ", key, " => ", value
+    }
+    print ""
+    
+    # 11. Three-dimensional array
+    print "11. Three-dimensional array:"
+    cube = [(1,2,3) => 50, (1,1,1) => 10, (2,2,2) => 30, (1,2,1) => 20]
+    print "   Original: ", cube
+    indices11 = sorti(cube)
+    print "   Original unchanged: ", cube
+    print "   Sorted indices: ", indices11
+    print ""
+    
+    # 12. Multidimensional array - mixed numeric and string indices
+    print "12. Multidimensional array (mixed indices):"
+    multidim3 = [(1,2) => "a", ("x","y") => "b", (2,3) => "c", ("a","b") => "d"]
+    print "   Original: ", multidim3
+    indices12 = sorti(multidim3)
+    print "   Original unchanged: ", multidim3
+    print "   Sorted indices: ", indices12
+    print ""
+    
+    print "=== All sorti() Tests Complete ==="
+}

@@ -399,6 +399,8 @@ class Interpreter:
             ('set_union', 'set1, set2', 'array'),
             ('set_intersection', 'set1, set2', 'array'),
             ('set_diff', 'set1, set2', 'array'),
+            ('sort', 'array', 'array'),
+            ('sorti', 'array', 'array'),
         ],
         'String functions': [
             ('match', 'pattern, text', 'array'),
@@ -741,6 +743,92 @@ class Interpreter:
         for key in set1.keys():
             if key not in set2.data:
                 result.set(key, 1)
+        return result
+    
+    def _sort_value_key(self, value):
+        """
+        Create a sort key for a value following GAWK ordering:
+        - All numeric values come before all string values
+        - String values come before all subarrays
+        Returns a tuple (category, comparable_value) for sorting
+        """
+        value_type = type(value)
+        
+        # Check if value is numeric
+        if value_type is int or value_type is float:
+            return (0, self.to_number(value))  # Category 0: numeric
+        elif value_type is FawkArray:
+            return (2, str(value))  # Category 2: arrays (compare by string representation)
+        elif value_type is str:
+            # Check if string is numeric
+            if value:
+                try:
+                    num_val = float(value)
+                    return (0, num_val)  # Category 0: numeric string
+                except (ValueError, TypeError):
+                    pass
+            return (1, value)  # Category 1: string
+        else:
+            # Other types (bool, None, etc.) - convert to string
+            return (1, self.value_to_string(value))
+    
+    def builtin_sort(self, source):
+        """
+        Sort array values. Returns a new array with sorted values.
+        The source array is not modified.
+        """
+        if not isinstance(source, FawkArray):
+            raise RuntimeError("sort() requires an array as argument")
+        
+        # Collect all key-value pairs
+        items = []
+        for key in source.keys():
+            value = source.get(key)
+            items.append((key, value))
+        
+        # Sort by value using our key function
+        items.sort(key=lambda x: self._sort_value_key(x[1]))
+        
+        # Create new array with sorted values (1-indexed)
+        result = FawkArray()
+        for i, (_, value) in enumerate(items, 1):
+            result.set(i, value)
+        
+        return result
+    
+    def builtin_sorti(self, source):
+        """
+        Sort array indices. Returns a new array with sorted indices as values.
+        The source array is not modified.
+        """
+        if not isinstance(source, FawkArray):
+            raise RuntimeError("sorti() requires an array as argument")
+        
+        # Collect all keys
+        keys = source.keys()
+        
+        # Sort keys using our comparison function
+        def sort_key(key):
+            key_type = type(key)
+            if key_type is int:
+                return (0, key)  # Numeric keys first
+            elif key_type is str:
+                # Try to parse as number
+                try:
+                    num_val = float(key)
+                    return (0, num_val)  # Numeric string keys
+                except (ValueError, TypeError):
+                    return (1, key)  # String keys
+            else:
+                return (1, str(key))  # Other types as strings
+        
+        keys_sorted = sorted(keys, key=sort_key)
+        
+        # Create new array with sorted keys as values (1-indexed)
+        result = FawkArray()
+        for i, key in enumerate(keys_sorted, 1):
+            result.set(i, key)
+        
         return result
     
     def builtin_match(self, pattern, text):

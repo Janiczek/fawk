@@ -1,0 +1,101 @@
+=== sort() Function Tests ===
+
+1. Simple numeric array:
+   Original:  [3, 1, 4, 1, 5, 9, 2, 6]
+   Original unchanged:  [3, 1, 4, 1, 5, 9, 2, 6]
+   Sorted result:  [1, 1, 2, 3, 4, 5, 6, 9]
+
+2. String array:
+   Original:  ["zebra", "apple", "banana", "cherry"]
+   Original unchanged:  ["zebra", "apple", "banana", "cherry"]
+   Sorted result:  ["apple", "banana", "cherry", "zebra"]
+
+3. Mixed types (numbers before strings):
+   Original:  ["hello", 42, "world", 10, "test", 5]
+   Original unchanged:  ["hello", 42, "world", 10, "test", 5]
+   Sorted result:  [5, 10, 42, "hello", "test", "world"]
+
+4. Source array unchanged:
+   Source before:  [5, 2, 8, 1, 9]
+   Source after:  [5, 2, 8, 1, 9]
+   Sorted result:  [1, 2, 5, 8, 9]
+
+5. Associative array (string keys):
+   Original:  ["zebra" => 1, "apple" => 1, "banana" => 1]
+   Original unchanged:  ["zebra" => 1, "apple" => 1, "banana" => 1]
+   Sorted result:  [1, 1, 1]
+
+6. Associative array (numeric keys):
+   Original:  [10 => "ten", 2 => "two", 5 => "five", 1 => "one"]
+   Original unchanged:  [10 => "ten", 2 => "two", 5 => "five", 1 => "one"]
+   Sorted result:  ["five", "one", "ten", "two"]
+
+7. Empty array:
+   Original:  []
+   Sorted result:  []
+
+8. Single element:
+   Original:  [42]
+   Sorted result:  [42]
+
+9. Already sorted array:
+   Original:  [1, 2, 3, 4, 5]
+   Original unchanged:  [1, 2, 3, 4, 5]
+   Sorted result:  [1, 2, 3, 4, 5]
+
+10. Reverse sorted array:
+   Original:  [5, 4, 3, 2, 1]
+   Original unchanged:  [5, 4, 3, 2, 1]
+   Sorted result:  [1, 2, 3, 4, 5]
+
+11. Case sensitivity (mixed case):
+   Original:  ["abc", "aBc", "ABC", "Abc", "aBC", "abC"]
+   Original unchanged:  ["abc", "aBc", "ABC", "Abc", "aBC", "abC"]
+   Sorted result:  ["ABC", "Abc", "aBC", "aBc", "abC", "abc"]
+
+12. Case sensitivity (lowercase vs uppercase):
+   Original:  ["zebra", "ZEBRA", "apple", "APPLE", "banana", "BANANA"]
+   Original unchanged:  ["zebra", "ZEBRA", "apple", "APPLE", "banana", "BANANA"]
+   Sorted result:  ["APPLE", "BANANA", "ZEBRA", "apple", "banana", "zebra"]
+
+13. Case sensitivity (same letters, different cases):
+   Original:  ["Hello", "hello", "HELLO", "hElLo", "HeLlO"]
+   Original unchanged:  ["Hello", "hello", "HELLO", "hElLo", "HeLlO"]
+   Sorted result:  ["HELLO", "HeLlO", "Hello", "hElLo", "hello"]
+
+14. Case sensitivity (single character differences):
+   Original:  ["a", "A", "b", "B", "c", "C"]
+   Original unchanged:  ["a", "A", "b", "B", "c", "C"]
+   Sorted result:  ["A", "B", "C", "a", "b", "c"]
+
+15. Case sensitivity (with numbers and mixed case):
+   Original:  ["test1", "Test1", "TEST1", "test2", "Test2", "TEST2"]
+   Original unchanged:  ["test1", "Test1", "TEST1", "test2", "Test2", "TEST2"]
+   Sorted result:  ["TEST1", "TEST2", "Test1", "Test2", "test1", "test2"]
+
+16. Multidimensional array (sort values):
+   Original:  ["12" => 30, "45" => 10, "23" => 20]
+   Original unchanged:  ["12" => 30, "45" => 10, "23" => 20]
+   Sorted result:  [10, 20, 30]
+
+17. Multidimensional array (string values):
+   Original:  ["12" => "zebra", "45" => "apple", "23" => "banana"]
+   Original unchanged:  ["12" => "zebra", "45" => "apple", "23" => "banana"]
+   Sorted result:  ["apple", "banana", "zebra"]
+
+18. Multidimensional array (mixed types):
+   Original:  ["12" => "hello", "45" => 42, "23" => "world", "34" => 10]
+   Original unchanged:  ["12" => "hello", "45" => 42, "23" => "world", "34" => 10]
+   Sorted result:  [10, 42, "hello", "world"]
+
+19. Three-dimensional array:
+   Original:  ["123" => 50, "111" => 10, "222" => 30, "121" => 20]
+   Original unchanged:  ["123" => 50, "111" => 10, "222" => 30, "121" => 20]
+   Sorted result:  [10, 20, 30, 50]
+
+20. Multidimensional array (string indices):
+   Original:  ["row1col1" => 100, "row2col1" => 50, "row1col2" => 75]
+   Original unchanged:  ["row1col1" => 100, "row2col1" => 50, "row1col2" => 75]
+   Sorted result:  [50, 75, 100]
+
+=== All sort() Tests Complete ===

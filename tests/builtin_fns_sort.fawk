@@ -1,0 +1,187 @@
+# Test: sort() function - nice examples
+
+BEGIN {
+    print "=== sort() Function Tests ==="
+    print ""
+    
+    # 1. Simple numeric array
+    print "1. Simple numeric array:"
+    arr1 = [3, 1, 4, 1, 5, 9, 2, 6]
+    print "   Original: ", arr1
+    sorted1 = sort(arr1)
+    print "   Original unchanged: ", arr1
+    print "   Sorted result: ", sorted1
+    print ""
+    
+    # 2. String array
+    print "2. String array:"
+    arr2 = ["zebra", "apple", "banana", "cherry"]
+    print "   Original: ", arr2
+    sorted2 = sort(arr2)
+    print "   Original unchanged: ", arr2
+    print "   Sorted result: ", sorted2
+    print ""
+    
+    # 3. Mixed types (numbers come before strings)
+    print "3. Mixed types (numbers before strings):"
+    arr3 = ["hello", 42, "world", 10, "test", 5]
+    print "   Original: ", arr3
+    sorted3 = sort(arr3)
+    print "   Original unchanged: ", arr3
+    print "   Sorted result: ", sorted3
+    print ""
+    
+    # 4. Source array unchanged
+    print "4. Source array unchanged:"
+    source = [5, 2, 8, 1, 9]
+    print "   Source before: ", source
+    sorted4 = sort(source)
+    print "   Source after: ", source
+    print "   Sorted result: ", sorted4
+    print ""
+    
+    # 5. Associative array with string keys
+    print "5. Associative array (string keys):"
+    assoc = ["zebra" => 1, "apple" => 1, "banana" => 1]
+    print "   Original: ", assoc
+    sorted5 = sort(assoc)
+    print "   Original unchanged: ", assoc
+    print "   Sorted result: ", sorted5
+    print ""
+    
+    # 6. Associative array with numeric keys
+    print "6. Associative array (numeric keys):"
+    num_assoc = [10 => "ten", 2 => "two", 5 => "five", 1 => "one"]
+    print "   Original: ", num_assoc
+    sorted6 = sort(num_assoc)
+    print "   Original unchanged: ", num_assoc
+    print "   Sorted result: ", sorted6
+    print ""
+    
+    # 7. Empty array
+    print "7. Empty array:"
+    empty = []
+    sorted7 = sort(empty)
+    print "   Original: ", empty
+    print "   Sorted result: ", sorted7
+    print ""
+    
+    # 8. Single element
+    print "8. Single element:"
+    single = [42]
+    sorted8 = sort(single)
+    print "   Original: ", single
+    print "   Sorted result: ", sorted8
+    print ""
+    
+    # 9. Already sorted
+    print "9. Already sorted array:"
+    sorted_arr = [1, 2, 3, 4, 5]
+    print "   Original: ", sorted_arr
+    sorted9 = sort(sorted_arr)
+    print "   Original unchanged: ", sorted_arr
+    print "   Sorted result: ", sorted9
+    print ""
+    
+    # 10. Reverse sorted
+    print "10. Reverse sorted array:"
+    reverse = [5, 4, 3, 2, 1]
+    print "   Original: ", reverse
+    sorted10 = sort(reverse)
+    print "   Original unchanged: ", reverse
+    print "   Sorted result: ", sorted10
+    print ""
+    
+    # 11. Case sensitivity - mixed case strings
+    print "11. Case sensitivity (mixed case):"
+    case_arr = ["abc", "aBc", "ABC", "Abc", "aBC", "abC"]
+    print "   Original: ", case_arr
+    sorted11 = sort(case_arr)
+    print "   Original unchanged: ", case_arr
+    print "   Sorted result: ", sorted11
+    print ""
+    
+    # 12. Case sensitivity - all lowercase vs uppercase
+    print "12. Case sensitivity (lowercase vs uppercase):"
+    case_arr2 = ["zebra", "ZEBRA", "apple", "APPLE", "banana", "BANANA"]
+    print "   Original: ", case_arr2
+    sorted12 = sort(case_arr2)
+    print "   Original unchanged: ", case_arr2
+    print "   Sorted result: ", sorted12
+    print ""
+    
+    # 13. Case sensitivity - same letters different cases
+    print "13. Case sensitivity (same letters, different cases):"
+    case_arr3 = ["Hello", "hello", "HELLO", "hElLo", "HeLlO"]
+    print "   Original: ", case_arr3
+    sorted13 = sort(case_arr3)
+    print "   Original unchanged: ", case_arr3
+    print "   Sorted result: ", sorted13
+    print ""
+    
+    # 14. Case sensitivity - single character differences
+    print "14. Case sensitivity (single character differences):"
+    case_arr4 = ["a", "A", "b", "B", "c", "C"]
+    print "   Original: ", case_arr4
+    sorted14 = sort(case_arr4)
+    print "   Original unchanged: ", case_arr4
+    print "   Sorted result: ", sorted14
+    print ""
+    
+    # 15. Case sensitivity - with numbers and mixed case
+    print "15. Case sensitivity (with numbers and mixed case):"
+    case_arr5 = ["test1", "Test1", "TEST1", "test2", "Test2", "TEST2"]
+    print "   Original: ", case_arr5
+    sorted15 = sort(case_arr5)
+    print "   Original unchanged: ", case_arr5
+    print "   Sorted result: ", sorted15
+    print ""
+    
+    # 16. Multidimensional array - sort values
+    print "16. Multidimensional array (sort values):"
+    multidim1 = [(1,2) => 30, (4,5) => 10, (2,3) => 20]
+    print "   Original: ", multidim1
+    sorted16 = sort(multidim1)
+    print "   Original unchanged: ", multidim1
+    print "   Sorted result: ", sorted16
+    print ""
+    
+    # 17. Multidimensional array - string values
+    print "17. Multidimensional array (string values):"
+    multidim2 = [(1,2) => "zebra", (4,5) => "apple", (2,3) => "banana"]
+    print "   Original: ", multidim2
+    sorted17 = sort(multidim2)
+    print "   Original unchanged: ", multidim2
+    print "   Sorted result: ", sorted17
+    print ""
+    
+    # 18. Multidimensional array - mixed types
+    print "18. Multidimensional array (mixed types):"
+    multidim3 = [(1,2) => "hello", (4,5) => 42, (2,3) => "world", (3,4) => 10]
+    print "   Original: ", multidim3
+    sorted18 = sort(multidim3)
+    print "   Original unchanged: ", multidim3
+    print "   Sorted result: ", sorted18
+    print ""
+    
+    # 19. Three-dimensional array
+    print "19. Three-dimensional array:"
+    cube = [(1,2,3) => 50, (1,1,1) => 10, (2,2,2) => 30, (1,2,1) => 20]
+    print "   Original: ", cube
+    sorted19 = sort(cube)
+    print "   Original unchanged: ", cube
+    print "   Sorted result: ", sorted19
+    print ""
+    
+    # 20. Multidimensional array with string indices
+    print "20. Multidimensional array (string indices):"
+    multidim4 = [("row1","col1") => 100, ("row2","col1") => 50, ("row1","col2") => 75]
+    print "   Original: ", multidim4
+    sorted20 = sort(multidim4)
+    print "   Original unchanged: ", multidim4
+    print "   Sorted result: ", sorted20
+    print ""
+    
+    print "=== All sort() Tests Complete ==="
+}
+

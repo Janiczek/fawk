@@ -1,0 +1,147 @@
+# Test: sort() and sorti() edge cases
+# Tests nested arrays, multidim arrays, int keys, string keys, etc.
+
+BEGIN {
+    print "=== sort() and sorti() Edge Cases ==="
+    print ""
+    
+    # 1. Nested arrays in values
+    print "1. sort() with nested arrays:"
+    arr1 = [[3, 1], [2, 4], [1, 2]]
+    print "   Original: ", arr1
+    sorted1 = sort(arr1)
+    print "   Original unchanged: ", arr1
+    print "   Sorted result: ", sorted1
+    print ""
+    
+    # 2. Mixed: numbers, strings, and arrays
+    print "2. sort() with numbers, strings, and arrays:"
+    arr2 = ["hello", [1, 2], 42, "world", [3, 4], 10]
+    print "   Original: ", arr2
+    sorted2 = sort(arr2)
+    print "   Original unchanged: ", arr2
+    print "   Sorted result: ", sorted2
+    print ""
+    
+    # 3. Deeply nested arrays
+    print "3. sort() with deeply nested arrays:"
+    arr3 = [[[3]], [[1]], [[2]]]
+    print "   Original: ", arr3
+    sorted3 = sort(arr3)
+    print "   Original unchanged: ", arr3
+    print "   Sorted result: ", sorted3
+    print ""
+    
+    # 4. Empty nested arrays
+    print "4. sort() with empty nested arrays:"
+    arr4 = [[], [1, 2], []]
+    print "   Original: ", arr4
+    sorted4 = sort(arr4)
+    print "   Original unchanged: ", arr4
+    print "   Sorted result: ", sorted4
+    print ""
+    
+    # 5. Associative array with int keys (sort values)
+    print "5. sort() on associative array with int keys:"
+    arr5 = [10 => "ten", 2 => "two", 5 => "five"]
+    print "   Original: ", arr5
+    sorted5 = sort(arr5)
+    print "   Original unchanged: ", arr5
+    print "   Sorted result: ", sorted5
+    print ""
+    
+    # 6. Associative array with string keys (sort values)
+    print "6. sort() on associative array with string keys:"
+    arr6 = ["zebra" => "z", "apple" => "a", "banana" => "b"]
+    print "   Original: ", arr6
+    sorted6 = sort(arr6)
+    print "   Original unchanged: ", arr6
+    print "   Sorted result: ", sorted6
+    print ""
+    
+    # 7. sorti() with int keys
+    print "7. sorti() with int keys:"
+    arr7 = [10 => "ten", 2 => "two", 5 => "five", 1 => "one"]
+    print "   Original: ", arr7
+    indices7 = sorti(arr7)
+    print "   Original unchanged: ", arr7
+    print "   Sorted indices: ", indices7
+    print ""
+    
+    # 8. sorti() with string keys
+    print "8. sorti() with string keys:"
+    arr8 = ["zebra" => "z", "apple" => "a", "banana" => "b"]
+    print "   Original: ", arr8
+    indices8 = sorti(arr8)
+    print "   Original unchanged: ", arr8
+    print "   Sorted indices: ", indices8
+    print ""
+    
+    # 9. sorti() with mixed int and string keys
+    print "9. sorti() with mixed int and string keys:"
+    arr9 = [10 => "ten", "zebra" => "z", 2 => "two", "apple" => "a"]
+    print "   Original: ", arr9
+    indices9 = sorti(arr9)
+    print "   Original unchanged: ", arr9
+    print "   Sorted indices: ", indices9
+    print ""
+    
+    # 10. sorti() with numeric string keys
+    print "10. sorti() with numeric string keys:"
+    arr10 = ["10" => "ten", "2" => "two", "5" => "five"]
+    print "   Original: ", arr10
+    indices10 = sorti(arr10)
+    print "   Original unchanged: ", arr10
+    print "   Sorted indices: ", indices10
+    print ""
+    
+    # 11. sort() preserves nested structure
+    print "11. sort() preserves nested array structure:"
+    arr11 = [[3, 1, 4], [1, 5, 9], [2, 6, 5]]
+    print "   Original: ", arr11
+    sorted11 = sort(arr11)
+    print "   Original unchanged: ", arr11
+    print "   Sorted result: ", sorted11
+    print ""
+    
+    # 12. sorti() preserves source
+    print "12. sorti() preserves source:"
+    source = ["zebra" => 100, "apple" => 50, "banana" => 75]
+    print "   Source before: ", source
+    indices12 = sorti(source)
+    print "   Source after: ", source
+    print "   Sorted indices: ", indices12
+    print ""
+    
+    # 13. sort() preserves source
+    print "13. sort() preserves source:"
+    source2 = [5, 2, 8, 1, 9]
+    print "   Source before: ", source2
+    sorted13 = sort(source2)
+    print "   Source after: ", source2
+    print "   Sorted result: ", sorted13
+    print ""
+    
+    # 14. Large array
+    print "14. sort() with larger array:"
+    large = []
+    for (i = 1; i <= 10; i++) {
+        large[i] = 11 - i
+    }
+    print "   Original (first 5): ", large[1], " ", large[2], " ", large[3], " ", large[4], " ", large[5]
+    sorted14 = sort(large)
+    print "   Original unchanged (first 5): ", large[1], " ", large[2], " ", large[3], " ", large[4], " ", large[5]
+    print "   Sorted result (first 5): ", sorted14[1], " ", sorted14[2], " ", sorted14[3], " ", sorted14[4], " ", sorted14[5]
+    print ""
+    
+    # 15. Duplicate values
+    print "15. sort() with duplicate values:"
+    dup = [3, 1, 4, 1, 5, 3, 2, 1]
+    print "   Original: ", dup
+    sorted15 = sort(dup)
+    print "   Original unchanged: ", dup
+    print "   Sorted result: ", sorted15
+    print ""
+    
+    print "=== All Edge Case Tests Complete ==="
+}

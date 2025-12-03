@@ -1,0 +1,72 @@
+=== sorti() Function Tests ===
+
+1. Associative array (string keys):
+   Original:  ["zebra" => "z", "apple" => "a", "banana" => "b"]
+   Original unchanged:  ["zebra" => "z", "apple" => "a", "banana" => "b"]
+   Sorted indices:  ["apple", "banana", "zebra"]
+
+2. Associative array (numeric keys):
+   Original:  [10 => "ten", 2 => "two", 5 => "five", 1 => "one"]
+   Original unchanged:  [10 => "ten", 2 => "two", 5 => "five", 1 => "one"]
+   Sorted indices:  [1, 2, 5, 10]
+
+3. Mixed keys (numeric and string):
+   Original:  ["zebra" => "z", 10 => "ten", "apple" => "a", 2 => "two"]
+   Original unchanged:  ["zebra" => "z", 10 => "ten", "apple" => "a", 2 => "two"]
+   Sorted indices:  [2, 10, "apple", "zebra"]
+
+4. Source array unchanged:
+   Source before:  ["zebra" => "z", "apple" => "a", "banana" => "b"]
+   Source after:  ["zebra" => "z", "apple" => "a", "banana" => "b"]
+   Sorted indices:  ["apple", "banana", "zebra"]
+
+5. Access original array via sorted indices:
+   Original data:  ["zebra" => 100, "apple" => 50, "banana" => 75]
+   Sorted indices:  ["apple", "banana", "zebra"]
+   Accessing via sorted indices:
+      apple  =>  50
+      banana  =>  75
+      zebra  =>  100
+
+6. Empty array:
+   Original:  []
+   Sorted indices:  []
+
+7. Single element:
+   Original:  ["one" => 1]
+   Sorted indices:  ["one"]
+
+8. Regular array (1-indexed):
+   Original:  ["first", "second", "third"]
+   Original unchanged:  ["first", "second", "third"]
+   Sorted indices:  [1, 2, 3]
+
+9. Multidimensional array (numeric indices):
+   Original:  ["12" => 30, "45" => 10, "23" => 20]
+   Original unchanged:  ["12" => 30, "45" => 10, "23" => 20]
+   Sorted indices:  ["12", "23", "45"]
+   Accessing via sorted indices:
+      12  =>  30
+      23  =>  20
+      45  =>  10
+
+10. Multidimensional array (string indices):
+   Original:  ["row1col1" => 100, "row2col1" => 50, "row1col2" => 75]
+   Original unchanged:  ["row1col1" => 100, "row2col1" => 50, "row1col2" => 75]
+   Sorted indices:  ["row1col1", "row1col2", "row2col1"]
+   Accessing via sorted indices:
+      row1col1  =>  100
+      row1col2  =>  75
+      row2col1  =>  50
+
+11. Three-dimensional array:
+   Original:  ["123" => 50, "111" => 10, "222" => 30, "121" => 20]
+   Original unchanged:  ["123" => 50, "111" => 10, "222" => 30, "121" => 20]
+   Sorted indices:  ["111", "121", "123", "222"]
+
+12. Multidimensional array (mixed indices):
+   Original:  ["12" => "a", "xy" => "b", "23" => "c", "ab" => "d"]
+   Original unchanged:  ["12" => "a", "xy" => "b", "23" => "c", "ab" => "d"]
+   Sorted indices:  ["12", "23", "ab", "xy"]
+
+=== All sorti() Tests Complete ===

@@ -1,0 +1,78 @@
+=== sort() and sorti() Edge Cases ===
+
+1. sort() with nested arrays:
+   Original:  [[3, 1], [2, 4], [1, 2]]
+   Original unchanged:  [[3, 1], [2, 4], [1, 2]]
+   Sorted result:  [[1, 2], [2, 4], [3, 1]]
+
+2. sort() with numbers, strings, and arrays:
+   Original:  ["hello", [1, 2], 42, "world", [3, 4], 10]
+   Original unchanged:  ["hello", [1, 2], 42, "world", [3, 4], 10]
+   Sorted result:  [10, 42, "hello", "world", [1, 2], [3, 4]]
+
+3. sort() with deeply nested arrays:
+   Original:  [[[3]], [[1]], [[2]]]
+   Original unchanged:  [[[3]], [[1]], [[2]]]
+   Sorted result:  [[[1]], [[2]], [[3]]]
+
+4. sort() with empty nested arrays:
+   Original:  [[], [1, 2], []]
+   Original unchanged:  [[], [1, 2], []]
+   Sorted result:  [[1, 2], [], []]
+
+5. sort() on associative array with int keys:
+   Original:  [10 => "ten", 2 => "two", 5 => "five"]
+   Original unchanged:  [10 => "ten", 2 => "two", 5 => "five"]
+   Sorted result:  ["five", "ten", "two"]
+
+6. sort() on associative array with string keys:
+   Original:  ["zebra" => "z", "apple" => "a", "banana" => "b"]
+   Original unchanged:  ["zebra" => "z", "apple" => "a", "banana" => "b"]
+   Sorted result:  ["a", "b", "z"]
+
+7. sorti() with int keys:
+   Original:  [10 => "ten", 2 => "two", 5 => "five", 1 => "one"]
+   Original unchanged:  [10 => "ten", 2 => "two", 5 => "five", 1 => "one"]
+   Sorted indices:  [1, 2, 5, 10]
+
+8. sorti() with string keys:
+   Original:  ["zebra" => "z", "apple" => "a", "banana" => "b"]
+   Original unchanged:  ["zebra" => "z", "apple" => "a", "banana" => "b"]
+   Sorted indices:  ["apple", "banana", "zebra"]
+
+9. sorti() with mixed int and string keys:
+   Original:  [10 => "ten", "zebra" => "z", 2 => "two", "apple" => "a"]
+   Original unchanged:  [10 => "ten", "zebra" => "z", 2 => "two", "apple" => "a"]
+   Sorted indices:  [2, 10, "apple", "zebra"]
+
+10. sorti() with numeric string keys:
+   Original:  [10 => "ten", 2 => "two", 5 => "five"]
+   Original unchanged:  [10 => "ten", 2 => "two", 5 => "five"]
+   Sorted indices:  [2, 5, 10]
+
+11. sort() preserves nested array structure:
+   Original:  [[3, 1, 4], [1, 5, 9], [2, 6, 5]]
+   Original unchanged:  [[3, 1, 4], [1, 5, 9], [2, 6, 5]]
+   Sorted result:  [[1, 5, 9], [2, 6, 5], [3, 1, 4]]
+
+12. sorti() preserves source:
+   Source before:  ["zebra" => 100, "apple" => 50, "banana" => 75]
+   Source after:  ["zebra" => 100, "apple" => 50, "banana" => 75]
+   Sorted indices:  ["apple", "banana", "zebra"]
+
+13. sort() preserves source:
+   Source before:  [5, 2, 8, 1, 9]
+   Source after:  [5, 2, 8, 1, 9]
+   Sorted result:  [1, 2, 5, 8, 9]
+
+14. sort() with larger array:
+   Original (first 5):  10   9   8   7   6
+   Original unchanged (first 5):  10   9   8   7   6
+   Sorted result (first 5):  1   2   3   4   5
+
+15. sort() with duplicate values:
+   Original:  [3, 1, 4, 1, 5, 3, 2, 1]
+   Original unchanged:  [3, 1, 4, 1, 5, 3, 2, 1]
+   Sorted result:  [1, 1, 1, 2, 3, 3, 4, 5]
+
+=== All Edge Case Tests Complete ===
