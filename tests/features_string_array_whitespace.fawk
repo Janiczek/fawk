@@ -1,0 +1,62 @@
+# Test: String and Array Literal Whitespace Differentiation
+# Tests that whitespace between string literals and brackets determines
+# whether it's string indexing (access) or concatenation with array literal
+
+BEGIN {
+    print "Test: String and Array Literal Whitespace"
+    print "--------------------------------------"
+    print ""
+    
+    # Empty string with empty brackets - both should be concatenation
+    print "Empty string with empty brackets:"
+    print "\"\"[] =", ""[]
+    print "\"\" [] =", "" []
+    print ""
+    
+    # Empty string with non-empty brackets - whitespace determines behavior
+    print "Empty string with non-empty brackets:"
+    print "\"\"[1] =", ""[1], "(no space - access, out of bounds, empty)"
+    print "\"\" [1] =", "" [1], "(space - concatenation)"
+    print "\"\"[1,2] =", ""[1,2], "(no space - access, multiple indices, empty)"
+    print "\"\" [1,2] =", "" [1,2], "(space - concatenation)"
+    print ""
+    
+    # Non-empty string - whitespace determines behavior
+    print "Non-empty string:"
+    print "\"hello\"[1] =", "hello"[1], "(no space - access)"
+    print "\"hello\" [1] =", "hello" [1], "(space - concatenation)"
+    print "\"hello\"[2] =", "hello"[2], "(no space - access)"
+    print "\"hello\" [2] =", "hello" [2], "(space - concatenation)"
+    print "\"test\"[1,2] =", "test"[1,2], "(no space - access, multiple indices, empty)"
+    print "\"test\" [1,2] =", "test" [1,2], "(space - concatenation)"
+    print ""
+    
+    # Multi-element arrays
+    print "Multi-element arrays:"
+    print "\"x\" [1,2,3] =", "x" [1,2,3], "(space - concatenation)"
+    print "\"x\"[\"a\",\"b\"] =", "x"["a","b"], "(no space - access, string indices, empty)"
+    print "\"x\" [\"a\",\"b\"] =", "x" ["a","b"], "(space - concatenation)"
+    print ""
+    
+    # Variable strings (whitespace is ignored, always access)
+    print "Variable strings:"
+    s = "world"
+    print "s[1] =", s[1], "(variable - access)"
+    print "s [1] =", s [1], "(variable with space - still access, whitespace ignored)"
+    print ""
+    
+    # Number literals (always concatenation)
+    print "Number literals (always concatenation):"
+    print "42[] =", 42[]
+    print "42 [] =", 42 []
+    print "42[1] =", 42[1]
+    print "42 [1] =", 42 [1]
+    print ""
+    
+    # Edge case: newlines (should be treated as whitespace)
+    print "Newline as whitespace:"
+    # Note: newlines in expressions are handled by the parser's newline skipping
+    # This is tested implicitly through the whitespace detection logic
+    print ""
+}
+

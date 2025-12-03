@@ -1,0 +1,38 @@
+Test: String and Array Literal Whitespace
+--------------------------------------
+
+Empty string with empty brackets:
+""[] = []
+"" [] = []
+
+Empty string with non-empty brackets:
+""[1] =  (no space - access, out of bounds, empty)
+"" [1] = [1] (space - concatenation)
+""[1,2] =  (no space - access, multiple indices, empty)
+"" [1,2] = [1, 2] (space - concatenation)
+
+Non-empty string:
+"hello"[1] = h (no space - access)
+"hello" [1] = hello[1] (space - concatenation)
+"hello"[2] = e (no space - access)
+"hello" [2] = hello[2] (space - concatenation)
+"test"[1,2] =  (no space - access, multiple indices, empty)
+"test" [1,2] = test[1, 2] (space - concatenation)
+
+Multi-element arrays:
+"x" [1,2,3] = x[1, 2, 3] (space - concatenation)
+"x"["a","b"] =  (no space - access, string indices, empty)
+"x" ["a","b"] = x["a", "b"] (space - concatenation)
+
+Variable strings:
+s[1] = w (variable - access)
+s [1] = w (variable with space - still access, whitespace ignored)
+
+Number literals (always concatenation):
+42[] = 42[]
+42 [] = 42[]
+42[1] = 42[1]
+42 [1] = 42[1]
+
+Newline as whitespace:
+

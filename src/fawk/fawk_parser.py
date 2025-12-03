@@ -891,9 +891,43 @@ class Parser:
                         # arr[] is not allowed in RHS contexts - it's a syntax error
                         self.error("arr[] syntax is only allowed on the left-hand side of an assignment")
                 
-                # String literals can be indexed: "abc"[1]
-                # Number literals cannot be indexed - this must be concatenation with an array literal
-                if is_number_literal or (is_string_literal and is_empty_array):
+                # Check if this is concatenation vs access based on whitespace
+                # If there's whitespace between the string and [, it's concatenation
+                # If there's no whitespace, it's access (string indexing)
+                # Exception: empty brackets [] are always treated as array literals (concatenation)
+                is_concatenation = False
+                if is_number_literal:
+                    # Number literals cannot be indexed - must be concatenation
+                    is_concatenation = True
+                elif is_string_literal:
+                    # Empty brackets are always array literals, not access
+                    if is_empty_array:
+                        is_concatenation = True
+                    else:
+                        # Check token positions to detect whitespace for non-empty brackets
+                        # Look back to find the string token (should be at pos - 1 if no other tokens consumed)
+                        bracket_token = self.current()
+                        # Find the string token by looking back
+                        # Since parse_primary consumes the string token, it should be at pos - 1
+                        # But we need to account for any tokens that might have been consumed
+                        # For now, check if pos > 0 and the previous token was a STRING
+                        if self.pos > 0:
+                            prev_token = self.tokens[self.pos - 1]
+                            if prev_token.type == TokenType.STRING:
+                                # Calculate where the string token ends
+                                # String token spans: "value" = column + len(value) + 2
+                                string_end_col = prev_token.column + len(prev_token.value) + 2
+                                # If bracket is on same line and starts exactly where string ends, no space (access)
+                                # If bracket is on different line or starts after string ends, there's space (concatenation)
+                                if bracket_token.line != prev_token.line:
+                                    # Different lines means there's whitespace (newline)
+                                    is_concatenation = True
+                                elif bracket_token.column > string_end_col:
+                                    # Bracket starts after string ends, there's whitespace
+                                    is_concatenation = True
+                                # else: bracket starts exactly where string ends, no space (access)
+                
+                if is_concatenation:
                     # This is concatenation with an array literal, not array access
                     # Break and let the concatenation parser handle it
                     break
