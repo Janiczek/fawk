@@ -1,0 +1,1 @@
+BEGIN {print(2)}; END {print(1)}

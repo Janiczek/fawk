@@ -45,6 +45,11 @@ class Parser:
         while self.current().type == TokenType.NEWLINE:
             self.advance()
     
+    def skip_newlines_and_semicolons(self):
+        """Skip newlines and semicolons (used for top-level pattern-action separation)"""
+        while self.current().type in [TokenType.NEWLINE, TokenType.SEMICOLON]:
+            self.advance()
+    
     def parse(self) -> Program:
         functions = []
         begin_blocks = []
@@ -53,11 +58,11 @@ class Parser:
         endfile_blocks = []
         end_blocks = []
         
-        self.skip_newlines()
+        self.skip_newlines_and_semicolons()
         
         # Parse functions, BEGIN, BEGINFILE, patterns, ENDFILE, and END in any order
         while self.current().type != TokenType.EOF:
-            self.skip_newlines()
+            self.skip_newlines_and_semicolons()
             
             if self.current().type == TokenType.FUNCTION:
                 functions.append(self.parse_function_def())
@@ -91,7 +96,7 @@ class Parser:
                     # No more valid constructs
                     break
             
-            self.skip_newlines()
+            self.skip_newlines_and_semicolons()
         
         return Program(functions, begin_blocks, beginfile_blocks, patterns, endfile_blocks, end_blocks)
     
