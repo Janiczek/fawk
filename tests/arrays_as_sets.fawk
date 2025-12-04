@@ -5,6 +5,17 @@ BEGIN {
     print "=== Using Arrays as Sets ==="
     print ""
     
+    # Test: accessing array elements auto-creates them (GAWK behavior)
+    # This allows using arrays as sets by just accessing them
+    print "Auto-creating array elements by access:"
+    x[1]  # Just accessing x[1] creates the key
+    print "  After x[1]:"
+    print "    1 in x:", (1 in x)
+    print "    2 in x:", (2 in x)
+    print "    x[1]:", x[1]
+    print "    x[2]:", x[2]
+    print ""
+    
     set = ["apple" => 1, "banana" => 1, "cherry" => 1]
     
     print "Initial set:"
@@ -26,11 +37,19 @@ BEGIN {
     }
     print ""
     
-    # Add a new element
-    print "Adding 'grape' to set"
+    # Add a new element (traditional way)
+    print "Adding 'grape' to set (traditional: set[\"grape\"] = 1)"
     set["grape"] = 1
     if ("grape" in set) {
         print "  grape is now in the set"
+    }
+    print ""
+    
+    # Add a new element using just access (new way - GAWK behavior)
+    print "Adding 'mango' to set (just by accessing: set[\"mango\"])"
+    set["mango"]  # Just accessing creates the key
+    if ("mango" in set) {
+        print "  mango is now in the set"
     }
     print ""
     

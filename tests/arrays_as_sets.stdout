@@ -1,5 +1,12 @@
 === Using Arrays as Sets ===
 
+Auto-creating array elements by access:
+  After x[1]:
+    1 in x: 1
+    2 in x: 0
+    x[1]: 
+    x[2]: 
+
 Initial set:
   apple
   banana
@@ -9,8 +16,11 @@ Membership tests:
   apple is in the set
   grape is NOT in the set
 
-Adding 'grape' to set
+Adding 'grape' to set (traditional: set["grape"] = 1)
   grape is now in the set
+
+Adding 'mango' to set (just by accessing: set["mango"])
+  mango is now in the set
 
 Removing 'banana' from set
   banana is NOT in the set (removed)
@@ -22,6 +32,7 @@ Toggle operations:
 Final set:
   apple
   grape
+  mango
   orange
 
 === Set Operations ===

@@ -2812,7 +2812,25 @@ class Interpreter:
         # Handle array access
         # Optimized: use type() for exact match (faster than isinstance)
         if array_type is not FawkArray:
-            return ""  # AWK behavior: return empty string for non-array
+            # GAWK behavior: accessing an array element on undefined/non-array variable
+            # auto-creates the array. This allows using arrays as sets by just accessing them.
+            from .fawk_ast import Identifier
+            if isinstance(node.array, Identifier):
+                # Create a new array and assign it to the variable
+                array = FawkArray()
+                name = node.array.name
+                # Store it back using the same scoping rules as assignment
+                if name in self.globals_declared:
+                    self.global_env.set(name, array)
+                elif self.in_function:
+                    self.current_env.set_local(name, array)
+                elif name in self.current_env.vars:
+                    self.current_env.set_local(name, array)
+                else:
+                    self.global_env.set(name, array)
+            else:
+                # Not an identifier (e.g., nested access or expression) - return empty string
+                return ""
         
         # Handle multi-dimensional array access
         if len(node.indices) == 1:
