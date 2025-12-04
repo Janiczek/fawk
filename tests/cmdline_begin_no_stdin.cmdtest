@@ -1,0 +1,1 @@
+./fawk 'BEGIN { print(1) }'

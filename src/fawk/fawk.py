@@ -123,18 +123,18 @@ def main():
             else:
                 print(f"Warning: Invalid variable assignment: {var_assignment}", file=sys.stderr)
     
+    # Check if program has any pattern-action blocks (not BEGIN/BEGINFILE/END/ENDFILE)
+    # Any pattern-action block (with or without a pattern) requires input
+    has_pattern_action = len(program.patterns) > 0
+    
     # Read input from files if provided, or from stdin
     file_list = []
     if input_files:
         for input_file in input_files:
             # Support "-" as explicit stdin
             if input_file == "-":
-                try:
-                    content = sys.stdin.read()
-                    file_list.append(("-", content))
-                except IOError as e:
-                    print(f"Error reading from stdin: {e}", file=sys.stderr)
-                    sys.exit(1)
+                # Pass None as content to indicate stdin should be processed line by line
+                file_list.append(("-", None))
             else:
                 try:
                     with open(input_file, 'r') as f:
@@ -147,15 +147,16 @@ def main():
                     print(f"Error reading input file: {e}", file=sys.stderr)
                     sys.exit(1)
     else:
-        # No input files specified - check if stdin has data
-        # This allows piping: cat file.txt | fawk '{ print $1 }'
-        if not sys.stdin.isatty():
-            try:
-                content = sys.stdin.read()
-                file_list.append(("-", content))
-            except IOError as e:
-                print(f"Error reading from stdin: {e}", file=sys.stderr)
-                sys.exit(1)
+        # No input files specified
+        if has_pattern_action:
+            # If there's any pattern-action block, always read from stdin (even if it's a TTY)
+            # This allows: fawk '{ print $0 }' or fawk '/3/ { print(1) }' (waits for stdin)
+            # Pass None as content to indicate stdin should be processed line by line
+            file_list.append(("-", None))
+        else:
+            # No pattern-action blocks - don't read from stdin
+            # This allows: fawk 'BEGIN { print 1 }' (doesn't wait for stdin)
+            pass
     
     # Run
     try:

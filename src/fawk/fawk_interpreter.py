@@ -3429,7 +3429,8 @@ class Interpreter:
         
         Args:
             program: The parsed Program AST
-            input_files: List of tuples (filename, content) or None for no input
+            input_files: List of tuples (filename, content) or None for no input.
+                        If content is None, it indicates stdin should be processed line by line.
         """
         # Register user-defined functions (protect built-ins)
         for func_def in program.functions:
@@ -3489,43 +3490,92 @@ class Interpreter:
                     # Process this file's records (unless skipped by nextfile in BEGINFILE)
                     if not skip_file:
                         try:
-                            records = self.split_into_records(file_content)
-                            
-                            for record, terminator in records:
-                                self.NR += 1
-                                self.FNR += 1
-                                self.RT = terminator
+                            # If file_content is None, this is stdin - process line by line
+                            if file_content is None:
+                                import sys
+                                # Read from stdin line by line
+                                for line in sys.stdin:
+                                    # Process this line as a record
+                                    self.NR += 1
+                                    self.FNR += 1
+                                    
+                                    # Determine record terminator (newline if line ends with it, empty otherwise)
+                                    if line.endswith('\n'):
+                                        record = line[:-1]
+                                        self.RT = '\n'
+                                    else:
+                                        record = line
+                                        self.RT = ''
+                                    
+                                    # Split record into fields
+                                    self.current_line = record  # Store original record for $0
+                                    self.fields = self.split_fields(record)
+                                    self.NF = len(self.fields)
+                                    
+                                    # Execute pattern-action blocks
+                                    try:
+                                        for pattern_action in program.patterns:
+                                            # Check if pattern matches (or no pattern)
+                                            should_execute = False
+                                            if pattern_action.pattern is None:
+                                                should_execute = True
+                                            else:
+                                                # Evaluate pattern
+                                                should_execute = self.is_truthy(self.eval(pattern_action.pattern))
+                                            
+                                            if should_execute:
+                                                action_env = Environment(self.global_env)
+                                                saved_env = self.current_env
+                                                self.current_env = action_env
+                                                try:
+                                                    self.eval(pattern_action.action)
+                                                except NextException:
+                                                    # Skip to next record
+                                                    break
+                                                finally:
+                                                    self.current_env = saved_env
+                                    except NextFileException:
+                                        # Skip to next file
+                                        break
+                            else:
+                                # Regular file - process all records at once
+                                records = self.split_into_records(file_content)
                                 
-                                # Split record into fields
-                                self.current_line = record  # Store original record for $0
-                                self.fields = self.split_fields(record)
-                                self.NF = len(self.fields)
-                                
-                                # Execute pattern-action blocks
-                                try:
-                                    for pattern_action in program.patterns:
-                                        # Check if pattern matches (or no pattern)
-                                        should_execute = False
-                                        if pattern_action.pattern is None:
-                                            should_execute = True
-                                        else:
-                                            # Evaluate pattern
-                                            should_execute = self.is_truthy(self.eval(pattern_action.pattern))
-                                        
-                                        if should_execute:
-                                            action_env = Environment(self.global_env)
-                                            saved_env = self.current_env
-                                            self.current_env = action_env
-                                            try:
-                                                self.eval(pattern_action.action)
-                                            except NextException:
-                                                # Skip to next record
-                                                break
-                                            finally:
-                                                self.current_env = saved_env
-                                except NextFileException:
-                                    # Skip to next file
-                                    break
+                                for record, terminator in records:
+                                    self.NR += 1
+                                    self.FNR += 1
+                                    self.RT = terminator
+                                    
+                                    # Split record into fields
+                                    self.current_line = record  # Store original record for $0
+                                    self.fields = self.split_fields(record)
+                                    self.NF = len(self.fields)
+                                    
+                                    # Execute pattern-action blocks
+                                    try:
+                                        for pattern_action in program.patterns:
+                                            # Check if pattern matches (or no pattern)
+                                            should_execute = False
+                                            if pattern_action.pattern is None:
+                                                should_execute = True
+                                            else:
+                                                # Evaluate pattern
+                                                should_execute = self.is_truthy(self.eval(pattern_action.pattern))
+                                            
+                                            if should_execute:
+                                                action_env = Environment(self.global_env)
+                                                saved_env = self.current_env
+                                                self.current_env = action_env
+                                                try:
+                                                    self.eval(pattern_action.action)
+                                                except NextException:
+                                                    # Skip to next record
+                                                    break
+                                                finally:
+                                                    self.current_env = saved_env
+                                    except NextFileException:
+                                        # Skip to next file
+                                        break
                         except NextFileException:
                             # Skip remaining records in this file
                             pass

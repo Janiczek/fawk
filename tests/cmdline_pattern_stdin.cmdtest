@@ -1,0 +1,1 @@
+bash -c 'printf "abc\n123\ndef\n" | ./fawk "/[0-9]/ { print(\$0) }"'
