@@ -1,0 +1,223 @@
+=== min() and max() Function Tests ===
+
+1. Simple numeric array (min):
+   Array:  [3, 1, 4, 1, 5, 9, 2, 6]
+   Original unchanged:  [3, 1, 4, 1, 5, 9, 2, 6]
+   min(arr1):  1
+
+2. Simple numeric array (max):
+   Array:  [3, 1, 4, 1, 5, 9, 2, 6]
+   Original unchanged:  [3, 1, 4, 1, 5, 9, 2, 6]
+   max(arr2):  9
+
+3. String array (min):
+   Array:  ["zebra", "apple", "banana", "cherry"]
+   Original unchanged:  ["zebra", "apple", "banana", "cherry"]
+   min(arr3):  apple
+
+4. String array (max):
+   Array:  ["zebra", "apple", "banana", "cherry"]
+   Original unchanged:  ["zebra", "apple", "banana", "cherry"]
+   max(arr4):  zebra
+
+5. Mixed types - min (numbers before strings):
+   Array:  ["hello", 42, "world", 10, "test", 5]
+   Original unchanged:  ["hello", 42, "world", 10, "test", 5]
+   min(arr5):  5
+
+6. Mixed types - max (numbers before strings):
+   Array:  ["hello", 42, "world", 10, "test", 5]
+   Original unchanged:  ["hello", 42, "world", 10, "test", 5]
+   max(arr6):  world
+
+7. Two arguments (min):
+   min(5, 3):  3
+   min(3, 5):  3
+   min("apple", "zebra"):  apple
+   min("zebra", "apple"):  apple
+   min(10, "5"):  5
+   min("5", 10):  5
+
+8. Two arguments (max):
+   max(5, 3):  5
+   max(3, 5):  5
+   max("apple", "zebra"):  zebra
+   max("zebra", "apple"):  zebra
+   max(10, "5"):  10
+   max("5", 10):  10
+
+9. Single scalar argument (min):
+   min(42):  42
+   min("hello"):  hello
+   min(3.14):  3.14
+
+10. Single scalar argument (max):
+   max(42):  42
+   max("hello"):  hello
+   max(3.14):  3.14
+
+11. Associative array (string keys) - min:
+   Array:  ["zebra" => 1, "apple" => 1, "banana" => 1]
+   Original unchanged:  ["zebra" => 1, "apple" => 1, "banana" => 1]
+   min(assoc1):  1
+
+12. Associative array (string keys) - max:
+   Array:  ["zebra" => 1, "apple" => 1, "banana" => 1]
+   Original unchanged:  ["zebra" => 1, "apple" => 1, "banana" => 1]
+   max(assoc2):  1
+
+13. Associative array (numeric keys) - min:
+   Array:  [10 => "ten", 2 => "two", 5 => "five", 1 => "one"]
+   Original unchanged:  [10 => "ten", 2 => "two", 5 => "five", 1 => "one"]
+   min(num_assoc1):  five
+
+14. Associative array (numeric keys) - max:
+   Array:  [10 => "ten", 2 => "two", 5 => "five", 1 => "one"]
+   Original unchanged:  [10 => "ten", 2 => "two", 5 => "five", 1 => "one"]
+   max(num_assoc2):  two
+
+15. Single element array:
+   Array [42]:  [42]
+   min([42]):  42
+   max([42]):  42
+   Array ["hello"]:  ["hello"]
+   min(["hello"]):  hello
+   max(["hello"]):  hello
+
+16. Case sensitivity (min):
+   Array:  ["abc", "aBc", "ABC", "Abc", "aBC", "abC"]
+   Original unchanged:  ["abc", "aBc", "ABC", "Abc", "aBC", "abC"]
+   min(case_arr1):  ABC
+
+17. Case sensitivity (max):
+   Array:  ["abc", "aBc", "ABC", "Abc", "aBC", "abC"]
+   Original unchanged:  ["abc", "aBc", "ABC", "Abc", "aBC", "abC"]
+   max(case_arr2):  abc
+
+18. Case sensitivity (lowercase vs uppercase) - min:
+   Array:  ["zebra", "ZEBRA", "apple", "APPLE", "banana", "BANANA"]
+   Original unchanged:  ["zebra", "ZEBRA", "apple", "APPLE", "banana", "BANANA"]
+   min(case_arr3):  APPLE
+   max(case_arr3):  zebra
+
+19. Multidimensional array (min):
+   Array:  ["12" => 30, "45" => 10, "23" => 20]
+   Original unchanged:  ["12" => 30, "45" => 10, "23" => 20]
+   min(multidim1):  10
+
+20. Multidimensional array (max):
+   Array:  ["12" => 30, "45" => 10, "23" => 20]
+   Original unchanged:  ["12" => 30, "45" => 10, "23" => 20]
+   max(multidim2):  30
+
+21. Multidimensional array (string values) - min:
+   Array:  ["12" => "zebra", "45" => "apple", "23" => "banana"]
+   Original unchanged:  ["12" => "zebra", "45" => "apple", "23" => "banana"]
+   min(multidim3):  apple
+
+22. Multidimensional array (string values) - max:
+   Array:  ["12" => "zebra", "45" => "apple", "23" => "banana"]
+   Original unchanged:  ["12" => "zebra", "45" => "apple", "23" => "banana"]
+   max(multidim4):  zebra
+
+23. Multidimensional array (mixed types) - min:
+   Array:  ["12" => "hello", "45" => 42, "23" => "world", "34" => 10]
+   Original unchanged:  ["12" => "hello", "45" => 42, "23" => "world", "34" => 10]
+   min(multidim5):  10
+
+24. Multidimensional array (mixed types) - max:
+   Array:  ["12" => "hello", "45" => 42, "23" => "world", "34" => 10]
+   Original unchanged:  ["12" => "hello", "45" => 42, "23" => "world", "34" => 10]
+   max(multidim6):  world
+
+25. Three-dimensional array - min:
+   Array:  ["123" => 50, "111" => 10, "222" => 30, "121" => 20]
+   Original unchanged:  ["123" => 50, "111" => 10, "222" => 30, "121" => 20]
+   min(cube1):  10
+
+26. Three-dimensional array - max:
+   Array:  ["123" => 50, "111" => 10, "222" => 30, "121" => 20]
+   Original unchanged:  ["123" => 50, "111" => 10, "222" => 30, "121" => 20]
+   max(cube2):  50
+
+27. Multidimensional array (string indices) - min:
+   Array:  ["row1col1" => 100, "row2col1" => 50, "row1col2" => 75]
+   Original unchanged:  ["row1col1" => 100, "row2col1" => 50, "row1col2" => 75]
+   min(multidim7):  50
+
+28. Multidimensional array (string indices) - max:
+   Array:  ["row1col1" => 100, "row2col1" => 50, "row1col2" => 75]
+   Original unchanged:  ["row1col1" => 100, "row2col1" => 50, "row1col2" => 75]
+   max(multidim8):  100
+
+29. Nested arrays (arrays containing arrays) - min:
+   Array:  [[1, 2], [3, 4], [5, 6]]
+   Original unchanged:  [[1, 2], [3, 4], [5, 6]]
+   min(nested1):  [1, 2]
+
+30. Nested arrays (arrays containing arrays) - max:
+   Array:  [[1, 2], [3, 4], [5, 6]]
+   Original unchanged:  [[1, 2], [3, 4], [5, 6]]
+   max(nested2):  [5, 6]
+
+31. Nested arrays (associative inner arrays) - min:
+   Array:  [["a" => 1, "b" => 2], ["c" => 3, "d" => 4]]
+   Original unchanged:  [["a" => 1, "b" => 2], ["c" => 3, "d" => 4]]
+   min(nested3):  ["a" => 1, "b" => 2]
+
+32. Nested arrays (associative inner arrays) - max:
+   Array:  [["a" => 1, "b" => 2], ["c" => 3, "d" => 4]]
+   Original unchanged:  [["a" => 1, "b" => 2], ["c" => 3, "d" => 4]]
+   max(nested4):  ["c" => 3, "d" => 4]
+
+33. Mixed nested arrays - min:
+   Array:  [[1, 2], ["a" => 3, "b" => 4], [5, 6]]
+   Original unchanged:  [[1, 2], ["a" => 3, "b" => 4], [5, 6]]
+   min(nested5):  ["a" => 3, "b" => 4]
+
+34. Mixed nested arrays - max:
+   Array:  [[1, 2], ["a" => 3, "b" => 4], [5, 6]]
+   Original unchanged:  [[1, 2], ["a" => 3, "b" => 4], [5, 6]]
+   max(nested6):  [5, 6]
+
+35. Float values - min:
+   Array:  [3.14, 2.71, 1.41, 4.67, 0.5]
+   Original unchanged:  [3.14, 2.71, 1.41, 4.67, 0.5]
+   min(float_arr1):  0.5
+
+36. Float values - max:
+   Array:  [3.14, 2.71, 1.41, 4.67, 0.5]
+   Original unchanged:  [3.14, 2.71, 1.41, 4.67, 0.5]
+   max(float_arr2):  4.67
+
+37. Mixed integers and floats - min:
+   Array:  [10, 5.5, 20, 1.1, 15]
+   Original unchanged:  [10, 5.5, 20, 1.1, 15]
+   min(mixed_num1):  1.1
+
+38. Mixed integers and floats - max:
+   Array:  [10, 5.5, 20, 1.1, 15]
+   Original unchanged:  [10, 5.5, 20, 1.1, 15]
+   max(mixed_num2):  20
+
+39. Numeric strings vs actual numbers - min:
+   Array:  [10, "5", 20, "15", 3]
+   Original unchanged:  [10, "5", 20, "15", 3]
+   min(numstr1):  3
+
+40. Numeric strings vs actual numbers - max:
+   Array:  [10, "5", 20, "15", 3]
+   Original unchanged:  [10, "5", 20, "15", 3]
+   max(numstr2):  20
+
+41. Numbers vs non-numeric strings - min:
+   Array:  [10, "abc", 20, "xyz", 5]
+   Original unchanged:  [10, "abc", 20, "xyz", 5]
+   min(mixed1):  5
+
+42. Numbers vs non-numeric strings - max:
+   Array:  [10, "abc", 20, "xyz", 5]
+   Original unchanged:  [10, "abc", 20, "xyz", 5]
+   max(mixed2):  xyz
+
+=== All min() and max() Tests Complete ===

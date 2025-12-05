@@ -1,0 +1,407 @@
+# Test: min() and max() functions
+
+BEGIN {
+    print "=== min() and max() Function Tests ==="
+    print ""
+    
+    # 1. Simple numeric array - min
+    print "1. Simple numeric array (min):"
+    arr1 = [3, 1, 4, 1, 5, 9, 2, 6]
+    print "   Array: ", arr1
+    result1 = min(arr1)
+    print "   Original unchanged: ", arr1
+    print "   min(arr1): ", result1
+    print ""
+    
+    # 2. Simple numeric array - max
+    print "2. Simple numeric array (max):"
+    arr2 = [3, 1, 4, 1, 5, 9, 2, 6]
+    print "   Array: ", arr2
+    result2 = max(arr2)
+    print "   Original unchanged: ", arr2
+    print "   max(arr2): ", result2
+    print ""
+    
+    # 3. String array - min
+    print "3. String array (min):"
+    arr3 = ["zebra", "apple", "banana", "cherry"]
+    print "   Array: ", arr3
+    result3 = min(arr3)
+    print "   Original unchanged: ", arr3
+    print "   min(arr3): ", result3
+    print ""
+    
+    # 4. String array - max
+    print "4. String array (max):"
+    arr4 = ["zebra", "apple", "banana", "cherry"]
+    print "   Array: ", arr4
+    result4 = max(arr4)
+    print "   Original unchanged: ", arr4
+    print "   max(arr4): ", result4
+    print ""
+    
+    # 5. Mixed types (numbers come before strings)
+    print "5. Mixed types - min (numbers before strings):"
+    arr5 = ["hello", 42, "world", 10, "test", 5]
+    print "   Array: ", arr5
+    result5 = min(arr5)
+    print "   Original unchanged: ", arr5
+    print "   min(arr5): ", result5
+    print ""
+    
+    # 6. Mixed types - max
+    print "6. Mixed types - max (numbers before strings):"
+    arr6 = ["hello", 42, "world", 10, "test", 5]
+    print "   Array: ", arr6
+    result6 = max(arr6)
+    print "   Original unchanged: ", arr6
+    print "   max(arr6): ", result6
+    print ""
+    
+    # 7. Two arguments - min
+    print "7. Two arguments (min):"
+    result7a = min(5, 3)
+    result7b = min(3, 5)
+    result7c = min("apple", "zebra")
+    result7d = min("zebra", "apple")
+    result7e = min(10, "5")
+    result7f = min("5", 10)
+    print "   min(5, 3): ", result7a
+    print "   min(3, 5): ", result7b
+    print "   min(\"apple\", \"zebra\"): ", result7c
+    print "   min(\"zebra\", \"apple\"): ", result7d
+    print "   min(10, \"5\"): ", result7e
+    print "   min(\"5\", 10): ", result7f
+    print ""
+    
+    # 8. Two arguments - max
+    print "8. Two arguments (max):"
+    result8a = max(5, 3)
+    result8b = max(3, 5)
+    result8c = max("apple", "zebra")
+    result8d = max("zebra", "apple")
+    result8e = max(10, "5")
+    result8f = max("5", 10)
+    print "   max(5, 3): ", result8a
+    print "   max(3, 5): ", result8b
+    print "   max(\"apple\", \"zebra\"): ", result8c
+    print "   max(\"zebra\", \"apple\"): ", result8d
+    print "   max(10, \"5\"): ", result8e
+    print "   max(\"5\", 10): ", result8f
+    print ""
+    
+    # 9. Single scalar argument - min
+    print "9. Single scalar argument (min):"
+    result9a = min(42)
+    result9b = min("hello")
+    result9c = min(3.14)
+    print "   min(42): ", result9a
+    print "   min(\"hello\"): ", result9b
+    print "   min(3.14): ", result9c
+    print ""
+    
+    # 10. Single scalar argument - max
+    print "10. Single scalar argument (max):"
+    result10a = max(42)
+    result10b = max("hello")
+    result10c = max(3.14)
+    print "   max(42): ", result10a
+    print "   max(\"hello\"): ", result10b
+    print "   max(3.14): ", result10c
+    print ""
+    
+    # 11. Associative array with string keys - min
+    print "11. Associative array (string keys) - min:"
+    assoc1 = ["zebra" => 1, "apple" => 1, "banana" => 1]
+    print "   Array: ", assoc1
+    result11 = min(assoc1)
+    print "   Original unchanged: ", assoc1
+    print "   min(assoc1): ", result11
+    print ""
+    
+    # 12. Associative array with string keys - max
+    print "12. Associative array (string keys) - max:"
+    assoc2 = ["zebra" => 1, "apple" => 1, "banana" => 1]
+    print "   Array: ", assoc2
+    result12 = max(assoc2)
+    print "   Original unchanged: ", assoc2
+    print "   max(assoc2): ", result12
+    print ""
+    
+    # 13. Associative array with numeric keys - min
+    print "13. Associative array (numeric keys) - min:"
+    num_assoc1 = [10 => "ten", 2 => "two", 5 => "five", 1 => "one"]
+    print "   Array: ", num_assoc1
+    result13 = min(num_assoc1)
+    print "   Original unchanged: ", num_assoc1
+    print "   min(num_assoc1): ", result13
+    print ""
+    
+    # 14. Associative array with numeric keys - max
+    print "14. Associative array (numeric keys) - max:"
+    num_assoc2 = [10 => "ten", 2 => "two", 5 => "five", 1 => "one"]
+    print "   Array: ", num_assoc2
+    result14 = max(num_assoc2)
+    print "   Original unchanged: ", num_assoc2
+    print "   max(num_assoc2): ", result14
+    print ""
+    
+    # 15. Single element array
+    print "15. Single element array:"
+    single1 = [42]
+    single2 = ["hello"]
+    print "   Array [42]: ", single1
+    print "   min([42]): ", min(single1)
+    print "   max([42]): ", max(single1)
+    print "   Array [\"hello\"]: ", single2
+    print "   min([\"hello\"]): ", min(single2)
+    print "   max([\"hello\"]): ", max(single2)
+    print ""
+    
+    # 16. Case sensitivity - min
+    print "16. Case sensitivity (min):"
+    case_arr1 = ["abc", "aBc", "ABC", "Abc", "aBC", "abC"]
+    print "   Array: ", case_arr1
+    result16 = min(case_arr1)
+    print "   Original unchanged: ", case_arr1
+    print "   min(case_arr1): ", result16
+    print ""
+    
+    # 17. Case sensitivity - max
+    print "17. Case sensitivity (max):"
+    case_arr2 = ["abc", "aBc", "ABC", "Abc", "aBC", "abC"]
+    print "   Array: ", case_arr2
+    result17 = max(case_arr2)
+    print "   Original unchanged: ", case_arr2
+    print "   max(case_arr2): ", result17
+    print ""
+    
+    # 18. Case sensitivity - lowercase vs uppercase
+    print "18. Case sensitivity (lowercase vs uppercase) - min:"
+    case_arr3 = ["zebra", "ZEBRA", "apple", "APPLE", "banana", "BANANA"]
+    print "   Array: ", case_arr3
+    result18a = min(case_arr3)
+    result18b = max(case_arr3)
+    print "   Original unchanged: ", case_arr3
+    print "   min(case_arr3): ", result18a
+    print "   max(case_arr3): ", result18b
+    print ""
+    
+    # 19. Multidimensional array - min
+    print "19. Multidimensional array (min):"
+    multidim1 = [(1,2) => 30, (4,5) => 10, (2,3) => 20]
+    print "   Array: ", multidim1
+    result19 = min(multidim1)
+    print "   Original unchanged: ", multidim1
+    print "   min(multidim1): ", result19
+    print ""
+    
+    # 20. Multidimensional array - max
+    print "20. Multidimensional array (max):"
+    multidim2 = [(1,2) => 30, (4,5) => 10, (2,3) => 20]
+    print "   Array: ", multidim2
+    result20 = max(multidim2)
+    print "   Original unchanged: ", multidim2
+    print "   max(multidim2): ", result20
+    print ""
+    
+    # 21. Multidimensional array - string values - min
+    print "21. Multidimensional array (string values) - min:"
+    multidim3 = [(1,2) => "zebra", (4,5) => "apple", (2,3) => "banana"]
+    print "   Array: ", multidim3
+    result21 = min(multidim3)
+    print "   Original unchanged: ", multidim3
+    print "   min(multidim3): ", result21
+    print ""
+    
+    # 22. Multidimensional array - string values - max
+    print "22. Multidimensional array (string values) - max:"
+    multidim4 = [(1,2) => "zebra", (4,5) => "apple", (2,3) => "banana"]
+    print "   Array: ", multidim4
+    result22 = max(multidim4)
+    print "   Original unchanged: ", multidim4
+    print "   max(multidim4): ", result22
+    print ""
+    
+    # 23. Multidimensional array - mixed types - min
+    print "23. Multidimensional array (mixed types) - min:"
+    multidim5 = [(1,2) => "hello", (4,5) => 42, (2,3) => "world", (3,4) => 10]
+    print "   Array: ", multidim5
+    result23 = min(multidim5)
+    print "   Original unchanged: ", multidim5
+    print "   min(multidim5): ", result23
+    print ""
+    
+    # 24. Multidimensional array - mixed types - max
+    print "24. Multidimensional array (mixed types) - max:"
+    multidim6 = [(1,2) => "hello", (4,5) => 42, (2,3) => "world", (3,4) => 10]
+    print "   Array: ", multidim6
+    result24 = max(multidim6)
+    print "   Original unchanged: ", multidim6
+    print "   max(multidim6): ", result24
+    print ""
+    
+    # 25. Three-dimensional array - min
+    print "25. Three-dimensional array - min:"
+    cube1 = [(1,2,3) => 50, (1,1,1) => 10, (2,2,2) => 30, (1,2,1) => 20]
+    print "   Array: ", cube1
+    result25 = min(cube1)
+    print "   Original unchanged: ", cube1
+    print "   min(cube1): ", result25
+    print ""
+    
+    # 26. Three-dimensional array - max
+    print "26. Three-dimensional array - max:"
+    cube2 = [(1,2,3) => 50, (1,1,1) => 10, (2,2,2) => 30, (1,2,1) => 20]
+    print "   Array: ", cube2
+    result26 = max(cube2)
+    print "   Original unchanged: ", cube2
+    print "   max(cube2): ", result26
+    print ""
+    
+    # 27. Multidimensional array with string indices - min
+    print "27. Multidimensional array (string indices) - min:"
+    multidim7 = [("row1","col1") => 100, ("row2","col1") => 50, ("row1","col2") => 75]
+    print "   Array: ", multidim7
+    result27 = min(multidim7)
+    print "   Original unchanged: ", multidim7
+    print "   min(multidim7): ", result27
+    print ""
+    
+    # 28. Multidimensional array with string indices - max
+    print "28. Multidimensional array (string indices) - max:"
+    multidim8 = [("row1","col1") => 100, ("row2","col1") => 50, ("row1","col2") => 75]
+    print "   Array: ", multidim8
+    result28 = max(multidim8)
+    print "   Original unchanged: ", multidim8
+    print "   max(multidim8): ", result28
+    print ""
+    
+    # 29. Nested arrays (arrays containing arrays) - min
+    print "29. Nested arrays (arrays containing arrays) - min:"
+    nested1 = [[1, 2], [3, 4], [5, 6]]
+    print "   Array: ", nested1
+    result29 = min(nested1)
+    print "   Original unchanged: ", nested1
+    print "   min(nested1): ", result29
+    print ""
+    
+    # 30. Nested arrays - max
+    print "30. Nested arrays (arrays containing arrays) - max:"
+    nested2 = [[1, 2], [3, 4], [5, 6]]
+    print "   Array: ", nested2
+    result30 = max(nested2)
+    print "   Original unchanged: ", nested2
+    print "   max(nested2): ", result30
+    print ""
+    
+    # 31. Nested arrays with associative inner arrays - min
+    print "31. Nested arrays (associative inner arrays) - min:"
+    nested3 = [["a" => 1, "b" => 2], ["c" => 3, "d" => 4]]
+    print "   Array: ", nested3
+    result31 = min(nested3)
+    print "   Original unchanged: ", nested3
+    print "   min(nested3): ", result31
+    print ""
+    
+    # 32. Nested arrays with associative inner arrays - max
+    print "32. Nested arrays (associative inner arrays) - max:"
+    nested4 = [["a" => 1, "b" => 2], ["c" => 3, "d" => 4]]
+    print "   Array: ", nested4
+    result32 = max(nested4)
+    print "   Original unchanged: ", nested4
+    print "   max(nested4): ", result32
+    print ""
+    
+    # 33. Mixed nested arrays - min
+    print "33. Mixed nested arrays - min:"
+    nested5 = [[1, 2], ["a" => 3, "b" => 4], [5, 6]]
+    print "   Array: ", nested5
+    result33 = min(nested5)
+    print "   Original unchanged: ", nested5
+    print "   min(nested5): ", result33
+    print ""
+    
+    # 34. Mixed nested arrays - max
+    print "34. Mixed nested arrays - max:"
+    nested6 = [[1, 2], ["a" => 3, "b" => 4], [5, 6]]
+    print "   Array: ", nested6
+    result34 = max(nested6)
+    print "   Original unchanged: ", nested6
+    print "   max(nested6): ", result34
+    print ""
+    
+    # 35. Float values - min
+    print "35. Float values - min:"
+    float_arr1 = [3.14, 2.71, 1.41, 4.67, 0.5]
+    print "   Array: ", float_arr1
+    result35 = min(float_arr1)
+    print "   Original unchanged: ", float_arr1
+    print "   min(float_arr1): ", result35
+    print ""
+    
+    # 36. Float values - max
+    print "36. Float values - max:"
+    float_arr2 = [3.14, 2.71, 1.41, 4.67, 0.5]
+    print "   Array: ", float_arr2
+    result36 = max(float_arr2)
+    print "   Original unchanged: ", float_arr2
+    print "   max(float_arr2): ", result36
+    print ""
+    
+    # 37. Mixed integers and floats - min
+    print "37. Mixed integers and floats - min:"
+    mixed_num1 = [10, 5.5, 20, 1.1, 15]
+    print "   Array: ", mixed_num1
+    result37 = min(mixed_num1)
+    print "   Original unchanged: ", mixed_num1
+    print "   min(mixed_num1): ", result37
+    print ""
+    
+    # 38. Mixed integers and floats - max
+    print "38. Mixed integers and floats - max:"
+    mixed_num2 = [10, 5.5, 20, 1.1, 15]
+    print "   Array: ", mixed_num2
+    result38 = max(mixed_num2)
+    print "   Original unchanged: ", mixed_num2
+    print "   max(mixed_num2): ", result38
+    print ""
+    
+    # 39. Numeric strings vs actual numbers - min
+    print "39. Numeric strings vs actual numbers - min:"
+    numstr1 = [10, "5", 20, "15", 3]
+    print "   Array: ", numstr1
+    result39 = min(numstr1)
+    print "   Original unchanged: ", numstr1
+    print "   min(numstr1): ", result39
+    print ""
+    
+    # 40. Numeric strings vs actual numbers - max
+    print "40. Numeric strings vs actual numbers - max:"
+    numstr2 = [10, "5", 20, "15", 3]
+    print "   Array: ", numstr2
+    result40 = max(numstr2)
+    print "   Original unchanged: ", numstr2
+    print "   max(numstr2): ", result40
+    print ""
+    
+    # 41. Numbers vs non-numeric strings - min
+    print "41. Numbers vs non-numeric strings - min:"
+    mixed1 = [10, "abc", 20, "xyz", 5]
+    print "   Array: ", mixed1
+    result41 = min(mixed1)
+    print "   Original unchanged: ", mixed1
+    print "   min(mixed1): ", result41
+    print ""
+    
+    # 42. Numbers vs non-numeric strings - max
+    print "42. Numbers vs non-numeric strings - max:"
+    mixed2 = [10, "abc", 20, "xyz", 5]
+    print "   Array: ", mixed2
+    result42 = max(mixed2)
+    print "   Original unchanged: ", mixed2
+    print "   max(mixed2): ", result42
+    print ""
+    
+    print "=== All min() and max() Tests Complete ==="
+}

@@ -426,6 +426,8 @@ class Interpreter:
             ('round', 'x', 'number'),
             ('rand', '', '0.0...1.0'),
             ('srand', '[seed]', 'seed'),
+            ('min', 'value, [value2]', 'value'),
+            ('max', 'value, [value2]', 'value'),
         ],
         'I/O functions': [
             ('printf', 'fmt, ...', 'int'),
@@ -1016,6 +1018,72 @@ class Interpreter:
             seed = int(self.to_number(seed))
         self.random.seed(seed)
         return seed
+    
+    def builtin_min(self, value, value2=None):
+        """
+        Return the minimum value.
+        - If one argument and it's scalar: return it
+        - If one argument and it's an array: find min inside the array
+        - If two arguments: compare them and return the min
+        """
+        if value2 is None:
+            # One argument case
+            if isinstance(value, FawkArray):
+                # Array case: find min inside the array
+                if value.length() == 0:
+                    raise RuntimeError("min() on empty array")
+                min_value = None
+                for key in value.keys():
+                    item = value.get(key)
+                    if min_value is None:
+                        min_value = item
+                    else:
+                        # Compare using sort key
+                        if self._sort_value_key(item) < self._sort_value_key(min_value):
+                            min_value = item
+                return min_value
+            else:
+                # Scalar case: just return it
+                return value
+        else:
+            # Two arguments: compare and return min
+            if self._sort_value_key(value) < self._sort_value_key(value2):
+                return value
+            else:
+                return value2
+    
+    def builtin_max(self, value, value2=None):
+        """
+        Return the maximum value.
+        - If one argument and it's scalar: return it
+        - If one argument and it's an array: find max inside the array
+        - If two arguments: compare them and return the max
+        """
+        if value2 is None:
+            # One argument case
+            if isinstance(value, FawkArray):
+                # Array case: find max inside the array
+                if value.length() == 0:
+                    raise RuntimeError("max() on empty array")
+                max_value = None
+                for key in value.keys():
+                    item = value.get(key)
+                    if max_value is None:
+                        max_value = item
+                    else:
+                        # Compare using sort key
+                        if self._sort_value_key(item) > self._sort_value_key(max_value):
+                            max_value = item
+                return max_value
+            else:
+                # Scalar case: just return it
+                return value
+        else:
+            # Two arguments: compare and return max
+            if self._sort_value_key(value) > self._sort_value_key(value2):
+                return value
+            else:
+                return value2
     
     def builtin_printf(self, fmt, *args):
         """Print formatted output"""
