@@ -1,0 +1,50 @@
+# Test: set_union, set_intersection, set_diff with undefined variables
+
+BEGIN {
+    print "Test: Set functions with undefined variables"
+    print "--------------------------------------"
+    
+    # Test set_union with undefined variable (should default to empty array)
+    set1["a"] = 1
+    set1["b"] = 1
+    
+    union = set_union(set1, undefined_var)
+    print "  set_union(set1, undefined_var):"
+    for (item in union) {
+        print "    " item
+    }
+    print ""
+    
+    # Test set_intersection with undefined variable
+    intersection = set_intersection(set1, undefined_var)
+    print "  set_intersection(set1, undefined_var):"
+    count = 0
+    for (item in intersection) {
+        count++
+        print "    " item
+    }
+    if (count == 0) {
+        print "    (empty)"
+    }
+    print ""
+    
+    # Test set_diff with undefined variable
+    diff = set_diff(set1, undefined_var)
+    print "  set_diff(set1, undefined_var):"
+    for (item in diff) {
+        print "    " item
+    }
+    print ""
+    
+    # Test with both undefined
+    union2 = set_union(undefined_var1, undefined_var2)
+    print "  set_union(undefined_var1, undefined_var2):"
+    count = 0
+    for (item in union2) {
+        count++
+        print "    " item
+    }
+    if (count == 0) {
+        print "    (empty)"
+    }
+}

@@ -1,8 +1,12 @@
-# Test: Passing undefined argument to function - failure
+# Test: Passing undefined argument to user-defined function - failure
+
+function test_func(x) {
+    return x + 1
+}
 
 BEGIN {
-    # This should fail - trying to pass an undefined variable as an argument
-    result = length(undefined_var)
+    # This should fail - trying to pass an undefined variable as an argument to a user-defined function
+    result = test_func(undefined_var)
     print result
 }
 

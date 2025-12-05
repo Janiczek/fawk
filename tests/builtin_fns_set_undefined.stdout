@@ -1,0 +1,15 @@
+Test: Set functions with undefined variables
+--------------------------------------
+  set_union(set1, undefined_var):
+    a
+    b
+
+  set_intersection(set1, undefined_var):
+    (empty)
+
+  set_diff(set1, undefined_var):
+    a
+    b
+
+  set_union(undefined_var1, undefined_var2):
+    (empty)

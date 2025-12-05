@@ -149,11 +149,9 @@ class FawkArray:
     
     def get(self, key):
         # Convert key to appropriate type (optimized: use type() for faster checks)
-        # Fast path: already int
-        if type(key) is int:
-            pass  # no conversion needed
-        elif type(key) is float:
-            key = int(key)
+        # Fast path: already int or float
+        if type(key) is int or type(key) is float:
+            pass  # no conversion needed - preserve int and float keys
         else:
             # Try to convert to int, fallback to string
             try:
@@ -172,10 +170,9 @@ class FawkArray:
         self._ensure_unique()
         
         # Optimized: use type() for faster checks
-        if type(key) is int:
-            pass  # no conversion needed
-        elif type(key) is float:
-            key = int(key)
+        # Preserve int and float keys as-is
+        if type(key) is int or type(key) is float:
+            pass  # no conversion needed - preserve int and float keys
         else:
             # Try to convert to int, fallback to string
             try:
@@ -194,10 +191,9 @@ class FawkArray:
         self._ensure_unique()
         
         # Optimized: use type() for faster checks
-        if type(key) is int:
-            pass  # no conversion needed
-        elif type(key) is float:
-            key = int(key)
+        # Preserve int and float keys as-is
+        if type(key) is int or type(key) is float:
+            pass  # no conversion needed - preserve int and float keys
         else:
             # Try to convert to int, fallback to string
             try:
@@ -233,7 +229,8 @@ class FawkArray:
         for key in keys_list:
             # Optimized: use type() for faster checks
             key_type = type(key)
-            if key_type is int:
+            if key_type is int or key_type is float:
+                # Preserve numeric keys (int and float) for numeric sorting
                 numeric_keys.append((key, key))
             elif key_type is str:
                 # Try to parse as number
@@ -396,6 +393,7 @@ class Interpreter:
             ('sum', 'array', 'number'),
             ('is_associative', 'array', '0|1'),
             ('keys', 'array', 'array'),
+            ('set', 'array', 'array'),
             ('set_union', 'set1, set2', 'array'),
             ('set_intersection', 'set1, set2', 'array'),
             ('set_diff', 'set1, set2', 'array'),
@@ -704,12 +702,25 @@ class Interpreter:
             result.set(i, key)
         return result
     
+    def builtin_set(self, arr):
+        """Convert array values to keys in a new set (associative array with values as keys, all values set to 1)"""
+        if not isinstance(arr, FawkArray):
+            raise RuntimeError("set() requires an array as argument")
+        
+        result = FawkArray()
+        # Convert each value to a key with value 1
+        for key in arr.keys():
+            value = arr.get(key)
+            result.set(value, 1)
+        return result
+    
     def builtin_set_union(self, set1, set2):
         """Return a new set containing all elements from both set1 and set2"""
+        # Default to empty array if not an array (handles undefined variables gracefully)
         if not isinstance(set1, FawkArray):
-            raise RuntimeError("set_union requires arrays as arguments")
+            set1 = FawkArray()
         if not isinstance(set2, FawkArray):
-            raise RuntimeError("set_union requires arrays as arguments")
+            set2 = FawkArray()
         
         result = FawkArray()
         # Add all elements from set1
@@ -722,10 +733,11 @@ class Interpreter:
     
     def builtin_set_intersection(self, set1, set2):
         """Return a new set containing only elements that are in both set1 and set2"""
+        # Default to empty array if not an array (handles undefined variables gracefully)
         if not isinstance(set1, FawkArray):
-            raise RuntimeError("set_intersection requires arrays as arguments")
+            set1 = FawkArray()
         if not isinstance(set2, FawkArray):
-            raise RuntimeError("set_intersection requires arrays as arguments")
+            set2 = FawkArray()
         
         result = FawkArray()
         # Only add elements that are in both sets
@@ -736,10 +748,11 @@ class Interpreter:
     
     def builtin_set_diff(self, set1, set2):
         """Return a new set containing elements in set1 but not in set2"""
+        # Default to empty array if not an array (handles undefined variables gracefully)
         if not isinstance(set1, FawkArray):
-            raise RuntimeError("set_diff requires arrays as arguments")
+            set1 = FawkArray()
         if not isinstance(set2, FawkArray):
-            raise RuntimeError("set_diff requires arrays as arguments")
+            set2 = FawkArray()
         
         result = FawkArray()
         # Add elements from set1 that are not in set2
@@ -2971,11 +2984,10 @@ class Interpreter:
         
         # GAWK behavior: accessing an array element auto-creates it if it doesn't exist
         # Convert index to the right type (optimized: use type() for faster checks)
+        # Preserve int and float indices as-is
         index_type = type(index)
-        if index_type is int:
-            pass  # no conversion needed
-        elif index_type is float:
-            index = int(index)
+        if index_type is int or index_type is float:
+            pass  # no conversion needed - preserve int and float indices
         else:
             # Try to convert to int, fallback to string
             try:
@@ -3042,12 +3054,31 @@ class Interpreter:
         
         # Special handling for match() and split() - if first argument is a Regex node,
         # extract the pattern string instead of evaluating it to a boolean
+        # Check if this is a user-defined function (before evaluating arguments)
+        # Builtins are in self.builtin_functions, user functions are in self.functions
+        is_user_function = False
+        if isinstance(node.func, Identifier):
+            # Check if it's a builtin first - if it's a builtin, it's not user-defined
+            if node.func.name in self.builtin_functions:
+                is_user_function = False
+            elif node.func.name in self.functions:
+                is_user_function = True
+            # If it's neither, we'll determine from func after evaluation
+        if callable(func):
+            if isinstance(func, UserFunction):
+                is_user_function = True
+            elif func in self.builtin_functions.values() or (isinstance(node.func, Identifier) and node.func.name in self.builtin_functions):
+                is_user_function = False
+        
         args = []
         for i, arg_node in enumerate(node.args):
             # Check if argument is an undefined identifier
+            # Only error for user-defined functions, not builtins (builtins handle undefined gracefully)
             if isinstance(arg_node, Identifier):
                 if not self.identifier_exists(arg_node.name):
-                    self.error(f"Undefined variable '{arg_node.name}' used as function argument")
+                    # Only check for user-defined functions
+                    if is_user_function:
+                        self.error(f"Undefined variable '{arg_node.name}' used as function argument")
             
             # Check if this is match() and first arg is a Regex
             if (func == self.builtin_match and i == 0 and isinstance(arg_node, Regex)):
@@ -3156,9 +3187,12 @@ class Interpreter:
                         new_args = []
                         for arg_node in tail_call_node.args:
                             # Check if argument is an undefined identifier
+                            # Only error for user-defined functions, not builtins (builtins handle undefined gracefully)
                             if isinstance(arg_node, Identifier):
                                 if not self.identifier_exists(arg_node.name):
-                                    self.error(f"Undefined variable '{arg_node.name}' used as function argument")
+                                    # Only check for user-defined functions
+                                    if isinstance(func, UserFunction):
+                                        self.error(f"Undefined variable '{arg_node.name}' used as function argument")
                             new_args.append(self.eval(arg_node))
                         
                         # Validate argument count

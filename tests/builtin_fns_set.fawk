@@ -1,0 +1,59 @@
+# Test: set() function
+
+BEGIN {
+    print "Test: set() function"
+    print "--------------------------------------"
+    
+    # Test with range() - numeric values
+    range_set = set(range(3, 4))
+    print "  set(range(3, 4)):"
+    for (item in range_set) {
+        print "    " item " => " range_set[item]
+    }
+    print ""
+    
+    # Test with string array
+    arr[1] = "a"
+    arr[2] = "z"
+    string_set = set(arr)
+    print "  set([\"a\", \"z\"]):"
+    for (item in string_set) {
+        print "    " item " => " string_set[item]
+    }
+    print ""
+    
+    # Test with mixed values
+    mixed[1] = 42
+    mixed[2] = "hello"
+    mixed[3] = 3.14
+    mixed_set = set(mixed)
+    print "  set([42, \"hello\", 3.14]):"
+    for (item in mixed_set) {
+        print "    " item " => " mixed_set[item]
+    }
+    print ""
+    
+    # Test with empty array
+    empty = []
+    empty_set = set(empty)
+    print "  set([]):"
+    count = 0
+    for (item in empty_set) {
+        count++
+        print "    " item " => " empty_set[item]
+    }
+    if (count == 0) {
+        print "    (empty)"
+    }
+    print ""
+    
+    # Test with duplicate values (should create set with unique keys)
+    dup[1] = "x"
+    dup[2] = "x"
+    dup[3] = "y"
+    dup_set = set(dup)
+    print "  set([\"x\", \"x\", \"y\"]):"
+    for (item in dup_set) {
+        print "    " item " => " dup_set[item]
+    }
+}
