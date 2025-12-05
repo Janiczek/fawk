@@ -1,0 +1,47 @@
+# Test: Nested if-else chains (regression test for parser issue)
+# This tests the pattern: if-else if-else with nested if-else inside
+
+BEGIN {
+    FS = "-"
+    start[1] = 5
+    end[1] = 10
+    start[2] = 15
+    end[2] = 20
+}
+
+/-/ {
+    lo = int($1)
+    hi = int($2)
+    for (i in start) {
+        # fix lo,hi
+        if (lo < start[i] && hi >= start[i])
+            hi = max(lo, start[i]-1)
+        else if (lo == start[i]) {
+            if (hi <= end[i])
+                next # can't make it non-overlapping
+            else
+                lo = min(hi, end[i]+1)
+        }
+        else { # lo > start[i]
+            if (hi <= end[i])
+                next
+            else if (lo <= end[i])
+                lo = min(hi, end[i]+1)
+        }
+    }
+    start[3] = lo
+    end[3] = hi
+}
+
+/^$/ { test_ids = 1; next }
+
+test_ids == 1 {
+    id = int($0)
+    for (i in start)
+        if (start[i] <= id && end[i] >= id) {
+            p1++
+            next
+        }
+}
+
+END { print(p1) }

@@ -233,6 +233,9 @@ class Parser:
         
         else_block = None
         
+        # Skip newlines before checking for else clause
+        self.skip_newlines()
+        
         if self.current().type == TokenType.ELSE:
             self.advance()
             # Check if braces are present for else - if not, parse single statement
