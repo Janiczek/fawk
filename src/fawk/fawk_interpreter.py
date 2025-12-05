@@ -401,6 +401,7 @@ class Interpreter:
             ('set_diff', 'set1, set2', 'array'),
             ('sort', 'array', 'array'),
             ('sorti', 'array', 'array'),
+            ('range', 'start, end', 'array'),
         ],
         'String functions': [
             ('match', 'pattern, text', 'array'),
@@ -830,6 +831,33 @@ class Interpreter:
         result = FawkArray()
         for i, key in enumerate(keys_sorted, 1):
             result.set(i, key)
+        
+        return result
+    
+    def builtin_range(self, start, end):
+        """
+        Generate a range of integers from start to end (inclusive).
+        Returns an empty array if start > end.
+        """
+        # Convert to integers
+        try:
+            start_int = int(start)
+            end_int = int(end)
+        except (ValueError, TypeError):
+            raise RuntimeError("range() requires integer arguments")
+        
+        result = FawkArray()
+        
+        # If start > end, return empty array
+        if start_int > end_int:
+            return result
+        
+        # Generate range from start to end (inclusive)
+        # Arrays are 1-indexed in AWK, so we use 1-based indexing
+        index = 1
+        for i in range(start_int, end_int + 1):
+            result.set(index, i)
+            index += 1
         
         return result
     

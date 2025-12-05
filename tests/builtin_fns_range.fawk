@@ -1,0 +1,64 @@
+# Test: range() function
+
+BEGIN {
+    print "=== range() Function Tests ==="
+    print ""
+    
+    # Test 1: Basic ascending range
+    print "1. range(1, 3):"
+    result1 = range(1, 3)
+    print "   Result: ", result1
+    print "   Expected: [1, 2, 3]"
+    print ""
+    
+    # Test 2: Start > end (should return empty array)
+    print "2. range(3, 1):"
+    result2 = range(3, 1)
+    print "   Result: ", result2
+    print "   Expected: []"
+    print ""
+    
+    # Test 3: Start == end (single element)
+    print "3. range(1, 1):"
+    result3 = range(1, 1)
+    print "   Result: ", result3
+    print "   Expected: [1]"
+    print ""
+    
+    # Test 4: Larger range
+    print "4. range(5, 10):"
+    result4 = range(5, 10)
+    print "   Result: ", result4
+    print "   Expected: [5, 6, 7, 8, 9, 10]"
+    print ""
+    
+    # Test 5: Negative numbers
+    print "5. range(-2, 2):"
+    result5 = range(-2, 2)
+    print "   Result: ", result5
+    print "   Expected: [-2, -1, 0, 1, 2]"
+    print ""
+    
+    # Test 6: Zero
+    print "6. range(0, 3):"
+    result6 = range(0, 3)
+    print "   Result: ", result6
+    print "   Expected: [0, 1, 2, 3]"
+    print ""
+    
+    # Test 7: Single element (different value)
+    print "7. range(42, 42):"
+    result7 = range(42, 42)
+    print "   Result: ", result7
+    print "   Expected: [42]"
+    print ""
+    
+    # Test 8: Empty range (start > end by 1)
+    print "8. range(2, 1):"
+    result8 = range(2, 1)
+    print "   Result: ", result8
+    print "   Expected: []"
+    print ""
+    
+    print "=== All range() Tests Complete ==="
+}
