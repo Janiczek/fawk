@@ -1,0 +1,14 @@
+Test: for-in with undeclared variable
+--------------------------------------
+Count after iterating undeclared myarray: 0
+Expected: 0
+
+After adding elements to myarray:
+  myarray[1] = first
+  myarray[2] = second
+
+Count after iterating undeclared another_array: 0
+Expected: 0
+
+After adding to another_array:
+  another_array[test] = value

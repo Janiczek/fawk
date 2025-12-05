@@ -1,0 +1,44 @@
+# Test: for-in loop with undeclared variable
+# Should initialize undeclared variable to empty array instead of erroring
+
+BEGIN {
+    print "Test: for-in with undeclared variable"
+    print "--------------------------------------"
+    
+    # Test 1: Undeclared variable should be initialized to empty array
+    # Loop should not execute (empty array has no keys)
+    count = 0
+    for (i in myarray) {
+        count = count + 1
+        print "  Found key:", i
+    }
+    print "Count after iterating undeclared myarray:", count
+    print "Expected: 0"
+    print ""
+    
+    # Test 2: Variable should now exist and be an empty array
+    # Adding elements should work
+    myarray[1] = "first"
+    myarray[2] = "second"
+    print "After adding elements to myarray:"
+    for (i in myarray) {
+        print "  myarray[" i "] =", myarray[i]
+    }
+    print ""
+    
+    # Test 3: Another undeclared variable
+    count2 = 0
+    for (key in another_array) {
+        count2 = count2 + 1
+    }
+    print "Count after iterating undeclared another_array:", count2
+    print "Expected: 0"
+    print ""
+    
+    # Test 4: Verify another_array is now initialized
+    another_array["test"] = "value"
+    print "After adding to another_array:"
+    for (key in another_array) {
+        print "  another_array[" key "] =", another_array[key]
+    }
+}

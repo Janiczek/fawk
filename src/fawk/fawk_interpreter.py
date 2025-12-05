@@ -1709,6 +1709,39 @@ class Interpreter:
         return None
     
     def eval_ForInStmt(self, node: ForInStmt) -> None:
+        # Check if iterable is an identifier (variable name)
+        # If it's undeclared, initialize it to an empty array
+        from .fawk_ast import Identifier
+        if type(node.iterable) is Identifier:
+            var_name = node.iterable.name
+            
+            # Check if variable exists (similar logic to eval_Identifier)
+            variable_exists = False
+            if self.in_function:
+                if var_name in self.globals_declared:
+                    variable_exists = var_name in self.global_env.vars
+                elif var_name in self.current_env.vars:
+                    variable_exists = True
+                elif self.current_closure_env != self.global_env:
+                    variable_exists = self.current_env.has(var_name)
+            else:
+                # Outside function: check current_env and global_env
+                variable_exists = (var_name in self.current_env.vars or 
+                                 var_name in self.global_env.vars)
+            
+            # Also check if it's a built-in variable or function
+            if not variable_exists:
+                if var_name not in self._builtin_vars and var_name not in self.functions:
+                    # Variable is undeclared - initialize to empty array
+                    if self.in_function:
+                        if var_name in self.globals_declared:
+                            self.global_env.set(var_name, FawkArray())
+                        else:
+                            self.current_env.set(var_name, FawkArray())
+                    else:
+                        # Set in global_env for variables outside functions
+                        self.global_env.set(var_name, FawkArray())
+        
         iterable = self.eval(node.iterable)
         
         # Optimized: use type() for exact match (faster than isinstance)
