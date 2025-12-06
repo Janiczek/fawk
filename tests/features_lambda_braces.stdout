@@ -1,0 +1,7 @@
+add(10, 32): 42
+square1(5): 25
+square2(5): 25
+Braced and unbraced single-expression lambdas are equivalent
+Multi-statement lambda result: [2, 4, 6]
+Single-expression braced lambda result: [2, 4, 6]
+Single-expression unbraced lambda result: [2, 4, 6]

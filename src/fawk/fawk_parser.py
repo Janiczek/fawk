@@ -590,15 +590,53 @@ class Parser:
     def parse_pipeline(self) -> ASTNode:
         left = self.parse_assignment()
         
-        # Skip newlines before pipeline operator to allow multi-line pipelines
+        # Check for pipeline operator, allowing newlines before it for multi-line pipelines
+        # But preserve newlines if they're statement boundaries (not part of a larger expression)
+        saved_pos = self.pos
         self.skip_newlines()
+        has_pipeline = self.current().type == TokenType.PIPELINE
+        
+        if not has_pipeline:
+            # No pipeline operator. Check if we're in an expression context by looking at
+            # the token after the newline. If it's a comma, closing bracket/paren, or operator,
+            # we're in an expression context and should skip the newline. Otherwise, preserve it.
+            self.pos = saved_pos
+            # Skip newlines to see what's after
+            self.skip_newlines()
+            token_after_newline = self.current()
+            # If token after newline suggests we're continuing an expression, skip the newline
+            if token_after_newline.type in [TokenType.COMMA, TokenType.RBRACKET, TokenType.RPAREN,
+                                             TokenType.PLUS, TokenType.MINUS, TokenType.MULTIPLY,
+                                             TokenType.DIVIDE, TokenType.ASSIGN, TokenType.ARROW,
+                                             TokenType.PIPELINE, TokenType.SEMICOLON]:
+                # We're in an expression context, keep the newline skipped
+                pass  # Already skipped
+            else:
+                # Might be a statement boundary, restore position to preserve newline
+                self.pos = saved_pos
         
         while self.current().type == TokenType.PIPELINE:
             self.advance()
             self.skip_newlines()  # Skip newlines after pipeline operator too
             right = self.parse_assignment()
             left = Pipeline(left, right)
-            self.skip_newlines()  # Check for more pipeline operators
+            # Check for more pipeline operators
+            saved_pos = self.pos
+            self.skip_newlines()
+            has_pipeline = self.current().type == TokenType.PIPELINE
+            if not has_pipeline:
+                # Same logic: check token after newline
+                token_after_newline = self.current()
+                if token_after_newline.type in [TokenType.COMMA, TokenType.RBRACKET, TokenType.RPAREN,
+                                                 TokenType.PLUS, TokenType.MINUS, TokenType.MULTIPLY,
+                                                 TokenType.DIVIDE, TokenType.ASSIGN, TokenType.ARROW,
+                                                 TokenType.PIPELINE, TokenType.SEMICOLON]:
+                    # Keep newline skipped
+                    pass
+                else:
+                    # Preserve newline
+                    self.pos = saved_pos
+                break
         
         return left
     
@@ -1102,7 +1140,14 @@ class Parser:
         saved_context = self.in_print_context
         self.in_print_context = False
         try:
-            body = self.parse_block()
+            # Check if braces are present - if not, parse as expression
+            if self.current().type == TokenType.LBRACE:
+                body = self.parse_block()
+            else:
+                # Parse single expression and wrap in Block with ExprStmt
+                expr = self.parse_expression()
+                from .fawk_ast import Block, ExprStmt
+                body = Block([ExprStmt(expr)])
         finally:
             self.in_print_context = saved_context
         

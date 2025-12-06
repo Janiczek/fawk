@@ -6,7 +6,7 @@ Not all AWK features are supported, but should be enough of them to be dangerous
 
 ```awk
 function make_adder(k) {
-    return (x) => { return x + k }  # lambdas
+    return (x) => x + k  # lambdas (braces optional for single expressions)
 }
 
 function make_range(n) {
@@ -98,14 +98,19 @@ add = (a, b) => {
 print add(10, 32)  # Prints 42
 ```
 
-**Shorthand for single expressions:**
+**Shorthand for single expressions (braces optional):**
 ```awk
-square = (x) => { x * x }
-triple = (x) => { x * 3 }
+# Both of these are equivalent:
+square = (x) => x * x
+square = (x) => { x * x }  # braces still work, implicit return
+
+triple = (x) => x * 3
 
 numbers = [1, 2, 3, 4, 5]
 map(square, numbers)  # [1, 4, 9, 16, 25]
 ```
+
+Note: For single expressions, braces are optional. If braces are used with a single expression statement, it will be implicitly returned. For multi-statement lambdas, braces are required.
 
 ### 4. Functional Pipeline Operator
 
@@ -113,14 +118,21 @@ Chain operations elegantly with `|>`. The left side becomes the rightmost argume
 
 ```awk
 # These are equivalent:
-doubled = nums |> filter((n) => { n % 2 == 0 }) |> map((n) => { n * 2 })
-doubled = map((n) => { n * 2 }, filter((n) => { n % 2 == 0 }, nums))
+doubled = nums |> filter((n) => n % 2 == 0) |> map((n) => n * 2)
+doubled = map((n) => n * 2, filter((n) => n % 2 == 0, nums))
 
-# More examples:
+# More examples (braces optional for single expressions):
 result = [1, 2, 3, 4, 5] 
-    |> filter((x) => { x % 2 == 0 })  # [2, 4]
-    |> map((x) => { x * x })           # [4, 16]
-    |> reduce((acc, x) => { acc + x }, 0)  # 20
+    |> filter((x) => x % 2 == 0)      # [2, 4]
+    |> map((x) => x * x)               # [4, 16]
+    |> reduce((acc, x) => acc + x, 0)  # 20
+
+# Braces still work and are required for multi-statement lambdas:
+result = [1, 2, 3] 
+    |> map((x) => {
+        doubled = x * 2
+        return doubled
+    })
 ```
 
 ### 5. Higher-Order Functions
@@ -135,13 +147,13 @@ BEGIN {
     # Works with regular arrays
     nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     doubled = nums 
-        |> filter((n) => { n % 2 == 0 }) 
-        |> map((n) => { n * 2 })
+        |> filter((n) => n % 2 == 0) 
+        |> map((n) => n * 2)
     print doubled  # [4, 8, 12, 16, 20]
     
     # Works with associative arrays too
     scores = ["alice" => 95, "bob" => 67, "carol" => 88]
-    passing = scores |> filter((s) => { s >= 70 })
+    passing = scores |> filter((s) => s >= 70)
     print passing  # [95, 88]
 }
 ```

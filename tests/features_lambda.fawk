@@ -9,8 +9,8 @@ BEGIN {
     print add(10, 32)
     
     # Shorthand for single expressions
-    square = (x) => { x * x }
-    triple = (x) => { x * 3 }
+    square = (x) => x * x
+    triple = (x) => x * 3
     
     print "square(5):", square(5)
     print "triple(7):", triple(7)

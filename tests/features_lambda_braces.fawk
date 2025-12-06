@@ -1,0 +1,43 @@
+# Test: Lambda Braces Still Work
+# Demonstrates that braces are still supported for both multi-statement and single-expression lambdas
+
+BEGIN {
+    # Multi-statement lambda with braces (required)
+    add = (a, b) => {
+        c = a + b
+        return c
+    }
+    print "add(10, 32):", add(10, 32)
+    
+    # Single-expression lambda with braces (still works, implicit return)
+    square1 = (x) => { x * x }
+    print "square1(5):", square1(5)
+    
+    # Single-expression lambda without braces (new syntax)
+    square2 = (x) => x * x
+    print "square2(5):", square2(5)
+    
+    # Both should produce the same result
+    if (square1(5) == square2(5)) {
+        print "Braced and unbraced single-expression lambdas are equivalent"
+    }
+    
+    # Multi-statement lambda with braces in pipeline
+    result = [1, 2, 3] 
+        |> map((x) => {
+            doubled = x * 2
+            return doubled
+        })
+    print "Multi-statement lambda result:", result
+    
+    # Single-expression lambda with braces in pipeline (implicit return)
+    result2 = [1, 2, 3] 
+        |> map((x) => { x * 2 })
+    print "Single-expression braced lambda result:", result2
+    
+    # Single-expression lambda without braces in pipeline
+    result3 = [1, 2, 3] 
+        |> map((x) => x * 2)
+    print "Single-expression unbraced lambda result:", result3
+}
+
