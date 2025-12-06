@@ -1,0 +1,16 @@
+BEGIN {
+  cs = ["+","*","-","/","*"]
+  for (i in cs) {
+    c = cs[i]
+    switch (c) {
+        case "+":
+        case "*":
+            printf("A")
+            break
+        default:
+            printf("B")
+            break
+    }
+  }
+  print
+}

@@ -363,10 +363,14 @@ class Parser:
         cases = []
         while self.current().type != TokenType.RBRACE:
             if self.current().type == TokenType.CASE:
-                self.advance()
-                value = self.parse_expression()
-                self.expect(TokenType.COLON)
-                self.skip_newlines()
+                # Collect all consecutive case labels (they share the same statements)
+                case_values = []
+                while self.current().type == TokenType.CASE:
+                    self.advance()
+                    value = self.parse_expression()
+                    self.expect(TokenType.COLON)
+                    self.skip_newlines()
+                    case_values.append(value)
                 
                 # Parse statements until next case/default/rbrace
                 statements = []
@@ -376,7 +380,9 @@ class Parser:
                         statements.append(stmt)
                     self.skip_newlines()
                 
-                cases.append(SwitchCase(value, statements))
+                # Create a SwitchCase for each case value, all sharing the same statements
+                for value in case_values:
+                    cases.append(SwitchCase(value, statements))
             
             elif self.current().type == TokenType.DEFAULT:
                 self.advance()
