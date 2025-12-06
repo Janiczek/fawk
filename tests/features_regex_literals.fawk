@@ -1,0 +1,11 @@
+BEGIN {
+    print "Test: Regex Literals"
+    text = "Hello World"
+    print text ~ /hello/i
+    print text ~ /hello/
+    print text !~ /xyz/
+    result = gsub(/[aeiou]/, "X", "cat bat hat")
+    print result
+    result2 = sub(/o/i, "0", "Hello World")
+    print result2
+}

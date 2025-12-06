@@ -308,14 +308,21 @@ class Lexer:
                 # - Block delimiters: RBRACE, BEGIN, END, BEGINFILE, ENDFILE, FUNCTION
                 # - Operators where expressions can start: AND, OR, NOT, LPAREN, COMMA
                 # - Comparison/match operators: EQ, NE, LT, LE, GT, GE, MATCH, NOT_MATCH
-                # - Other operators: ASSIGN
+                # - Assignment operators: ASSIGN, PLUS_ASSIGN, MINUS_ASSIGN, MULTIPLY_ASSIGN, DIVIDE_ASSIGN
+                # - Ternary: COLON, QUESTION
+                # Note: We do NOT allow regex after arithmetic operators (PLUS, MINUS, MULTIPLY, DIVIDE, etc.)
+                #       because in those contexts, / should be division, not regex.
+                # Note: We do NOT allow regex after RPAREN or RBRACKET because those are typically
+                #       in arithmetic contexts where / should be division.
                 if last_meaningful.type in [
                     TokenType.RBRACE, TokenType.BEGIN, TokenType.END, TokenType.BEGINFILE, TokenType.ENDFILE, TokenType.FUNCTION,
                     TokenType.AND, TokenType.OR, TokenType.NOT,
                     TokenType.LPAREN, TokenType.COMMA,
                     TokenType.EQ, TokenType.NE, TokenType.LT, TokenType.LE, TokenType.GT, TokenType.GE,
                     TokenType.MATCH, TokenType.NOT_MATCH,
-                    TokenType.ASSIGN,
+                    TokenType.ASSIGN, TokenType.PLUS_ASSIGN, TokenType.MINUS_ASSIGN, 
+                    TokenType.MULTIPLY_ASSIGN, TokenType.DIVIDE_ASSIGN,
+                    TokenType.COLON, TokenType.QUESTION,
                 ]:
                     self.tokens.append(self.read_regex())
                     continue

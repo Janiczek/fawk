@@ -53,6 +53,33 @@ class NextFileException(Exception):
     pass
 
 
+class RegexValue:
+    """Represents a regex literal value in expressions (pattern + flags)"""
+    def __init__(self, pattern: str, flags: str = ""):
+        self.pattern = pattern
+        self.flags = flags
+    
+    def get_compiled(self, regex_cache: dict) -> re.Pattern:
+        """Get compiled regex pattern, using cache"""
+        flags_int = 0
+        if 'i' in self.flags:
+            flags_int |= re.IGNORECASE
+        if 'g' in self.flags:
+            # 'g' flag is for global matching, but Python's re doesn't have this
+            # We'll handle it in the matching logic
+            pass
+        if 'm' in self.flags:
+            flags_int |= re.MULTILINE
+        
+        cache_key = (self.pattern, flags_int)
+        if cache_key not in regex_cache:
+            try:
+                regex_cache[cache_key] = re.compile(self.pattern, flags_int)
+            except re.error as e:
+                raise RuntimeError(f"Invalid regex pattern: {e}")
+        return regex_cache[cache_key]
+
+
 class Environment:
     def __init__(self, parent=None):
         self.parent = parent
@@ -1317,16 +1344,20 @@ class Interpreter:
             target = self.current_line
         
         target_str = self.value_to_string(target)
-        pattern_str = self.value_to_string(pattern)
         replacement_str = self.value_to_string(replacement)
         
-        # Cache compiled regex patterns
-        if pattern_str not in self._regex_cache:
-            try:
-                self._regex_cache[pattern_str] = re.compile(pattern_str)
-            except re.error as e:
-                self.error(f"Invalid regex pattern: {e}")
-        compiled_pattern = self._regex_cache[pattern_str]
+        # Handle RegexValue or string pattern
+        if type(pattern) is RegexValue:
+            compiled_pattern = pattern.get_compiled(self._regex_cache)
+        else:
+            pattern_str = self.value_to_string(pattern)
+            # Cache compiled regex patterns
+            if pattern_str not in self._regex_cache:
+                try:
+                    self._regex_cache[pattern_str] = re.compile(pattern_str)
+                except re.error as e:
+                    self.error(f"Invalid regex pattern: {e}")
+            compiled_pattern = self._regex_cache[pattern_str]
         
         # Return the new string (immutable behavior)
         result = compiled_pattern.sub(replacement_str, target_str)
@@ -1338,16 +1369,20 @@ class Interpreter:
             target = self.current_line
         
         target_str = self.value_to_string(target)
-        pattern_str = self.value_to_string(pattern)
         replacement_str = self.value_to_string(replacement)
         
-        # Cache compiled regex patterns
-        if pattern_str not in self._regex_cache:
-            try:
-                self._regex_cache[pattern_str] = re.compile(pattern_str)
-            except re.error as e:
-                self.error(f"Invalid regex pattern: {e}")
-        compiled_pattern = self._regex_cache[pattern_str]
+        # Handle RegexValue or string pattern
+        if type(pattern) is RegexValue:
+            compiled_pattern = pattern.get_compiled(self._regex_cache)
+        else:
+            pattern_str = self.value_to_string(pattern)
+            # Cache compiled regex patterns
+            if pattern_str not in self._regex_cache:
+                try:
+                    self._regex_cache[pattern_str] = re.compile(pattern_str)
+                except re.error as e:
+                    self.error(f"Invalid regex pattern: {e}")
+            compiled_pattern = self._regex_cache[pattern_str]
         
         # Replace only first occurrence and return the new string (immutable behavior)
         result, count = compiled_pattern.subn(replacement_str, target_str, count=1)
@@ -1694,6 +1729,11 @@ class Interpreter:
             return value != ""
         elif value_type is FawkArray:
             return value.length() > 0
+        elif value_type is RegexValue:
+            # RegexValue is truthy if it matches the current line
+            line = self.current_line
+            compiled_pattern = value.get_compiled(self._regex_cache)
+            return bool(compiled_pattern.search(line))
         elif value is None:
             return False
         return True
@@ -2170,6 +2210,12 @@ class Interpreter:
             return str(value)
         elif isinstance(value, bool):
             return "1" if value else "0"
+        elif type(value) is RegexValue:
+            # Convert RegexValue to string representation: /pattern/flags
+            result = f"/{value.pattern}/"
+            if value.flags:
+                result += value.flags
+            return result
         elif isinstance(value, UserFunction):
             return "<function>"
         elif callable(value):
@@ -2324,21 +2370,9 @@ class Interpreter:
         elif op == '~':
             # String ~ pattern: check if string contains/matches pattern
             text = self.value_to_string(left)
-            # If right is a Regex node, get its pattern
-            # Optimized: use type() for faster checks
-            if type(node.right) is Regex:
-                pattern = node.right.pattern
-                flags = 0
-                if 'i' in node.right.flags:
-                    flags |= re.IGNORECASE
-                # Cache compiled regex patterns
-                cache_key = (pattern, flags)
-                if cache_key not in self._regex_cache:
-                    try:
-                        self._regex_cache[cache_key] = re.compile(pattern, flags)
-                    except re.error as e:
-                        self.error(f"Invalid regex pattern: {e}")
-                compiled_pattern = self._regex_cache[cache_key]
+            # Evaluate right operand - it can be a RegexValue or a string
+            if type(right) is RegexValue:
+                compiled_pattern = right.get_compiled(self._regex_cache)
                 return bool(compiled_pattern.search(text))
             else:
                 pattern = self.value_to_string(right)
@@ -2353,20 +2387,9 @@ class Interpreter:
         elif op == '!~':
             # String !~ pattern: check if string does not match pattern
             text = self.value_to_string(left)
-            # If right is a Regex node, get its pattern
-            if isinstance(node.right, Regex):
-                pattern = node.right.pattern
-                flags = 0
-                if 'i' in node.right.flags:
-                    flags |= re.IGNORECASE
-                # Cache compiled regex patterns
-                cache_key = (pattern, flags)
-                if cache_key not in self._regex_cache:
-                    try:
-                        self._regex_cache[cache_key] = re.compile(pattern, flags)
-                    except re.error as e:
-                        self.error(f"Invalid regex pattern: {e}")
-                compiled_pattern = self._regex_cache[cache_key]
+            # Evaluate right operand - it can be a RegexValue or a string
+            if type(right) is RegexValue:
+                compiled_pattern = right.get_compiled(self._regex_cache)
                 return not bool(compiled_pattern.search(text))
             else:
                 pattern = self.value_to_string(right)
@@ -2674,7 +2697,11 @@ class Interpreter:
             elif name == 'ORS':
                 self.ORS = str(value)
             elif name == 'RS':
-                self.RS = str(value)
+                # Allow RS to be a RegexValue or a string
+                if type(value) is RegexValue:
+                    self.RS = value
+                else:
+                    self.RS = str(value)
             elif name == 'OFMT':
                 self.OFMT = str(value)
             elif name == 'CONVFMT':
@@ -3368,21 +3395,9 @@ class Interpreter:
     def eval_String(self, node: String) -> str:
         return node.value
     
-    def eval_Regex(self, node: Regex) -> bool:
-        """Evaluate regex pattern against current line ($0)"""
-        line = self.current_line
-        flags = 0
-        if 'i' in node.flags:
-            flags |= re.IGNORECASE
-        # Cache compiled regex patterns
-        cache_key = (node.pattern, flags)
-        if cache_key not in self._regex_cache:
-            try:
-                self._regex_cache[cache_key] = re.compile(node.pattern, flags)
-            except re.error as e:
-                self.error(f"Invalid regex pattern: {e}")
-        compiled_pattern = self._regex_cache[cache_key]
-        return bool(compiled_pattern.search(line))
+    def eval_Regex(self, node: Regex) -> RegexValue:
+        """Evaluate regex literal - returns a RegexValue for use in expressions"""
+        return RegexValue(node.pattern, node.flags)
     
     def eval_FieldAccess(self, node: FieldAccess) -> Any:
         index = self.eval(node.index)
@@ -3489,6 +3504,49 @@ class Interpreter:
         records = []
         rs = self.RS
         
+        # Handle RegexValue objects
+        if type(rs) is RegexValue:
+            # Use regex pattern with flags
+            try:
+                # Compute flags from RegexValue
+                flags_int = 0
+                if 'i' in rs.flags:
+                    flags_int |= re.IGNORECASE
+                if 'm' in rs.flags:
+                    flags_int |= re.MULTILINE
+                
+                # Use split with capturing group to get both parts and separators
+                parts = re.split(f'({rs.pattern})', input_text, flags=flags_int)
+                
+                # parts will be [text, sep, text, sep, text, ...]
+                for i in range(0, len(parts), 2):
+                    if i < len(parts):
+                        record = parts[i]
+                        # Get terminator (the matched separator)
+                        if i + 1 < len(parts):
+                            terminator = parts[i + 1]
+                        else:
+                            terminator = ""
+                        
+                        # Skip trailing empty records (GAWK compatibility)
+                        # Only skip if this is the last record and it's empty
+                        is_last = (i + 1 >= len(parts))
+                        if is_last and not record:
+                            # Trailing empty record - skip it (GAWK behavior)
+                            continue
+                        
+                        records.append((record, terminator))
+            except re.error:
+                # Invalid regex, treat as literal string
+                parts = input_text.split(rs.pattern)
+                for i, part in enumerate(parts):
+                    if i < len(parts) - 1:
+                        records.append((part, rs.pattern))
+                    elif part:
+                        records.append((part, ""))
+            return records
+        
+        # Handle string RS values
         if rs == "\n":
             # Default: each line is a record
             lines = input_text.split('\n')
