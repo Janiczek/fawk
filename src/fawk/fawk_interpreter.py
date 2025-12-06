@@ -1855,10 +1855,16 @@ class Interpreter:
         return result
     
     def eval_GlobalDecl(self, node: GlobalDecl) -> None:
-        for name in node.names:
+        for name, initial_value in node.declarations:
             self.globals_declared.add(name)
             if name not in self.global_env.vars:
-                self.global_env.set(name, 0)
+                if initial_value is not None:
+                    # Evaluate the initial value expression
+                    value = self.eval(initial_value)
+                    self.global_env.set(name, value)
+                else:
+                    # Default to 0 if no initial value provided
+                    self.global_env.set(name, 0)
     
     def eval_IfStmt(self, node: IfStmt) -> Any:
         condition = self.eval(node.condition)

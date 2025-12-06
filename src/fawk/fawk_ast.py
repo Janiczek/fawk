@@ -4,7 +4,7 @@ Defines all AST node classes
 """
 
 from dataclasses import dataclass
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Tuple
 
 
 @dataclass
@@ -42,7 +42,9 @@ class Block(ASTNode):
 
 @dataclass
 class GlobalDecl(ASTNode):
-    names: List[str]
+    # List of (name, optional_initial_value) tuples
+    # If initial_value is None, the variable is initialized to 0
+    declarations: List[Tuple[str, Optional[ASTNode]]]
 
 
 @dataclass

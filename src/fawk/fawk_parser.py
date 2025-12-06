@@ -191,14 +191,36 @@ class Parser:
     
     def parse_global_decl(self) -> GlobalDecl:
         self.expect(TokenType.GLOBAL)
-        names = [self.expect(TokenType.IDENTIFIER).value]
+        declarations = []
         
+        # Parse first declaration
+        name = self.expect(TokenType.IDENTIFIER).value
+        initial_value = None
+        
+        # Check if there's an assignment
+        if self.current().type == TokenType.ASSIGN:
+            self.advance()
+            self.skip_newlines()  # Allow newlines after =
+            initial_value = self.parse_expression()
+        
+        declarations.append((name, initial_value))
+        
+        # Parse additional declarations separated by commas
         while self.current().type == TokenType.COMMA:
             self.advance()
-            names.append(self.expect(TokenType.IDENTIFIER).value)
+            name = self.expect(TokenType.IDENTIFIER).value
+            initial_value = None
+            
+            # Check if there's an assignment
+            if self.current().type == TokenType.ASSIGN:
+                self.advance()
+                self.skip_newlines()  # Allow newlines after =
+                initial_value = self.parse_expression()
+            
+            declarations.append((name, initial_value))
         
         self.skip_statement_terminator()
-        return GlobalDecl(names)
+        return GlobalDecl(declarations)
     
     def parse_delete_stmt(self):
         from .fawk_ast import DeleteStmt

@@ -1,0 +1,16 @@
+BEGIN {
+    global x = 1
+    global y = 2, z = 3
+    global a = 10, b  # b should default to 0
+    global sum = x + y + z
+}
+
+END {
+    print x
+    print y
+    print z
+    print a
+    print b
+    print sum
+}
+
