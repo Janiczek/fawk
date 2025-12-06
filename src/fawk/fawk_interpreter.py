@@ -429,6 +429,7 @@ class Interpreter:
             ('max', 'value, [value2]', 'value'),
         ],
         'I/O functions': [
+            ('print', '...', 'int'),
             ('printf', 'fmt, ...', 'int'),
             ('sprintf', 'fmt, ...', 'string'),
             ('close', 'filename_or_cmd', 'number'),
@@ -549,8 +550,8 @@ class Interpreter:
             fawk_ast.ContinueStmt: self.eval_ContinueStmt,
             fawk_ast.DeleteStmt: self.eval_DeleteStmt,
             fawk_ast.DelarrayStmt: self.eval_DelarrayStmt,
-            fawk_ast.PrintStmt: self.eval_PrintStmt,
-            fawk_ast.PrintfStmt: self.eval_PrintfStmt,
+            fawk_ast.PrintWithRedirectStmt: self.eval_PrintWithRedirectStmt,
+            fawk_ast.PrintfWithRedirectStmt: self.eval_PrintfWithRedirectStmt,
             fawk_ast.ExprStmt: self.eval_ExprStmt,
             fawk_ast.BinaryOp: self.eval_BinaryOp,
             fawk_ast.UnaryOp: self.eval_UnaryOp,
@@ -1125,6 +1126,16 @@ class Interpreter:
                 return value
             else:
                 return value2
+    
+    def builtin_print(self, *args):
+        """Print arguments joined with OFS, followed by ORS"""
+        if not args:
+            output = ""
+        else:
+            values = [self.value_to_string(arg) for arg in args]
+            output = self.OFS.join(values)
+        print(output, end=self.ORS)
+        return len(output) + len(self.ORS)
     
     def builtin_printf(self, fmt, *args):
         """Print formatted output"""
@@ -2078,7 +2089,9 @@ class Interpreter:
             elif name in self.global_env.vars:
                 del self.global_env.vars[name]
     
-    def eval_PrintStmt(self, node: PrintStmt) -> None:
+    def eval_PrintWithRedirectStmt(self, node) -> None:
+        from .fawk_ast import PrintWithRedirectStmt
+        
         # Prepare output string
         if not node.args:
             output = ""
@@ -2086,15 +2099,11 @@ class Interpreter:
             values = [self.value_to_string(self.eval(arg)) for arg in node.args]
             output = self.OFS.join(values)
         
-        # Handle redirection
-        if node.redirect_type and node.redirect_target:
-            self._write_redirected(output + self.ORS, node.redirect_type, node.redirect_target)
-        else:
-            # No redirection, print to stdout
-            print(output, end=self.ORS)
+        # Handle redirection (redirect fields are now required)
+        self._write_redirected(output + self.ORS, node.redirect_type, node.redirect_target)
     
-    def eval_PrintfStmt(self, node: 'PrintfStmt') -> None:
-        from .fawk_ast import PrintfStmt
+    def eval_PrintfWithRedirectStmt(self, node) -> None:
+        from .fawk_ast import PrintfWithRedirectStmt
         
         # Printf requires at least a format string
         if not node.args:
@@ -2110,12 +2119,8 @@ class Interpreter:
         # Format the output
         output = self.format_string(fmt, values)
         
-        # Handle redirection
-        if node.redirect_type and node.redirect_target:
-            self._write_redirected(output, node.redirect_type, node.redirect_target)
-        else:
-            # No redirection, print to stdout (no ORS for printf)
-            print(output, end='')
+        # Handle redirection (redirect fields are now required)
+        self._write_redirected(output, node.redirect_type, node.redirect_target)
     
     def _write_redirected(self, output: str, redirect_type: str, redirect_target) -> None:
         """Helper method to write output to a redirected file or stream"""

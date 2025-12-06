@@ -1,0 +1,25 @@
+Test: print() and printf() in pipelines
+--------------------------------------
+
+1. Using print() in pipeline:
+hello
+world
+hello world
+
+2. Using printf() in pipeline:
+  Piped to printf: test
+  Another: value
+
+3. Pipeline inside print() arguments:
+  Result: 12
+  Filtered: 6
+
+4. Pipeline inside printf() arguments:
+  Formatted: 60
+  String: 0
+
+5. Chained pipelines with printf:
+  Chained result: 120
+
+6. printf() with mixed arguments:
+  Count: 3, Sum: 6

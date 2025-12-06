@@ -174,7 +174,13 @@ class Parser:
         elif token.type == TokenType.DELARRAY:
             return self.parse_delarray_stmt()
         elif token.type == TokenType.PRINT:
-            return self.parse_print_stmt()
+            # Check if followed by ( - if so, parse as function call expression
+            if self.peek(1).type == TokenType.LPAREN:
+                # Parse as normal expression (function call)
+                return self.parse_expr_stmt()
+            else:
+                # Parse as print statement (may have redirects)
+                return self.parse_print_stmt()
         elif token.type == TokenType.LBRACE:
             return self.parse_block()
         elif token.type in [TokenType.NEWLINE, TokenType.SEMICOLON]:
@@ -425,49 +431,42 @@ class Parser:
         self.skip_statement_terminator()
         return ExitStmt(code)
     
-    def parse_print_stmt(self) -> PrintStmt:
+    def parse_print_stmt(self):
+        """Parse print statement - only used when print keyword is NOT followed by ("""
+        from .fawk_ast import PrintWithRedirectStmt, FunctionCall, Identifier, ExprStmt
         self.expect(TokenType.PRINT)
         args = []
         
-        # Consume opening parenthesis if present (print supports both print "x" and print("x"))
-        has_paren = False
-        if self.current().type == TokenType.LPAREN:
-            self.advance()
-            has_paren = True
-        
         # Parse print arguments (stop before comparison operators to allow redirection)
         if self.current().type not in [TokenType.NEWLINE, TokenType.SEMICOLON, TokenType.RBRACE, 
-                                        TokenType.GT, TokenType.REDIRECT_APPEND, TokenType.RPAREN]:
+                                        TokenType.GT, TokenType.REDIRECT_APPEND]:
             # Parse arguments at concatenation level (before comparisons)
             args.append(self.parse_print_arg())
             while self.current().type == TokenType.COMMA:
                 self.advance()
-                # Check if we hit a redirection operator or closing paren
-                if self.current().type in [TokenType.GT, TokenType.REDIRECT_APPEND, TokenType.RPAREN]:
+                # Check if we hit a redirection operator
+                if self.current().type in [TokenType.GT, TokenType.REDIRECT_APPEND]:
                     break
                 args.append(self.parse_print_arg())
         
-        # Consume closing parenthesis if we consumed opening one
-        if has_paren:
-            if self.current().type == TokenType.RPAREN:
-                self.advance()
-            # If no closing paren, that's okay - print can work without it
-        
         # Check for redirection
-        redirect_type = None
-        redirect_target = None
-        
         if self.current().type == TokenType.GT:
             redirect_type = ">"
             self.advance()
             redirect_target = self.parse_expression()
+            self.skip_statement_terminator()
+            return PrintWithRedirectStmt(args, redirect_type, redirect_target)
         elif self.current().type == TokenType.REDIRECT_APPEND:
             redirect_type = ">>"
             self.advance()
             redirect_target = self.parse_expression()
-        
-        self.skip_statement_terminator()
-        return PrintStmt(args, redirect_type, redirect_target)
+            self.skip_statement_terminator()
+            return PrintWithRedirectStmt(args, redirect_type, redirect_target)
+        else:
+            # No redirect - parse as normal function call
+            func_call = FunctionCall(Identifier("print"), args)
+            self.skip_statement_terminator()
+            return ExprStmt(func_call)
     
     def parse_print_arg(self) -> ASTNode:
         """Parse a print argument (stops before assignment/pipeline)"""
@@ -481,57 +480,54 @@ class Parser:
         finally:
             self.in_print_context = saved
     
-    def parse_printf_stmt(self) -> 'PrintfStmt':
-        from .fawk_ast import PrintfStmt
-        self.expect(TokenType.PRINTF)
-        args = []
-        
-        # Parse printf arguments (stop before comparison operators to allow redirection)
-        if self.current().type not in [TokenType.NEWLINE, TokenType.SEMICOLON, TokenType.RBRACE, 
-                                        TokenType.GT, TokenType.REDIRECT_APPEND]:
-            args.append(self.parse_print_arg())
-            while self.current().type == TokenType.COMMA:
-                self.advance()
-                # Check if we hit a redirection operator
-                if self.current().type in [TokenType.GT, TokenType.REDIRECT_APPEND]:
-                    break
-                args.append(self.parse_print_arg())
-        
-        # Check for redirection
-        redirect_type = None
-        redirect_target = None
-        
-        if self.current().type == TokenType.GT:
-            redirect_type = ">"
-            self.advance()
-            redirect_target = self.parse_expression()
-        elif self.current().type == TokenType.REDIRECT_APPEND:
-            redirect_type = ">>"
-            self.advance()
-            redirect_target = self.parse_expression()
-        
-        self.skip_statement_terminator()
-        return PrintfStmt(args, redirect_type, redirect_target)
     
     def parse_expr_stmt(self):
+        from .fawk_ast import PrintWithRedirectStmt, PrintfWithRedirectStmt, FunctionCall, Identifier, ExprStmt
         # For printf/print detection, we need to parse carefully
         # Check if this might be a printf/print call before parsing full expression
-        if self.current().type == TokenType.IDENTIFIER and self.current().value in ['printf', 'print']:
+        # Handle both IDENTIFIER (printf) and PRINT keyword (print)
+        is_print_or_printf = False
+        func_name = None
+        
+        if self.current().type == TokenType.IDENTIFIER and self.current().value == 'printf':
+            is_print_or_printf = True
+            func_name = 'printf'
+        elif self.current().type == TokenType.PRINT:
+            is_print_or_printf = True
+            func_name = 'print'
+        
+        if is_print_or_printf:
             saved_pos = self.pos
-            func_name = self.current().value
+            # Advance past the identifier/keyword
             self.advance()
             
             # Check if followed by LPAREN (function call)
             if self.current().type == TokenType.LPAREN:
-                # Reset and parse as expression, but stop before comparisons
-                self.pos = saved_pos
-                # Set print context to prevent > from being consumed as comparison
-                saved_context = self.in_print_context
-                self.in_print_context = True
-                try:
-                    expr = self.parse_expression()
-                finally:
-                    self.in_print_context = saved_context
+                # Parse as function call manually
+                self.advance()  # consume LPAREN
+                self.skip_newlines()  # Allow newlines after opening paren
+                args = []
+                
+                # Parse arguments
+                if self.current().type != TokenType.RPAREN:
+                    # Set print context to prevent > from being consumed as comparison
+                    saved_context = self.in_print_context
+                    self.in_print_context = True
+                    try:
+                        args.append(self.parse_expression())
+                        while self.current().type == TokenType.COMMA:
+                            self.advance()
+                            self.skip_newlines()  # Allow newlines after comma
+                            args.append(self.parse_expression())
+                    finally:
+                        self.in_print_context = saved_context
+                
+                self.skip_newlines()  # Allow newlines before closing paren
+                self.expect(TokenType.RPAREN)
+                
+                # Create function call
+                func_ident = Identifier(func_name)
+                expr = FunctionCall(func_ident, args)
                 
                 # Now check for redirection operators
                 if self.current().type in [TokenType.GT, TokenType.REDIRECT_APPEND]:
@@ -545,14 +541,12 @@ class Parser:
                     finally:
                         self.in_print_context = saved_context2
                     
-                    # Convert to appropriate statement with redirection
                     if func_name == 'printf':
-                        from .fawk_ast import PrintfStmt
                         self.skip_statement_terminator()
-                        return PrintfStmt(expr.args, redirect_type, redirect_target)
+                        return PrintfWithRedirectStmt(expr.args, redirect_type, redirect_target)
                     else:  # print
                         self.skip_statement_terminator()
-                        return PrintStmt(expr.args, redirect_type, redirect_target)
+                        return PrintWithRedirectStmt(expr.args, redirect_type, redirect_target)
                 
                 self.skip_statement_terminator()
                 return ExprStmt(expr)
@@ -866,14 +860,17 @@ class Parser:
             if self.current().type == TokenType.LPAREN:
                 # Function call
                 self.advance()
+                self.skip_newlines()  # Allow newlines after opening paren
                 args = []
                 
                 if self.current().type != TokenType.RPAREN:
                     args.append(self.parse_expression())
                     while self.current().type == TokenType.COMMA:
                         self.advance()
+                        self.skip_newlines()  # Allow newlines after comma
                         args.append(self.parse_expression())
                 
+                self.skip_newlines()  # Allow newlines before closing paren
                 self.expect(TokenType.RPAREN)
                 expr = FunctionCall(expr, args)
             
@@ -1001,6 +998,11 @@ class Parser:
             self.advance()
             return Identifier(token.value)
         
+        elif token.type == TokenType.PRINT:
+            # Allow print keyword to be used as identifier in expressions (for pipelines, etc.)
+            self.advance()
+            return Identifier("print")
+        
         elif token.type == TokenType.DOLLAR:
             self.advance()
             index = self.parse_unary()
@@ -1096,7 +1098,13 @@ class Parser:
         
         self.expect(TokenType.RPAREN)
         self.expect(TokenType.ARROW)
-        body = self.parse_block()
+        # Disable print context inside lambda body (blocks are expressions, not print statements)
+        saved_context = self.in_print_context
+        self.in_print_context = False
+        try:
+            body = self.parse_block()
+        finally:
+            self.in_print_context = saved_context
         
         return Lambda(params, body)
     

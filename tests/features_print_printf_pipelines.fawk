@@ -1,0 +1,43 @@
+BEGIN {
+    print "Test: print() and printf() in pipelines"
+    print "--------------------------------------"
+    
+    # Test 1: print() in a pipeline
+    print "\n1. Using print() in pipeline:"
+    "hello" |> print()
+    "world" |> print()
+    "world" |> print("hello")
+    
+    # Test 2: printf() in a pipeline
+    print "\n2. Using printf() in pipeline:"
+    "test" |> printf("  Piped to printf: %s\n")
+    "value" |> printf("  Another: %s\n")
+    
+    # Test 3: Pipeline inside print() arguments
+    print "\n3. Pipeline inside print() arguments:"
+    print("  Result:", [1, 2, 3] |> map((x) => { x * 2 }) |> sum())
+    print("  Filtered:", [1, 2, 3, 4, 5] |> filter((x) => { x % 2 == 0 }) |> sum())
+    
+    # Test 4: Pipeline inside printf() arguments
+    print "\n4. Pipeline inside printf() arguments:"
+    printf("  Formatted: %d\n", [10, 20, 30] |> reduce((acc, x) => { acc + x }, 0))
+    printf("  String: %s\n", ["a", "b", "c"] |> reduce((acc, x) => { acc + x }, ""))
+    
+    # Test 5: Chained pipelines with printf
+    print "\n5. Chained pipelines with printf:"
+    printf(
+        "  Chained result: %d\n", 
+        [1, 2, 3, 4, 5]
+            |> filter((x) => { x > 2 })
+            |> map((x) => { x * 10 })
+            |> reduce((acc, x) => { acc + x }, 0)
+    )
+    
+    # Test 6: printf with multiple arguments including pipelines
+    print "\n6. printf() with mixed arguments:"
+    printf(
+        "  Count: %d, Sum: %d\n",
+        length([1, 2, 3]),
+        [1, 2, 3] |> reduce((acc, x) => { acc + x }, 0)
+    )
+}
