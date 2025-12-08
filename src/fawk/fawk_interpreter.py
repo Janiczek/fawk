@@ -424,7 +424,7 @@ class Interpreter:
             ('set_union', 'set1, set2', 'array'),
             ('set_intersection', 'set1, set2', 'array'),
             ('set_diff', 'set1, set2', 'array'),
-            ('sort', 'array, [key]', 'array'),
+            ('sort', '[key], array', 'array'),
             ('sorti', 'array', 'array'),
             ('range', 'start, end', 'array'),
         ],
@@ -816,17 +816,28 @@ class Interpreter:
             # Other types (bool, None, etc.) - convert to string
             return (1, self.value_to_string(value))
     
-    def builtin_sort(self, source, key_func=None):
+    def builtin_sort(self, *args):
         """
         Sort array values. Returns a new array with sorted values.
         The source array is not modified.
         
         Args:
-            source: Array to sort
-            key_func: Optional function to compute sort key for each element.
-                     If provided, the function is called with each value and
-                     the result is used for sorting.
+            *args: Either (array) or (key_func, array)
+                - If 1 argument: array to sort
+                - If 2 arguments: key_func (function to compute sort key), then array
         """
+        # Handle argument order: sort(keyfn, array) or sort(array)
+        if len(args) == 1:
+            # Single argument: it's the array
+            source = args[0]
+            key_func = None
+        elif len(args) == 2:
+            # Two arguments: first is key_func, second is source
+            key_func = args[0]
+            source = args[1]
+        else:
+            raise RuntimeError(f"sort() expects 1 or 2 arguments, got {len(args)}")
+        
         if not isinstance(source, FawkArray):
             raise RuntimeError("sort() requires an array as argument")
         
