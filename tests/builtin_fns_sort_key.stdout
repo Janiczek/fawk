@@ -1,0 +1,46 @@
+=== sort() Function with Key Parameter Tests ===
+
+1. Reverse sort (negate number):
+   Original:  [3, 1, 4, 1, 5, 9, 2, 6]
+   Original unchanged:  [3, 1, 4, 1, 5, 9, 2, 6]
+   Sorted result (descending):  [9, 6, 5, 4, 3, 2, 1, 1]
+
+2. String length sort:
+   Original:  ["zebra", "apple", "banana", "cherry", "a", "hello", "hi"]
+   Original unchanged:  ["zebra", "apple", "banana", "cherry", "a", "hello", "hi"]
+   Sorted result (by length):  ["a", "hi", "zebra", "apple", "hello", "banana", "cherry"]
+
+3. Reverse string length sort:
+   Original:  ["a", "hi", "hello", "apple", "banana", "zebra"]
+   Original unchanged:  ["a", "hi", "hello", "apple", "banana", "zebra"]
+   Sorted result (by length, descending):  ["banana", "hello", "apple", "zebra", "hi", "a"]
+
+4. Mixed numbers - reverse sort:
+   Original:  [10, 2, 8, 1, 9, 5, 3]
+   Original unchanged:  [10, 2, 8, 1, 9, 5, 3]
+   Sorted result (descending):  [10, 9, 8, 5, 3, 2, 1]
+
+5. String length sort with same lengths:
+   Original:  ["cat", "dog", "bat", "rat", "a", "z", "hi", "go"]
+   Original unchanged:  ["cat", "dog", "bat", "rat", "a", "z", "hi", "go"]
+   Sorted result (by length):  ["a", "z", "hi", "go", "cat", "dog", "bat", "rat"]
+
+6. Using a named function for key:
+   Original:  [5, 2, 8, 1, 9]
+   Original unchanged:  [5, 2, 8, 1, 9]
+   Sorted result (using negate function):  [9, 8, 5, 2, 1]
+
+7. String length using named function:
+   Original:  ["hello", "a", "world", "hi", "test"]
+   Original unchanged:  ["hello", "a", "world", "hi", "test"]
+   Sorted result (using str_len function):  ["a", "hi", "test", "hello", "world"]
+
+8. Empty array with key function:
+   Original:  []
+   Sorted result:  []
+
+9. Single element with key function:
+   Original:  [42]
+   Sorted result:  [42]
+
+=== All sort() with Key Parameter Tests Complete ===

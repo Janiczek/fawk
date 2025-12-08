@@ -424,7 +424,7 @@ class Interpreter:
             ('set_union', 'set1, set2', 'array'),
             ('set_intersection', 'set1, set2', 'array'),
             ('set_diff', 'set1, set2', 'array'),
-            ('sort', 'array', 'array'),
+            ('sort', 'array, [key]', 'array'),
             ('sorti', 'array', 'array'),
             ('range', 'start, end', 'array'),
         ],
@@ -816,10 +816,16 @@ class Interpreter:
             # Other types (bool, None, etc.) - convert to string
             return (1, self.value_to_string(value))
     
-    def builtin_sort(self, source):
+    def builtin_sort(self, source, key_func=None):
         """
         Sort array values. Returns a new array with sorted values.
         The source array is not modified.
+        
+        Args:
+            source: Array to sort
+            key_func: Optional function to compute sort key for each element.
+                     If provided, the function is called with each value and
+                     the result is used for sorting.
         """
         if not isinstance(source, FawkArray):
             raise RuntimeError("sort() requires an array as argument")
@@ -830,8 +836,19 @@ class Interpreter:
             value = source.get(key)
             items.append((key, value))
         
-        # Sort by value using our key function
-        items.sort(key=lambda x: self._sort_value_key(x[1]))
+        # Sort by value using key function if provided, otherwise use default
+        if key_func is not None:
+            # Use custom key function
+            def sort_key(item):
+                value = item[1]
+                # Call the key function with the value
+                key_value = self.call_function(key_func, [value])
+                # Use the same sorting logic as default, but on the key function result
+                return self._sort_value_key(key_value)
+            items.sort(key=sort_key)
+        else:
+            # Default sorting
+            items.sort(key=lambda x: self._sort_value_key(x[1]))
         
         # Create new array with sorted values (1-indexed)
         result = FawkArray()

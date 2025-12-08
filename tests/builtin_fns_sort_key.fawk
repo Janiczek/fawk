@@ -1,0 +1,95 @@
+# Test: sort() function with key parameter
+
+function negate(x) {
+    return -x
+}
+
+function str_len(x) {
+    return length(x)
+}
+
+BEGIN {
+    print "=== sort() Function with Key Parameter Tests ==="
+    print ""
+    
+    # 1. Reverse sort (negate the number)
+    print "1. Reverse sort (negate number):"
+    arr1 = [3, 1, 4, 1, 5, 9, 2, 6]
+    print "   Original: ", arr1
+    sorted1 = sort(arr1, (x) => { -x })
+    print "   Original unchanged: ", arr1
+    print "   Sorted result (descending): ", sorted1
+    print ""
+    
+    # 2. String length sort
+    print "2. String length sort:"
+    arr2 = ["zebra", "apple", "banana", "cherry", "a", "hello", "hi"]
+    print "   Original: ", arr2
+    sorted2 = sort(arr2, (x) => { length(x) })
+    print "   Original unchanged: ", arr2
+    print "   Sorted result (by length): ", sorted2
+    print ""
+    
+    # 3. Reverse string length sort
+    print "3. Reverse string length sort:"
+    arr3 = ["a", "hi", "hello", "apple", "banana", "zebra"]
+    print "   Original: ", arr3
+    sorted3 = sort(arr3, (x) => { -length(x) })
+    print "   Original unchanged: ", arr3
+    print "   Sorted result (by length, descending): ", sorted3
+    print ""
+    
+    # 4. Mixed numbers - reverse sort
+    print "4. Mixed numbers - reverse sort:"
+    arr4 = [10, 2, 8, 1, 9, 5, 3]
+    print "   Original: ", arr4
+    sorted4 = sort(arr4, (x) => { -x })
+    print "   Original unchanged: ", arr4
+    print "   Sorted result (descending): ", sorted4
+    print ""
+    
+    # 5. String length with same lengths (should maintain stable order)
+    print "5. String length sort with same lengths:"
+    arr5 = ["cat", "dog", "bat", "rat", "a", "z", "hi", "go"]
+    print "   Original: ", arr5
+    sorted5 = sort(arr5, (x) => { length(x) })
+    print "   Original unchanged: ", arr5
+    print "   Sorted result (by length): ", sorted5
+    print ""
+    
+    # 6. Using a named function for key
+    print "6. Using a named function for key:"
+    arr6 = [5, 2, 8, 1, 9]
+    print "   Original: ", arr6
+    sorted6 = sort(arr6, negate)
+    print "   Original unchanged: ", arr6
+    print "   Sorted result (using negate function): ", sorted6
+    print ""
+    
+    # 7. String length using named function
+    print "7. String length using named function:"
+    arr7 = ["hello", "a", "world", "hi", "test"]
+    print "   Original: ", arr7
+    sorted7 = sort(arr7, str_len)
+    print "   Original unchanged: ", arr7
+    print "   Sorted result (using str_len function): ", sorted7
+    print ""
+    
+    # 8. Empty array with key function
+    print "8. Empty array with key function:"
+    empty = []
+    sorted8 = sort(empty, (x) => { -x })
+    print "   Original: ", empty
+    print "   Sorted result: ", sorted8
+    print ""
+    
+    # 9. Single element with key function
+    print "9. Single element with key function:"
+    single = [42]
+    sorted9 = sort(single, (x) => { -x })
+    print "   Original: ", single
+    print "   Sorted result: ", sorted9
+    print ""
+    
+    print "=== All sort() with Key Parameter Tests Complete ==="
+}
