@@ -6,7 +6,7 @@ BEGIN {
     
     # 1. Simple numeric array
     print "1. Simple numeric array:"
-    arr1 = [3, 1, 4, 1, 5, 9, 2, 6]
+    arr1 = [3, 1, 4, 1, 11, 5, 9, 2, 6]
     print "   Original: ", arr1
     sorted1 = sort(arr1)
     print "   Original unchanged: ", arr1
@@ -180,6 +180,15 @@ BEGIN {
     sorted20 = sort(multidim4)
     print "   Original unchanged: ", multidim4
     print "   Sorted result: ", sorted20
+    print ""
+
+    # 21. Nested arrays
+    print "21. Nested arrays"
+    nested = [[5,3],[9,1],[2,8],[11,2]]
+    print "   Original: ", nested
+    nested2 = sort(nested)
+    print "   Original unchanged: ", nested
+    print "   Sorted result: ", nested2
     print ""
     
     print "=== All sort() Tests Complete ==="

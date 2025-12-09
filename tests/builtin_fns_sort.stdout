@@ -1,9 +1,9 @@
 === sort() Function Tests ===
 
 1. Simple numeric array:
-   Original:  [3, 1, 4, 1, 5, 9, 2, 6]
-   Original unchanged:  [3, 1, 4, 1, 5, 9, 2, 6]
-   Sorted result:  [1, 1, 2, 3, 4, 5, 6, 9]
+   Original:  [3, 1, 4, 1, 11, 5, 9, 2, 6]
+   Original unchanged:  [3, 1, 4, 1, 11, 5, 9, 2, 6]
+   Sorted result:  [1, 1, 2, 3, 4, 5, 6, 9, 11]
 
 2. String array:
    Original:  ["zebra", "apple", "banana", "cherry"]
@@ -97,5 +97,10 @@
    Original:  ["row1col1" => 100, "row2col1" => 50, "row1col2" => 75]
    Original unchanged:  ["row1col1" => 100, "row2col1" => 50, "row1col2" => 75]
    Sorted result:  [50, 75, 100]
+
+21. Nested arrays
+   Original:  [[5, 3], [9, 1], [2, 8], [11, 2]]
+   Original unchanged:  [[5, 3], [9, 1], [2, 8], [11, 2]]
+   Sorted result:  [[2, 8], [5, 3], [9, 1], [11, 2]]
 
 === All sort() Tests Complete ===

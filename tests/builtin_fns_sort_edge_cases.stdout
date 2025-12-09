@@ -18,7 +18,7 @@
 4. sort() with empty nested arrays:
    Original:  [[], [1, 2], []]
    Original unchanged:  [[], [1, 2], []]
-   Sorted result:  [[1, 2], [], []]
+   Sorted result:  [[], [], [1, 2]]
 
 5. sort() on associative array with int keys:
    Original:  [10 => "ten", 2 => "two", 5 => "five"]

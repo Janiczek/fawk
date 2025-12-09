@@ -802,7 +802,19 @@ class Interpreter:
         if value_type is int or value_type is float:
             return (0, self.to_number(value))  # Category 0: numeric
         elif value_type is FawkArray:
-            return (2, str(value))  # Category 2: arrays (compare by string representation)
+            # Category 2: arrays - compare element-by-element recursively
+            # For regular arrays (1-based consecutive), get elements in order
+            if not value.is_associative():
+                # Regular array: get elements in index order (1, 2, 3, ...)
+                max_idx = max(value.data.keys()) if value.data else 0
+                elements = [value.data.get(i) for i in range(1, max_idx + 1)]
+            else:
+                # Associative array: get values in sorted key order for consistent comparison
+                sorted_keys = sorted(value.data.keys(), key=lambda k: self._sort_value_key(k))
+                elements = [value.data.get(k) for k in sorted_keys]
+            # Create tuple of sort keys for each element (recursive)
+            element_keys = tuple(self._sort_value_key(elem) for elem in elements)
+            return (2, element_keys)  # Category 2: arrays (compare element-by-element)
         elif value_type is str:
             # Check if string is numeric
             if value:

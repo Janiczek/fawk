@@ -173,7 +173,7 @@
 33. Mixed nested arrays - min:
    Array:  [[1, 2], ["a" => 3, "b" => 4], [5, 6]]
    Original unchanged:  [[1, 2], ["a" => 3, "b" => 4], [5, 6]]
-   min(nested5):  ["a" => 3, "b" => 4]
+   min(nested5):  [1, 2]
 
 34. Mixed nested arrays - max:
    Array:  [[1, 2], ["a" => 3, "b" => 4], [5, 6]]
