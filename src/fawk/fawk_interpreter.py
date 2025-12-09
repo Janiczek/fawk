@@ -440,6 +440,7 @@ class Interpreter:
             ('index', 'needle, haystack', 'int'),
         ],
         'Math functions': [
+            ('abs', 'x', 'number'),
             ('atan2', 'y, x', 'number'),
             ('cos', 'x', 'number'),
             ('sin', 'x', 'number'),
@@ -1012,6 +1013,16 @@ class Interpreter:
             return value
         else:
             return float(value)
+    
+    def builtin_abs(self, x):
+        """Absolute value of x"""
+        if self.use_high_precision():
+            import mpmath
+            mpmath.mp.dps = self.PREC  # decimal places of precision
+            result = mpmath.fabs(mpmath.mpf(str(x)))
+            return Decimal(str(result))
+        else:
+            return abs(self.to_number(x))
     
     def builtin_atan2(self, y, x):
         """Arctangent of y/x in radians"""

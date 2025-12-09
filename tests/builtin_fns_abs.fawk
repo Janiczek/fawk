@@ -1,0 +1,15 @@
+# Test: abs() function
+
+BEGIN {
+    print "abs(3.7) =", abs(3.7)
+    print "abs(-3.7) =", abs(-3.7)
+    print "abs(3.0) =", abs(3.0)
+    print "abs(-3.0) =", abs(-3.0)
+    print "abs(0.0) =", abs(0.0)
+    print "abs(0.5) =", abs(0.5)
+    print "abs(-0.5) =", abs(-0.5)
+    print "abs(10.9) =", abs(10.9)
+    print "abs(-10.9) =", abs(-10.9)
+    print "abs(-42) =", abs(-42)
+    print "abs(42) =", abs(42)
+}
